@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>本草智识 - AI中药识别</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #f0f9f4;
+      color: #333;
+      font-size: 14px;
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .nav-bar {
+      background: linear-gradient(135deg, #2d8b5e, #3da878);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-bar .title { font-size: 18px; font-weight: 600; }
+    .nav-bar .back { font-size: 20px; cursor: pointer; width: 32px; }
+    .nav-bar .spacer { width: 32px; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      overflow: hidden;
+      word-break: break-word;
+    }
+    .section-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #2d8b5e;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+    }
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 18px;
+      background: #2d8b5e;
+      border-radius: 2px;
+      margin-right: 8px;
+    }
+
+    .banner {
+      background: linear-gradient(135deg, #2d8b5e, #3da878);
+      padding: 40px 24px 50px;
+    }
+    .banner-title { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .banner-subtitle { font-size: 14px; color: rgba(255,255,255,0.9); }
+
+    .action-btns { display: flex; justify-content: space-around; padding: 10px 0; }
+    .action-btn { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .action-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 8px;
+    }
+    .action-icon.cam { background: rgba(45, 139, 94, 0.08); }
+    .action-icon.alb { background: rgba(59, 130, 246, 0.08); }
+    .action-icon.qz { background: rgba(245, 158, 11, 0.08); }
+    .action-text { font-size: 13px; color: #333; }
+
+    .btn {
+      display: block; width: 100%; padding: 14px;
+      border-radius: 20px; font-size: 16px; text-align: center;
+      border: none; cursor: pointer; margin-bottom: 10px;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .btn:active { opacity: 0.85; transform: scale(0.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, #2d8b5e, #3da878);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: #fff; color: #2d8b5e;
+      border: 1px solid #2d8b5e;
+    }
+
+    .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .quiz-tag {
+      font-size: 12px; color: #F59E0B; background: rgba(245, 158, 11, 0.1);
+      padding: 2px 10px; border-radius: 20px;
+    }
+    .quiz-question { font-size: 15px; color: #333; line-height: 1.6; margin-bottom: 14px; font-weight: 500; }
+    .quiz-footer { display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid #f0f9f4; }
+    .quiz-go { color: #2d8b5e; font-weight: 500; }
+
+    .herb-list { display: flex; flex-wrap: wrap; gap: 10px; }
+    .herb-item {
+      width: calc(33.33% - 7px); border-radius: 8px; overflow: hidden;
+      background: #f8fafc; cursor: pointer;
+    }
+    .herb-item .herb-visual { width: 100%; height: 90px; display: flex; align-items: center; justify-content: center; }
+    .herb-info { padding: 6px; text-align: center; }
+    .herb-info .name { font-size: 14px; font-weight: 500; }
+    .herb-info .cat { font-size: 11px; color: #999; }
+
+    .preview-area {
+      margin: 16px; height: 300px; background: #000;
+      border-radius: 12px; overflow: hidden; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .preview-area img { width: 100%; height: 100%; object-fit: contain; }
+    .preview-mask {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.6);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #fff;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #2d8b5e; border-radius: 50%;
+      animation: spin 1s linear infinite; margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .placeholder {
+      width: 100%; height: 300px;
+      background: linear-gradient(135deg, rgba(45,139,94,0.08), rgba(61,168,120,0.08));
+      border: 2px dashed #2d8b5e; border-radius: 12px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      margin: 16px;
+    }
+    .placeholder .icon { font-size: 56px; margin-bottom: 12px; }
+    .placeholder .text { font-size: 16px; color: #2d8b5e; font-weight: 500; }
+    .placeholder .desc { font-size: 13px; color: #666; margin-top: 6px; }
+
+    .herb-hero { position: relative; height: 260px; overflow: hidden; }
+    .herb-hero .hero-bg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .herb-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 140px; background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    }
+    .herb-title-area {
+      position: absolute; bottom: 20px; left: 20px; right: 20px; color: #fff;
+    }
+    .herb-title-area .name { font-size: 28px; font-weight: 700; }
+    .herb-title-area .pinyin { font-size: 14px; opacity: 0.9; }
+    .herb-title-area .alias { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+
+    .info-row { display: flex; margin-bottom: 12px; }
+    .info-item { flex: 1; }
+    .info-item .label { font-size: 12px; color: #999; margin-bottom: 4px; }
+    .info-item .value { font-size: 14px; color: #333; font-weight: 500; }
+    .tag {
+      display: inline-block; padding: 4px 12px;
+      background: rgba(45, 139, 94, 0.08); color: #2d8b5e;
+      border-radius: 20px; font-size: 12px; margin-right: 6px;
+    }
+    .section-content { font-size: 14px; color: #333; line-height: 1.8; }
+    .caution-card { background: linear-gradient(135deg, rgba(239,68,68,0.03), rgba(239,68,68,0.06)); border: 1px solid rgba(239,68,68,0.15); }
+    .caution-title { color: #dc2626 !important; }
+    .caution-title::before { background: #F59E0B !important; }
+
+    .classics-item {
+      background: rgba(255,255,255,0.7); border-radius: 8px;
+      padding: 14px; margin-bottom: 10px;
+    }
+    .classics-book { font-size: 14px; color: #333; font-weight: 600; margin-bottom: 8px; }
+    .classics-content { font-size: 13px; color: #666; line-height: 1.8; font-style: italic; }
+
+    .food-item {
+      display: flex; background: #fff; border-radius: 12px;
+      overflow: hidden; margin-bottom: 12px;
+      cursor: pointer;
+    }
+    .card .food-item { box-shadow: none; margin-bottom: 12px; }
+    .card .food-item:last-child { margin-bottom: 0; }
+    .food-item .food-visual { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .food-info { flex: 1; padding: 12px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+    .food-info .name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .food-info .effect { font-size: 12px; color: #2d8b5e; margin-bottom: 6px; }
+    .food-info .ings { display: flex; flex-wrap: wrap; gap: 4px; }
+    .food-info .ings span { font-size: 11px; color: #666; background: #f8fafc; padding: 2px 8px; border-radius: 20px; }
+
+    .quiz-stats { display: flex; justify-content: space-around; align-items: center; }
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 22px; font-weight: 700; color: #2d8b5e; }
+    .stat-label { font-size: 12px; color: #999; }
+    .stat-divider { width: 1px; height: 40px; background: #f0f9f4; }
+
+    .option-item {
+      display: flex; align-items: center; padding: 14px;
+      border: 1.5px solid #e2e8f0; border-radius: 10px;
+      margin-bottom: 10px; cursor: pointer; background: #fff;
+      transition: all 0.2s;
+    }
+    .option-item.selected { border-color: #2d8b5e; background: #f0f9f4; }
+    .option-item.correct { border-color: #2d8b5e; background: #f0f9f4; }
+    .option-item.wrong { border-color: #dc2626; background: #fef2f2; }
+    .option-item.disabled { opacity: 0.6; }
+    .opt-letter {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #f1f5f9; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; color: #666; margin-right: 12px; flex-shrink: 0;
+    }
+    .option-item.selected .opt-letter { background: #2d8b5e; color: #fff; }
+    .option-item.correct .opt-letter { background: #2d8b5e; color: #fff; }
+    .option-item.wrong .opt-letter { background: #dc2626; color: #fff; }
+    .opt-text { flex: 1; font-size: 14px; min-width: 0; }
+    .opt-check { margin-left: 8px; font-weight: bold; }
+    .correct .opt-check { color: #2d8b5e; }
+    .wrong .opt-check { color: #dc2626; }
+
+    .explanation {
+      background: rgba(245, 158, 11, 0.1); border-radius: 8px; padding: 16px;
+      margin-bottom: 16px; border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    .explanation .title { font-size: 15px; font-weight: 600; color: #666; margin-bottom: 8px; }
+    .explanation .text { font-size: 13px; color: #666; line-height: 1.7; }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 999; display: none; align-items: flex-end;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      width: 100%; max-height: 85vh; background: #fff;
+      border-radius: 20px 20px 0 0; overflow: hidden;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-header { position: relative; height: 200px; }
+    .modal-header .modal-bg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .modal-close {
+      position: absolute; top: 12px; right: 12px;
+      width: 36px; height: 36px; background: rgba(0,0,0,0.5);
+      color: #fff; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 24px; cursor: pointer;
+    }
+    .modal-body { padding: 20px; max-height: calc(85vh - 200px); overflow-y: auto; }
+    .modal-body .title { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+    .detail-section { margin-bottom: 16px; }
+    .detail-section .label {
+      font-size: 14px; font-weight: 600; color: #2d8b5e;
+      margin-bottom: 6px; display: flex; align-items: center;
+    }
+    .detail-section .label::before {
+      content: ''; width: 4px; height: 14px; background: #2d8b5e;
+      border-radius: 2px; margin-right: 6px;
+    }
+    .detail-section.caution .label { color: #dc2626; }
+    .detail-section.caution .label::before { background: #dc2626; }
+    .detail-section .text { font-size: 13px; color: #333; line-height: 1.7; padding-left: 10px; }
+    .ingredient-list { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 10px; }
+    .ingredient-list span {
+      padding: 4px 12px; background: rgba(45, 139, 94, 0.08); color: #2d8b5e;
+      border-radius: 20px; font-size: 12px;
+    }
+    .method-text { font-size: 13px; color: #333; line-height: 2; padding-left: 10px; white-space: pre-line; }
+
+    .tab-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #fff; display: flex; justify-content: space-around;
+      padding: 8px 0 12px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      max-width: 480px; margin: 0 auto; z-index: 50;
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .tab-item .icon { font-size: 22px; margin-bottom: 2px; }
+    .tab-item .text { font-size: 11px; color: #999; }
+    .tab-item.active .text { color: #2d8b5e; }
+
+    .page-with-tab { padding-bottom: 70px; }
+
+    .feature-item {
+      display: flex; align-items: center; padding: 12px 0;
+      border-bottom: 1px solid #f0f9f4;
+    }
+    .feature-item:last-child { border-bottom: none; }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: #f0f9f4; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-right: 14px;
+    }
+    .feature-title { font-size: 15px; font-weight: 500; margin-bottom: 2px; }
+    .feature-desc { font-size: 12px; color: #999; }
+
+    .loading { display: flex; flex-direction: column; align-items: center; padding: 80px 0; color: #999; }
+
+    .herb-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .herb-chip {
+      padding: 6px 16px; background: #f8fafc; color: #666;
+      border-radius: 20px; font-size: 13px; cursor: pointer;
+      border: 1.5px solid transparent;
+    }
+    .herb-chip.active { background: rgba(45, 139, 94, 0.08); color: #2d8b5e; border-color: #2d8b5e; font-weight: 500; }
+
+    input[type="file"] { display: none; }
+
+    .recognition-result {
+      background: #fff; border-radius: 16px; padding: 20px; margin: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .result-name { font-size: 28px; font-weight: 700; color: #2d8b5e; }
+    .result-accuracy { font-size: 22px; color: #F59E0B; background: rgba(245, 158, 11, 0.1); padding: 4px 14px; border-radius: 20px; }
+    .result-pinyin { font-size: 22px; color: #999; margin-bottom: 12px; }
+    .result-effect { font-size: 24px; color: #333; line-height: 1.6; }
+
+    .herb-color-1 { background: linear-gradient(135deg, #d4e5f7, #b3d7f5); }
+    .herb-color-2 { background: linear-gradient(135deg, #ffe4e1, #ffc9c5); }
+    .herb-color-3 { background: linear-gradient(135deg, #f9ead8, #f3dbb5); }
+    .herb-color-4 { background: linear-gradient(135deg, #f5e6d3, #edd5b8); }
+    .herb-color-5 { background: linear-gradient(135deg, #e8f8f5, #d1ebe6); }
+    .herb-color-6 { background: linear-gradient(135deg, #f5f5dc, #ebebcc); }
+
+    .search-bar {
+      display: flex; align-items: center; background: #fff;
+      border-radius: 25px; padding: 10px 16px; margin: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border: 1.5px solid #e2e8f0;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-bar:focus-within {
+      border-color: #2d8b5e;
+      box-shadow: 0 0 0 3px rgba(45,139,94,0.1);
+    }
+    .search-bar input {
+      flex: 1; border: none; outline: none; font-size: 14px;
+      background: transparent; margin-left: 10px; min-width: 0;
+    }
+    .search-bar input::placeholder { color: #ccc; }
+    .search-bar .search-icon { color: #999; font-size: 16px; }
+
+    .match-search-bar {
+      display: flex; align-items: center;
+      background: #f8fafc;
+      border-radius: 25px;
+      padding: 8px 16px;
+      margin-bottom: 12px;
+      border: 1.5px solid #e2e8f0;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .match-search-bar:focus-within {
+      border-color: #2d8b5e;
+      box-shadow: 0 0 0 3px rgba(45,139,94,0.1);
+    }
+    .match-search-bar input {
+      flex: 1; border: none; outline: none; font-size: 14px;
+      background: transparent; margin-left: 10px; min-width: 0;
+    }
+    .match-search-bar input::placeholder { color: #ccc; }
+    .match-search-bar .search-icon { color: #999; font-size: 16px; }
+    .match-search-bar .search-clear {
+      color: #999; font-size: 14px; cursor: pointer;
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+    }
+
+    .match-quick-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .quick-tag {
+      padding: 6px 14px;
+      background: #f0f9f4;
+      color: #2d8b5e;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid rgba(45, 139, 94, 0.2);
+      transition: all 0.2s;
+    }
+    .quick-tag:active { transform: scale(0.98); background: #2d8b5e; color: #fff; }
+
+    .search-result-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 16px; margin-bottom: 10px;
+    }
+    .search-result-header .title { font-size: 15px; font-weight: 600; color: #333; }
+    .search-result-header .count { font-size: 12px; color: #999; }
+    .search-result-item {
+      display: flex; align-items: center; background: #fff;
+      border-radius: 12px; padding: 14px; margin: 0 12px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      cursor: pointer;
+    }
+    .search-result-item .result-visual {
+      width: 60px; height: 60px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin-right: 12px; flex-shrink: 0;
+    }
+    .search-result-item .result-info { flex: 1; min-width: 0; }
+    .search-result-item .result-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .search-result-item .result-effect {
+      font-size: 12px; color: #2d8b5e; margin-bottom: 6px;
+      display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .category-tabs {
+      display: flex; gap: 8px; padding: 0 12px; margin-bottom: 12px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .category-tabs::-webkit-scrollbar { display: none; }
+    .category-tab {
+      padding: 8px 16px; background: #fff; border-radius: 20px;
+      font-size: 13px; color: #666; cursor: pointer; flex-shrink: 0;
+      border: 1.5px solid transparent;
+    }
+    .category-tab.active { background: rgba(45, 139, 94, 0.08); color: #2d8b5e; border-color: #2d8b5e; }
+
+    .herb-list-card {
+      display: flex; align-items: center; background: #fff;
+      border-radius: 12px; padding: 14px; margin: 0 12px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      cursor: pointer;
+    }
+    .herb-list-card .herb-visual {
+      width: 70px; height: 70px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin-right: 14px; flex-shrink: 0;
+    }
+    .herb-list-card .herb-info { flex: 1; min-width: 0; }
+    .herb-list-card .herb-info .name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .herb-list-card .herb-info .effect { font-size: 12px; color: #666; line-height: 1.4; }
+
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 60px 20px; color: #999;
+    }
+    .empty-state .empty-icon { font-size: 64px; margin-bottom: 16px; }
+    .empty-state .empty-title { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+    .empty-state .empty-desc { font-size: 13px; text-align: center; }
+
+    .profile-header {
+      background: linear-gradient(135deg, #2d8b5e, #3da878);
+      padding: 30px 20px 40px;
+    }
+    .profile-info { display: flex; align-items: center; }
+    .profile-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin-right: 16px;
+    }
+    .profile-text { color: #fff; }
+    .profile-text .name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .profile-text .desc { font-size: 13px; opacity: 0.8; }
+
+    .profile-stats {
+      display: flex; justify-content: space-around;
+      background: #fff; border-radius: 12px;
+      margin: -20px 16px 16px; padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .profile-stat-item { text-align: center; }
+    .profile-stat-item .num { font-size: 22px; font-weight: 700; color: #2d8b5e; }
+    .profile-stat-item .label { font-size: 12px; color: #999; margin-top: 4px; }
+
+    .favorite-section { margin-bottom: 16px; }
+    .favorite-section .section-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 16px; margin-bottom: 12px;
+    }
+    .favorite-section .section-header .title { font-size: 16px; font-weight: 600; color: #333; }
+    .favorite-section .section-header .more { font-size: 13px; color: #2d8b5e; cursor: pointer; }
+
+    .constitution-progress { height: 6px; background: #e2e8f0; border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+    .constitution-progress-bar { height: 100%; background: #2d8b5e; border-radius: 3px; transition: width 0.3s; }
+  </style>
+</head>
+<body>
+
+<div class="page active page-with-tab" id="page-home">
+  <div class="banner">
+    <div class="banner-title">本草智识</div>
+    <div class="banner-subtitle">AI中药药材识别与学习平台</div>
+  </div>
+  <div class="card">
+    <div class="section-title">快速识别</div>
+    <div class="action-btns">
+      <div class="action-btn" onclick="takePhoto()">
+        <div class="action-icon cam">📷</div>
+        <div class="action-text">拍照识别</div>
+      </div>
+      <div class="action-btn" onclick="chooseImage()">
+        <div class="action-icon alb">🖼️</div>
+        <div class="action-text">相册选择</div>
+      </div>
+      <div class="action-btn" onclick="showPage('page-quiz')">
+        <div class="action-icon qz">📝</div>
+        <div class="action-text">趣味问答</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="daily-quiz-card" style="cursor:pointer;" onclick="goToDailyQuiz()">
+    <div class="quiz-header">
+      <div class="section-title">今日一题</div>
+      <div class="quiz-tag" id="daily-difficulty">加载中</div>
+    </div>
+    <div class="quiz-question" id="daily-question">加载题目中...</div>
+    <div class="quiz-footer">
+      <span style="color:#999;font-size:12px;" id="daily-category"></span>
+      <span class="quiz-go">去答题 →</span>
+    </div>
+  </div>
+
+  <div class="card" id="daily-herb-card" style="cursor:pointer;background:linear-gradient(135deg, #f0f9f4 0%, rgba(45,139,94,0.08) 100%);border:1px solid rgba(45,139,94,0.2);" onclick="goToDailyHerbDetail()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="section-title">🌿 今日药材</div>
+      <div id="daily-herb-status" style="font-size:12px;color:#F59E0B;background:rgba(245,158,11,0.1);padding:4px 12px;border-radius:20px;">去学习</div>
+    </div>
+    <div id="daily-herb-content">
+      <div style="display:flex;align-items:center;">
+        <div id="daily-herb-visual" style="margin-right:14px;"></div>
+        <div style="flex:1;">
+          <div id="daily-herb-name" style="font-size:18px;font-weight:700;color:#333;">加载中...</div>
+          <div id="daily-herb-effect" style="font-size:13px;color:#2d8b5e;margin-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:12px;border-top:1px dashed rgba(45,139,94,0.2);">
+      <span style="font-size:12px;color:#999;">每日学习一种药材，打卡赢积分</span>
+      <button id="daily-checkin-btn" style="padding:8px 20px;background:linear-gradient(135deg, #2d8b5e, #3da878);color:#fff;border:none;border-radius:30px;font-size:13px;cursor:pointer;" onclick="event.stopPropagation();handleDailyCheckin()">立即打卡</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px;background:linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(245,158,11,0.15) 100%);border:1px solid rgba(245,158,11,0.2);" onclick="openConstitutionTest()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="section-title" style="font-size:16px;">🧬 体质测评</div>
+      <div style="font-size:12px;color:#F59E0B;background:rgba(245,158,11,0.1);padding:4px 12px;border-radius:20px;">了解你的身体</div>
+    </div>
+    <div style="display:flex;align-items:center;">
+      <div style="width:60px;height:60px;background:rgba(245,158,11,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-right:14px;">🩺</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:600;color:#333;">中医体质辨识</div>
+        <div style="font-size:12px;color:#F59E0B;margin-top:4px;">依据国家标准 GB/T 46939-2025</div>
+      </div>
+      <div style="font-size:20px;color:#F59E0B;">→</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border:none;border-radius:8px;font-size:12px;color:#F59E0B;cursor:pointer;" onclick="event.stopPropagation();openConstitutionTest('standard')">标准测评 (60题)</button>
+      <button style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border:none;border-radius:8px;font-size:12px;color:#F59E0B;cursor:pointer;" onclick="event.stopPropagation();openConstitutionTest('quick')">快速测评(9题)</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">药材图鉴</div>
+    <div class="herb-list" id="herb-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">核心功能</div>
+    <div class="feature-item"><div class="feature-icon">🔬</div><div><div class="feature-title">AI识别</div><div class="feature-desc">拍照秒识药材品类</div></div></div>
+    <div class="feature-item"><div class="feature-icon">📚</div><div><div class="feature-title">典籍溯源</div><div class="feature-desc">本草纲目等古籍记载</div></div></div>
+    <div class="feature-item"><div class="feature-icon">🍲</div><div><div class="feature-title">药食同源</div><div class="feature-desc">养生搭配推荐</div></div></div>
+    <div class="feature-item"><div class="feature-icon">🎯</div><div><div class="feature-title">趣味学习</div><div class="feature-desc">问答互动涨知识</div></div></div>
+  </div>
+</div>
+
+<div class="page page-with-tab" id="page-identify">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-home')">←</span>
+    <span class="title">药材识别</span>
+    <span class="spacer"></span>
+  </div>
+  <div id="identify-preview">
+    <div class="placeholder" onclick="chooseImage()">
+      <div class="icon">📸</div>
+      <div class="text">选择图片开始识别</div>
+      <div class="desc">支持拍照或从相册选择药材图片</div>
+    </div>
+  </div>
+  <div id="identify-result"></div>
+  <div style="padding:0 16px;">
+    <button class="btn btn-primary" onclick="takePhoto()">📷 拍照识别</button>
+    <button class="btn btn-secondary" onclick="chooseImage()">🖼️ 从相册选择</button>
+  </div>
+  <div class="card">
+    <div class="section-title">识别小贴士</div>
+    <div style="font-size:13px;color:#666;line-height:1.8;">
+      <p>1. 确保光线充足，药材清晰可见</p>
+      <p>2. 尽量拍摄药材完整形态</p>
+      <p>3. 背景简洁，避免杂物干扰</p>
+      <p>4. 仅供参考，用药请遵医嘱</p>
+    </div>
+  </div>
+</div>
+
+<div class="page page-with-tab" id="page-detail">
+  <div class="nav-bar">
+    <span class="back" onclick="goBack()">←</span>
+    <span class="title">药材详情</span>
+    <span class="spacer"></span>
+  </div>
+  <div id="detail-content"></div>
+</div>
+
+<div class="page page-with-tab" id="page-quiz">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-home')">←</span>
+    <span class="title">趣味问答</span>
+    <span class="spacer"></span>
+  </div>
+  <div class="card">
+    <div class="quiz-stats">
+      <div class="stat-item"><div class="stat-num" id="stat-correct">0</div><div class="stat-label">答对</div></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><div class="stat-num" id="stat-total">0</div><div class="stat-label">总题数</div></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><div class="stat-num" id="stat-accuracy">0%</div><div class="stat-label">正确率</div></div>
+    </div>
+  </div>
+  <div class="card" style="margin:16px;">
+    <div style="display:flex;gap:12px;">
+      <button style="flex:1;padding:12px;border:none;background:rgba(45,139,94,0.08);color:#2d8b5e;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="goToQuizList()">📚 题库</button>
+      <button style="flex:1;padding:12px;border:none;background:rgba(239,68,68,0.08);color:#dc2626;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="goToWrongQuestions()">📝 错题本</button>
+    </div>
+  </div>
+  <div id="quiz-content"></div>
+</div>
+
+<div class="page page-with-tab" id="page-match">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-home')">←</span>
+    <span class="title">药食同源</span>
+    <span class="spacer"></span>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <div class="match-search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="输入症状，如：口干舌燥、失眠、湿气重" id="match-search-input" onkeypress="handleMatchSearchKey(event)">
+      <span class="search-clear" onclick="clearMatchSearch()" id="match-search-clear" style="display:none;">×</span>
+    </div>
+    <div class="match-quick-tags">
+      <span class="quick-tag" onclick="quickSearchMatch('口干舌燥')">口干舌燥</span>
+      <span class="quick-tag" onclick="quickSearchMatch('失眠')">失眠</span>
+      <span class="quick-tag" onclick="quickSearchMatch('湿气重')">湿气重</span>
+      <span class="quick-tag" onclick="quickSearchMatch('疲劳')">疲劳乏力</span>
+      <span class="quick-tag" onclick="quickSearchMatch('上火')">上火</span>
+      <span class="quick-tag" onclick="quickSearchMatch('眼睛干涩')">眼睛干涩</span>
+    </div>
+  </div>
+  <div class="card" id="match-herb-section">
+    <div style="font-size:15px;font-weight:600;margin-bottom:12px;">选择药材查看搭配</div>
+    <div class="herb-chips" id="match-herb-chips"></div>
+  </div>
+  <div id="match-list"></div>
+  <div id="match-search-result" style="display:none;"></div>
+</div>
+
+<div class="page page-with-tab" id="page-herb-list">
+  <div class="nav-bar">
+    <span class="spacer"></span>
+    <span class="title">药材图鉴</span>
+    <span class="spacer"></span>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="搜索药材名称或别名" id="herb-search-input" oninput="handleHerbSearch()">
+  </div>
+  <div class="category-tabs" id="category-tabs"></div>
+  <div id="herb-list-content"></div>
+</div>
+
+<div class="page page-with-tab" id="page-profile">
+  <div class="profile-header">
+    <div class="profile-info">
+      <div class="profile-avatar">👤</div>
+      <div class="profile-text">
+        <div class="name">本草智识用户</div>
+        <div class="desc">探索中医药的奥秘</div>
+      </div>
+    </div>
+  </div>
+  <div class="profile-stats">
+    <div class="profile-stat-item"><div class="num" id="stat-fav-herbs">0</div><div class="label">收藏药材</div></div>
+    <div class="profile-stat-item"><div class="num" id="stat-fav-matches">0</div><div class="label">收藏搭配</div></div>
+    <div class="profile-stat-item"><div class="num" id="stat-quiz-done">0</div><div class="label">完成问答</div></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">❤️ 我的收藏药材</span>
+      <span class="more" onclick="showPage('page-herb-list')">查看全部</span>
+    </div>
+    <div id="fav-herbs-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">🍲 我的收藏搭配</span>
+      <span class="more" onclick="showPage('page-match')">查看全部</span>
+    </div>
+    <div id="fav-matches-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">📅 打卡记录</span>
+    </div>
+    <div id="checkin-records-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">🔍 我的识别记录</span>
+    </div>
+    <div id="identify-records-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">🧬 我的测评记录</span>
+    </div>
+    <div id="constitution-records-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">📊 打卡统计</span>
+    </div>
+    <div id="checkin-stats-list" style="margin:0 16px 12px;">
+      <div class="card" style="padding:14px;display:flex;justify-content:space-around;">
+        <div style="text-align:center;"><div id="checkin-stat-total" style="font-size:24px;font-weight:700;color:#2d8b5e;">0</div><div style="font-size:12px;color:#999;">累计打卡</div></div>
+        <div style="width:1px;background:#f0f9f4;"></div>
+        <div style="text-align:center;"><div id="checkin-stat-consecutive" style="font-size:24px;font-weight:700;color:#2d8b5e;">0</div><div style="font-size:12px;color:#999;">连续天数</div></div>
+        <div style="width:1px;background:#f0f9f4;"></div>
+        <div style="text-align:center;"><div id="checkin-stat-month" style="font-size:24px;font-weight:700;color:#2d8b5e;">0</div><div style="font-size:12px;color:#999;">本月打卡</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="match-modal" onclick="closeMatchModal()">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-bg" id="modal-bg"></div>
+      <div class="modal-close" onclick="closeMatchModal()">×</div>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="constitution-modal" onclick="closeConstitutionTest()" style="display:none;">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header" style="background:linear-gradient(135deg, #2d8b5e, #3da878);height:160px;">
+      <div class="modal-close" onclick="closeConstitutionTest()">×</div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#fff;">
+        <div style="font-size:40px;margin-bottom:8px;">🧬</div>
+        <div style="font-size:20px;font-weight:600;">体质测评</div>
+        <div style="font-size:12px;opacity:0.9;" id="constitution-progress-text">1 / 1</div>
+      </div>
+    </div>
+    <div class="constitution-progress" style="margin:0 20px 16px;">
+      <div class="constitution-progress-bar" id="constitution-progress-bar" style="width:0%;"></div>
+    </div>
+    <div class="modal-body" style="padding:0 20px 20px;max-height:calc(85vh - 200px);">
+      <div id="constitution-question"></div>
+    </div>
+    <div style="padding:16px 20px;border-top:1px solid #f0f9f4;background:#f8fafc;">
+      <div style="display:flex;gap:12px;">
+        <button id="constitution-prev" style="flex:1;padding:12px;background:#fff;color:#333;border:1px solid #e2e8f0;border-radius:20px;font-size:14px;cursor:pointer;" onclick="constitutionPrev()">上一题</button>
+        <button id="constitution-next" style="flex:1;padding:12px;background:#2d8b5e;color:#fff;border:none;border-radius:20px;font-size:14px;cursor:pointer;" onclick="constitutionNext()">下一题</button>
+        <button id="constitution-submit" style="flex:1;padding:12px;background:#2d8b5e;color:#fff;border:none;border-radius:20px;font-size:14px;cursor:pointer;display:none;" onclick="constitutionSubmit()">提交测评</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item active" onclick="showPage('page-home')">
+    <div class="icon">🏠</div>
+    <div class="text">首页</div>
+  </div>
+  <div class="tab-item" onclick="showPage('page-identify')">
+    <div class="icon">🔍</div>
+    <div class="text">识别</div>
+  </div>
+  <div class="tab-item" onclick="showPage('page-herb-list')">
+    <div class="icon">🌿</div>
+    <div class="text">图鉴</div>
+  </div>
+  <div class="tab-item" onclick="showPage('page-match')">
+    <div class="icon">🍲</div>
+    <div class="text">搭配</div>
+  </div>
+  <div class="tab-item" onclick="showPage('page-profile')">
+    <div class="icon">👤</div>
+    <div class="text">我的</div>
+  </div>
+</div>
+
+<script>
+const API_BASE = '/api';
+let herbsData = [];
+let matchData = [];
+let currentPage = 'page-home';
+let pageHistory = ['page-home'];
+let dailyHerbData = null;
+let selectedImage = null;
+
+function showPage(pageId, updateHistory) {
+  if (updateHistory === undefined) updateHistory = true;
+  if (updateHistory && pageId !== currentPage) { pageHistory.push(pageId); }
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  var page = document.getElementById(pageId);
+  if (page) { page.classList.add('active'); currentPage = pageId; }
+  window.scrollTo(0, 0);
+  document.querySelectorAll('.tab-item').forEach(function(t) { t.classList.remove('active'); });
+  var tabMap = { 'page-home': 0, 'page-identify': 1, 'page-herb-list': 2, 'page-match': 3, 'page-profile': 4 };
+  var tabIdx = tabMap[pageId];
+  if (tabIdx !== undefined) { document.querySelectorAll('.tab-item')[tabIdx].classList.add('active'); }
+  if (pageId === 'page-home') { initHome(); }
+  else if (pageId === 'page-herb-list') { loadHerbList(); }
+  else if (pageId === 'page-match') { initMatchPage(); }
+  else if (pageId === 'page-quiz') { initQuizPage(); }
+  else if (pageId === 'page-profile') { initProfile(); }
+}
+
+function goBack() {
+  if (pageHistory.length > 1) { pageHistory.pop(); showPage(pageHistory[pageHistory.length - 1], false); }
+  else { showPage('page-home', false); }
+}
+
+function showToast(msg) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:9999;pointer-events:none;white-space:nowrap;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.style.transition = 'opacity 0.3s'; t.style.opacity = '0'; setTimeout(function() { document.body.removeChild(t); }, 300); }, 2000);
+}
+
+async function api(url) {
+  try {
+    var res = await fetch(API_BASE + url);
+    var data = await res.json();
+    if (data.code !== 0) { console.warn('API returned code:', data.code, data.message); return null; }
+    if (data.data === undefined || data.data === null) return null;
+    if (Array.isArray(data.data)) return data.data;
+    if (data.data.list !== undefined) return data.data.list;
+    return data.data;
+  } catch(e) { console.error('API Error:', url, e); return null; }
+}
+
+async function apiPost(url, body) {
+  try {
+    var res = await fetch(API_BASE + url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    var data = await res.json();
+    return data.code === 0 ? data.data : (showToast(data.message || '操作失败'), null);
+  } catch(e) { console.error('API Error:', e); showToast('网络错误'); return null; }
+}
+
+async function apiDelete(url) {
+  try {
+    var res = await fetch(API_BASE + url, { method: 'DELETE' });
+    var data = await res.json();
+    return data;
+  } catch(e) { console.error('API Error:', e); return null; }
+}
+
+async function initHome() {
+  await loadDailyQuiz();
+  await loadDailyHerb();
+  await loadHomeHerbList();
+}
+
+async function loadDailyQuiz() {
+  var data = await api('/quiz/daily');
+  if (data) {
+    data.options = cleanOptions(data.options);
+    data.answer = data.answer || 0;
+    document.getElementById('daily-question').textContent = data.question;
+    document.getElementById('daily-difficulty').textContent = data.difficulty || '中等';
+    document.getElementById('daily-category').textContent = data.category || '';
+    document.getElementById('daily-quiz-card').onclick = function() { startQuiz(data); };
+  }
+}
+
+function cleanOptions(options) {
+  if (!options) return [];
+  return options.map(function(opt) {
+    var s = String(opt).replace(/^[A-D][.、\s]+/, '').trim();
+    return s;
+  });
+}
+
+function startQuiz(data) {
+  showPage('page-quiz');
+  renderQuiz(data);
+}
+
+async function loadDailyHerb() {
+  var data = await api('/checkin/daily-herb');
+  if (data) {
+    dailyHerbData = data;
+    var herb = data.herb || null;
+    if (!herb && herbsData.length > 0) { herb = herbsData.find(function(h) { return h.id === data.herbId; }); }
+    if (!herb && herbsData.length === 0) { var herbs = await api('/herb/list'); if (herbs) herbsData = herbs; herb = herbsData.find(function(h) { return h.id === data.herbId; }); }
+    document.getElementById('daily-herb-name').textContent = herb ? herb.name : '今日药材';
+    document.getElementById('daily-herb-effect').textContent = herb ? (herb.effect || '').substring(0, 30) : '';
+    var visual = document.getElementById('daily-herb-visual');
+    if (visual) visual.innerHTML = '<div style="width:60px;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#f0f9f4;">🌿</div>';
+  }
+}
+
+function goToDailyHerbDetail() {
+  if (dailyHerbData && dailyHerbData.herbId) { showHerbDetail(dailyHerbData.herbId); }
+}
+
+async function handleDailyCheckin() {
+  var data = await apiPost('/checkin/checkin', { herbId: dailyHerbData ? dailyHerbData.herbId : 1 });
+  if (data) { showToast('打卡成功！'); loadCheckinStats(); }
+}
+
+function goToDailyQuiz() {
+  showPage('page-quiz');
+}
+
+async function loadHomeHerbList() {
+  if (herbsData.length === 0) { await loadHerbList(); }
+  var list = document.getElementById('herb-list');
+  if (list && herbsData.length > 0) {
+    list.innerHTML = herbsData.slice(0, 6).map(function(h) {
+      return '<div class="herb-item" onclick="showHerbDetail(' + h.id + ')"><div class="herb-visual herb-color-' + ((h.id % 6) + 1) + '">🌿</div><div class="herb-info"><div class="name">' + h.name + '</div><div class="cat">' + (h.category || '') + '</div></div></div>';
+    }).join('');
+  }
+}
+
+async function loadHerbList() {
+  var content = document.getElementById('herb-list-content');
+  if (content) content.innerHTML = '<div class="loading"><div class="spinner" style="border-color:rgba(45,139,94,0.3);border-top-color:#2d8b5e;"></div>加载中...</div>';
+  var data = await api('/herb/list');
+  if (data && data.length) {
+    herbsData = data;
+    renderHerbList(data);
+    renderCategoryTabs(data);
+    loadHomeHerbList();
+  } else if (content) {
+    content.innerHTML = '<div class="empty-state"><div class="empty-icon">🌿</div><div class="empty-title">暂无药材</div></div>';
+  }
+}
+
+function renderCategoryTabs(data) {
+  var categories = ['全部'];
+  data.forEach(function(h) { if (h.category && categories.indexOf(h.category) === -1) categories.push(h.category); });
+  var tabs = document.getElementById('category-tabs');
+  if (tabs) {
+    tabs.innerHTML = categories.map(function(c, i) {
+      return '<div class="category-tab' + (i === 0 ? ' active' : '') + '" onclick="filterByCategory(\'' + c + '\', this)">' + c + '</div>';
+    }).join('');
+  }
+}
+
+function filterByCategory(cat, el) {
+  document.querySelectorAll('.category-tab').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  var filtered = cat === '全部' ? herbsData : herbsData.filter(function(h) { return h.category === cat; });
+  renderHerbList(filtered);
+}
+
+function renderHerbList(data) {
+  var content = document.getElementById('herb-list-content');
+  if (!content) return;
+  if (data.length === 0) { content.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">未找到药材</div></div>'; return; }
+  content.innerHTML = data.map(function(h) {
+    return '<div class="herb-list-card" onclick="showHerbDetail(' + h.id + ')"><div class="herb-visual herb-color-' + ((h.id % 6) + 1) + '">🌿</div><div class="herb-info"><div class="name">' + h.name + '</div><div class="effect">' + (h.effect || '').substring(0, 30) + '</div></div></div>';
+  }).join('');
+}
+
+function handleHerbSearch() {
+  var keyword = document.getElementById('herb-search-input').value.toLowerCase().trim();
+  if (!keyword) { renderHerbList(herbsData); return; }
+  var filtered = herbsData.filter(function(h) {
+    return h.name.toLowerCase().indexOf(keyword) >= 0 || (h.alias && h.alias.some(function(a) { return a.toLowerCase().indexOf(keyword) >= 0; }));
+  });
+  renderHerbList(filtered);
+}
+
+async function showHerbDetail(id) {
+  showPage('page-detail');
+  var content = document.getElementById('detail-content');
+  content.innerHTML = '<div class="loading"><div class="spinner" style="border-color:rgba(45,139,94,0.3);border-top-color:#2d8b5e;"></div>加载中...</div>';
+  var data = null;
+  if (typeof id === 'string' && isNaN(id)) {
+    data = await api('/herb/detail/' + encodeURIComponent(id));
+  } else {
+    data = await api('/herb/detail/' + id);
+  }
+  if (!data) { content.innerHTML = '<div class="empty-state"><div class="empty-icon">🌿</div><div class="empty-title">未找到药材信息</div></div>'; return; }
+
+  var classicsHtml = (data.classics && data.classics.length) ? data.classics.map(function(c) {
+    return '<div class="classics-item"><div class="classics-book">' + c.book + '</div><div class="classics-content">' + c.content + '</div></div>';
+  }).join('') : '';
+
+  var foodMatchHtml = '';
+  if (data.food_match && data.food_match.length) {
+    foodMatchHtml = '<div class="card"><div class="section-title">🍲 药食同源搭配</div>' + data.food_match.map(function(f) {
+      return '<div class="food-item" onclick="showMatchDetail(' + (f.id || 0) + ')"><div class="food-visual herb-color-' + ((f.id % 6) + 1) + '">🍲</div><div class="food-info"><div class="name">' + f.name + '</div><div class="effect">' + (f.effect || '') + '</div><div class="ings">' + f.ingredients.map(function(i) { return '<span>' + i + '</span>'; }).join('') + '</div></div></div>';
+    }).join('') + '</div>';
+  }
+
+  var alternativeHtml = (data.alternatives && data.alternatives.length > 0) ? '<div class="card"><div class="section-title">其他可能结果</div><div>' + data.alternatives.map(function(a) {
+    return '<div class="search-result-item" onclick="showHerbDetail(' + (a.herbId || 0) + ')"><div class="result-visual herb-color-' + ((a.rank % 6) + 1) + '">🌿</div><div class="result-info"><div class="result-name">' + a.name + '</div><div class="result-effect">' + (a.effect || '') + '</div></div><div style="color:#F59E0B;font-size:14px;font-weight:600;">' + (a.probability * 100).toFixed(0) + '%</div></div>';
+  }).join('') + '</div></div>' : '';
+
+  content.innerHTML = '<div class="herb-hero"><div class="hero-bg herb-color-' + ((data.id % 6) + 1) + '"><div style="font-size:120px;">🌿</div></div><div class="herb-overlay"></div><div class="herb-title-area"><div class="name">' + data.name + '</div><div class="pinyin">' + (data.pinyin || '') + '</div><div class="alias">' + (data.alias && data.alias.length ? data.alias.join('、') : '') + '</div></div></div>' +
+    '<div class="card"><div class="info-row"><div class="info-item"><div class="label">分类</div><div class="value">' + (data.category || '-') + '</div></div><div class="info-item"><div class="label">性味</div><div class="value">' + (data.nature || '-') + ' · ' + (data.taste || '-') + '</div></div></div><div class="info-row"><div class="info-item"><div class="label">归经</div><div class="value">' + (data.meridian || '-') + '</div></div><div class="info-item"><div class="label">剂量</div><div class="value">' + (data.dosage || '-') + '</div></div></div></div>' +
+    '<div class="card"><div class="section-title">功效主治</div><div class="section-content">' + (data.effect || '') + '</div></div>' +
+    ((data.indication || '') ? '<div class="card"><div class="section-title">适应症</div><div class="section-content">' + data.indication + '</div></div>' : '') +
+    ((data.identify_points || '') ? '<div class="card"><div class="section-title">鉴别要点</div><div class="section-content">' + data.identify_points + '</div></div>' : '') +
+    ((data.key_identification || '') ? '<div class="card"><div class="section-title">关键鉴别点</div><div class="section-content">' + data.key_identification + '</div></div>' : '') +
+    ((data.classics && data.classics.length) ? '<div class="card"><div class="section-title">典籍记载</div>' + classicsHtml + '</div>' : '') +
+    foodMatchHtml +
+    alternativeHtml +
+    ((data.taboo || '') ? '<div class="card caution-card"><div class="section-title caution-title">注意事项</div><div class="section-content">' + data.taboo + '</div></div>' : '');
+}
+
+function takePhoto() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment';
+  input.onchange = function(e) { handleImage(e.target.files[0]); };
+  input.click();
+}
+
+function chooseImage() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = function(e) { handleImage(e.target.files[0]); };
+  input.click();
+}
+
+function handleImage(file) {
+  if (!file) return;
+  selectedImage = file;
+  showPage('page-identify');
+  var preview = document.getElementById('identify-preview');
+  preview.innerHTML = '<div class="preview-area"><img src="' + URL.createObjectURL(file) + '"></div>';
+  document.getElementById('identify-result').innerHTML = '';
+  identifyImage();
+}
+
+async function identifyImage() {
+  if (!selectedImage) { showToast('请先选择图片'); return; }
+  var resultDiv = document.getElementById('identify-result');
+  resultDiv.innerHTML = '<div style="padding:20px;text-align:center;"><div class="spinner" style="border-color:rgba(45,139,94,0.3);border-top-color:#2d8b5e;margin:0 auto;"></div><div style="color:#999;margin-top:12px;">AI识别中...</div></div>';
+  
+  var formData = new FormData();
+  formData.append('image', selectedImage);
+  
+  try {
+    var res = await fetch(API_BASE + '/herb/identify', { method: 'POST', body: formData });
+    var data = await res.json();
+    if (data.code === 0 && data.data) {
+      renderIdentifyResult(data.data);
+    } else {
+      showToast(data.message || '识别失败');
+      resultDiv.innerHTML = '';
+    }
+  } catch(e) {
+    console.error('识别错误:', e);
+    showToast('网络错误');
+    resultDiv.innerHTML = '';
+  }
+}
+
+function renderIdentifyResult(data) {
+  var resultDiv = document.getElementById('identify-result');
+  
+  var alternativesHtml = (data.alternatives && data.alternatives.length > 0) ? '<div style="margin-top:16px;"><div style="font-size:14px;font-weight:600;color:#333;margin-bottom:12px;">其他可能结果</div>' + data.alternatives.map(function(a) {
+    return '<div class="search-result-item" onclick="showHerbDetail(' + (a.herbId || 0) + ')"><div class="result-visual herb-color-' + ((a.rank % 6) + 1) + '">🌿</div><div class="result-info"><div class="result-name">' + a.name + '</div><div class="result-effect">' + (a.effect || '') + '</div></div><div style="color:#F59E0B;font-size:14px;font-weight:600;">' + (a.probability * 100).toFixed(0) + '%</div></div>';
+  }).join('') + '</div>' : '';
+  
+  resultDiv.innerHTML = '<div class="recognition-result" onclick="showHerbDetail(' + data.id + ')"><div class="result-header"><div class="result-name">' + data.name + '</div><div class="result-accuracy">' + (data.accuracy * 100).toFixed(0) + '%</div></div><div class="result-pinyin">' + (data.pinyin || '') + '</div><div class="result-effect">' + (data.effect || '') + '</div><div style="margin-top:12px;font-size:12px;color:#999;">来源: ' + (data.source === 'ai' ? 'AI模型识别' : (data.source === 'image-search' ? '图像检索' : '本地识别')) + '</div></div>' + alternativesHtml;
+}
+
+async function initMatchPage() {
+  if (matchData.length === 0) {
+    var data = await api('/match/list');
+    if (data) matchData = data;
+  }
+  renderMatchHerbChips();
+  renderMatchList();
+}
+
+function renderMatchHerbChips() {
+  var chips = document.getElementById('match-herb-chips');
+  if (!chips) return;
+  var herbs = [...new Set(matchData.map(function(m) { return m.herb_name; }))].slice(0, 10);
+  chips.innerHTML = '<div class="herb-chip active" onclick="filterMatchByHerb(null, this)">全部</div>' + herbs.map(function(h) {
+    return '<div class="herb-chip" onclick="filterMatchByHerb(\'' + h + '\', this)">' + h + '</div>';
+  }).join('');
+}
+
+function filterMatchByHerb(herbName, el) {
+  document.querySelectorAll('.herb-chip').forEach(function(c) { c.classList.remove('active'); });
+  el.classList.add('active');
+  var filtered = herbName ? matchData.filter(function(m) { return m.herb_name === herbName; }) : matchData;
+  renderMatchList(filtered);
+}
+
+function renderMatchList(data) {
+  var list = document.getElementById('match-list');
+  if (!list) return;
+  data = data || matchData;
+  if (data.length === 0) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">🍲</div><div class="empty-title">暂无搭配</div></div>'; return; }
+  list.innerHTML = data.map(function(m) {
+    return '<div class="card" onclick="showMatchDetail(' + m.id + ')"><div style="display:flex;align-items:center;margin-bottom:12px;"><div class="food-visual herb-color-' + ((m.id % 6) + 1) + '" style="width:70px;height:70px;border-radius:10px;margin-right:14px;">🍲</div><div style="flex:1;"><div style="font-size:16px;font-weight:600;">' + m.name + '</div><div style="font-size:12px;color:#2d8b5e;margin-top:4px;">' + (m.effect || '') + '</div></div></div><div style="display:flex;flex-wrap:wrap;gap:4px;">' + m.ingredients.map(function(i) { return '<span class="tag">' + i + '</span>'; }).join('') + '</div></div>';
+  }).join('');
+}
+
+function handleMatchSearchKey(e) {
+  if (e.key === 'Enter') { searchMatch(); }
+}
+
+function quickSearchMatch(symptom) {
+  document.getElementById('match-search-input').value = symptom;
+  searchMatch();
+}
+
+function clearMatchSearch() {
+  document.getElementById('match-search-input').value = '';
+  document.getElementById('match-search-clear').style.display = 'none';
+  document.getElementById('match-search-result').style.display = 'none';
+  document.getElementById('match-herb-section').style.display = 'block';
+  renderMatchList();
+}
+
+function searchMatch() {
+  var keyword = document.getElementById('match-search-input').value.trim();
+  if (!keyword) { clearMatchSearch(); return; }
+  document.getElementById('match-search-clear').style.display = 'block';
+  
+  var results = matchData.filter(function(m) {
+    return m.name.includes(keyword) || m.effect.includes(keyword) || m.symptom.includes(keyword) || m.ingredients.some(function(i) { return i.includes(keyword); });
+  });
+  
+  document.getElementById('match-herb-section').style.display = 'none';
+  document.getElementById('match-search-result').style.display = 'block';
+  var resultDiv = document.getElementById('match-search-result');
+  
+  if (results.length === 0) {
+    resultDiv.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">未找到相关搭配</div></div>';
+  } else {
+    resultDiv.innerHTML = '<div class="search-result-header"><div class="title">搜索结果</div><div class="count">' + results.length + '个结果</div></div>' + results.map(function(m) {
+      return '<div class="search-result-item" onclick="showMatchDetail(' + m.id + ')"><div class="result-visual herb-color-' + ((m.id % 6) + 1) + '">🍲</div><div class="result-info"><div class="result-name">' + m.name + '</div><div class="result-effect">' + (m.effect || '') + '</div></div></div>';
+    }).join('');
+  }
+}
+
+async function showMatchDetail(id) {
+  var data = matchData.find(function(m) { return m.id === id; });
+  if (!data) return;
+  
+  document.getElementById('modal-bg').className = 'modal-bg herb-color-' + ((id % 6) + 1);
+  document.getElementById('modal-body').innerHTML = '<div class="title">' + data.name + '</div>' +
+    '<div class="detail-section"><div class="label">功效</div><div class="text">' + (data.effect || '') + '</div></div>' +
+    '<div class="detail-section"><div class="label">适用症状</div><div class="text">' + (data.symptom || '') + '</div></div>' +
+    '<div class="detail-section"><div class="label">原料</div><div class="ingredient-list">' + data.ingredients.map(function(i) { return '<span>' + i + '</span>'; }).join('') + '</div></div>' +
+    '<div class="detail-section"><div class="label">做法</div><div class="method-text">' + (data.method || '') + '</div></div>' +
+    ((data.note || '') ? '<div class="detail-section caution"><div class="label">注意事项</div><div class="text">' + data.note + '</div></div>' : '');
+  
+  document.getElementById('match-modal').classList.add('active');
+}
+
+function closeMatchModal() {
+  document.getElementById('match-modal').classList.remove('active');
+}
+
+async function initQuizPage() {
+  var stats = await api('/quiz/stats');
+  if (stats) {
+    document.getElementById('stat-correct').textContent = stats.correct || 0;
+    document.getElementById('stat-total').textContent = stats.total || 0;
+    document.getElementById('stat-accuracy').textContent = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) + '%' : '0%';
+  }
+  var daily = await api('/quiz/daily');
+  if (daily) {
+    daily.options = cleanOptions(daily.options);
+    daily.answer = daily.answer || 0;
+    renderQuiz(daily);
+  }
+}
+
+function renderQuiz(quiz) {
+  var content = document.getElementById('quiz-content');
+  if (!content) return;
+  
+  var optionsHtml = quiz.options.map(function(opt, i) {
+    return '<div class="option-item" onclick="selectQuizOption(' + i + ', this)"><div class="opt-letter">' + String.fromCharCode(65 + i) + '</div><div class="opt-text">' + opt + '</div><div class="opt-check"></div></div>';
+  }).join('');
+  
+  content.innerHTML = '<div class="card" id="quiz-card"><div class="quiz-header"><div class="quiz-tag">' + (quiz.difficulty || '中等') + '</div><div style="font-size:12px;color:#999;">' + (quiz.category || '') + '</div></div><div class="quiz-question">' + quiz.question + '</div>' + optionsHtml + '<div class="quiz-footer"><span style="color:#999;font-size:12px;">点击选项作答</span><span class="quiz-go" style="display:none;">下一题 →</span></div></div>';
+  
+  window.currentQuiz = quiz;
+  window.quizAnswered = false;
+}
+
+function selectQuizOption(idx, el) {
+  if (window.quizAnswered) return;
+  window.quizAnswered = true;
+  
+  var options = document.querySelectorAll('.option-item');
+  options.forEach(function(o) { o.classList.add('disabled'); });
+  
+  if (idx === window.currentQuiz.answer) {
+    el.classList.add('correct');
+    el.querySelector('.opt-check').textContent = '✓';
+    apiPost('/quiz/answer', { qid: window.currentQuiz.id, answer: idx, correct: true });
+  } else {
+    el.classList.add('wrong');
+    el.querySelector('.opt-check').textContent = '✗';
+    options[window.currentQuiz.answer].classList.add('correct');
+    options[window.currentQuiz.answer].querySelector('.opt-check').textContent = '✓';
+    apiPost('/quiz/answer', { qid: window.currentQuiz.id, answer: idx, correct: false });
+  }
+  
+  if (window.currentQuiz.explanation) {
+    document.getElementById('quiz-card').innerHTML += '<div class="explanation"><div class="title">解析</div><div class="text">' + window.currentQuiz.explanation + '</div></div>';
+  }
+}
+
+function goToQuizList() {
+  showPage('page-quiz');
+  api('/quiz/list').then(function(data) {
+    var content = document.getElementById('quiz-content');
+    if (!content) return;
+    var list = Array.isArray(data) ? data : (data && data.list ? data.list : []);
+    if (!list || list.length === 0) { content.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">暂无题目</div></div>'; return; }
+    content.innerHTML = list.map(function(q) {
+      q.options = cleanOptions(q.options);
+      q.answer = q.answer || 0;
+      return '<div class="card" onclick="renderQuiz(' + JSON.stringify(q).replace(/"/g, '&quot;') + ')"><div class="quiz-header"><div class="quiz-tag">' + (q.difficulty || '中等') + '</div><div style="font-size:12px;color:#999;">' + (q.category || '') + '</div></div><div class="quiz-question">' + q.question + '</div><div class="quiz-footer"><span style="color:#999;font-size:12px;">点击作答</span></div></div>';
+    }).join('');
+  });
+}
+
+function goToWrongQuestions() {
+  showPage('page-quiz');
+  api('/wrong-questions/list').then(function(data) {
+    var content = document.getElementById('quiz-content');
+    if (!content) return;
+    var list = Array.isArray(data) ? data : (data && data.list ? data.list : []);
+    if (!list || list.length === 0) { content.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">暂无错题</div></div>'; return; }
+    content.innerHTML = list.map(function(q) {
+      q.options = cleanOptions(q.options);
+      return '<div class="card"><div class="quiz-header"><div class="quiz-tag" style="background:rgba(239,68,68,0.1);color:#dc2626;">错题</div><div style="font-size:12px;color:#999;">' + (q.category || '') + '</div></div><div class="quiz-question">' + q.question + '</div><div class="quiz-footer"><span style="color:#dc2626;font-size:12px;">错误次数: ' + (q.wrong_count || 1) + '</span><button style="font-size:12px;color:#2d8b5e;" onclick="removeWrongQuestion(' + q.id + ')">移除</button></div></div>';
+    }).join('');
+  });
+}
+
+function removeWrongQuestion(id) {
+  apiPost('/wrong-questions/remove', { id: id }).then(function() {
+    showToast('已移除');
+    goToWrongQuestions();
+  });
+}
+
+async function initProfile() {
+  loadFavHerbs();
+  loadFavMatches();
+  loadCheckinRecords();
+  loadIdentifyRecords();
+  loadConstitutionRecords();
+  loadCheckinStats();
+}
+
+async function loadFavHerbs() {
+  var data = await api('/favorite/herbs');
+  var list = document.getElementById('fav-herbs-list');
+  if (!list) return;
+  if (!data || data.length === 0) { list.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">❤️</div><div>暂无收藏药材</div></div>'; return; }
+  list.innerHTML = data.slice(0, 3).map(function(h) {
+    return '<div class="herb-list-card" style="margin:0 16px 12px;" onclick="showHerbDetail(' + h.id + ')"><div class="herb-visual herb-color-' + ((h.id % 6) + 1) + '">🌿</div><div class="herb-info"><div class="name">' + h.name + '</div><div class="effect">' + (h.effect || '').substring(0, 20) + '</div></div></div>';
+  }).join('');
+  document.getElementById('stat-fav-herbs').textContent = data.length;
+}
+
+async function loadFavMatches() {
+  var data = await api('/favorite/matches');
+  var list = document.getElementById('fav-matches-list');
+  if (!list) return;
+  if (!data || data.length === 0) { list.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">🍲</div><div>暂无收藏搭配</div></div>'; return; }
+  list.innerHTML = data.slice(0, 3).map(function(m) {
+    return '<div class="card" style="padding:14px;margin:0 16px 12px;" onclick="showMatchDetail(' + m.id + ')"><div style="font-size:15px;font-weight:600;margin-bottom:6px;">' + m.name + '</div><div style="font-size:12px;color:#2d8b5e;">' + (m.effect || '') + '</div></div>';
+  }).join('');
+  document.getElementById('stat-fav-matches').textContent = data.length;
+}
+
+async function loadCheckinRecords() {
+  var data = await api('/checkin/records');
+  var list = document.getElementById('checkin-records-list');
+  if (!list) return;
+  var records = [];
+  if (Array.isArray(data)) { records = data; }
+  else if (data && data.list) { records = data.list; }
+  if (records.length === 0) { list.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">📅</div><div>暂无打卡记录</div></div>'; return; }
+  list.innerHTML = records.slice(0, 5).map(function(r) {
+    var herbName = r.herbName || (r.herb && r.herb.name) || '-';
+    return '<div class="card" style="padding:12px;margin:0 16px 8px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:500;">' + r.date + '</div><div style="font-size:11px;color:#999;">药材: ' + herbName + '</div></div><div style="color:#2d8b5e;font-size:16px;">✓</div></div>';
+  }).join('');
+}
+
+async function loadIdentifyRecords() {
+  var data = await api('/identify/records');
+  var list = document.getElementById('identify-records-list');
+  if (!list) return;
+  var records = [];
+  if (Array.isArray(data)) { records = data; }
+  else if (data && data.list) { records = data.list; }
+  if (records.length === 0) { list.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">🔍</div><div>暂无识别记录</div></div>'; return; }
+  list.innerHTML = records.slice(0, 5).map(function(r) {
+    var herbName = r.herbName || (r.herb && r.herb.name) || '-';
+    var herbId = r.herbId || (r.herb && r.herb.id) || 0;
+    var accuracy = r.accuracy ? (r.accuracy * 100).toFixed(0) + '%' : '-';
+    return '<div class="card" style="padding:12px;margin:0 16px 8px;" onclick="showHerbDetail(' + herbId + ')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><div style="font-size:14px;font-weight:600;">' + herbName + '</div><div style="font-size:12px;color:#F59E0B;">' + accuracy + '</div></div><div style="font-size:11px;color:#999;">' + (r.date || '-') + '</div></div>';
+  }).join('');
+}
+
+async function loadCheckinStats() {
+  var data = await api('/checkin/stats');
+  if (data) {
+    document.getElementById('checkin-stat-total').textContent = data.totalCount || data.total || 0;
+    document.getElementById('checkin-stat-consecutive').textContent = data.consecutiveDays || data.consecutive || 0;
+    document.getElementById('checkin-stat-month').textContent = (data.monthStats && data.monthStats.checkedDays) || data.month || 0;
+  }
+}
+
+let _constitutionQuestions = [];
+let _constitutionMode = 'standard';
+let _constitutionAnswers = {};
+let _constitutionCurrentIndex = 0;
+let _constitutionResult = null;
+
+async function openConstitutionTest(mode) {
+  _constitutionMode = mode || 'standard';
+  _constitutionAnswers = {};
+  _constitutionCurrentIndex = 0;
+  const res = await api('/constitution/questions?mode=' + _constitutionMode);
+  _constitutionQuestions = (res && res.questions) ? res.questions : [];
+  if (_constitutionQuestions.length === 0) { showToast('加载问卷失败'); return; }
+  document.getElementById('constitution-modal').style.display = 'flex';
+  renderConstitutionQuestion();
+}
+
+function closeConstitutionTest() {
+  document.getElementById('constitution-modal').style.display = 'none';
+  _constitutionQuestions = [];
+  _constitutionAnswers = {};
+}
+
+function renderConstitutionQuestion() {
+  const q = _constitutionQuestions[_constitutionCurrentIndex];
+  const total = _constitutionQuestions.length;
+  const progress = ((_constitutionCurrentIndex + 1) / total * 100).toFixed(0);
+  document.getElementById('constitution-progress-bar').style.width = progress + '%';
+  document.getElementById('constitution-progress-text').textContent = (_constitutionCurrentIndex + 1) + ' / ' + total;
+  
+  const options = ['从不','很少','有时','经常','总是'];
+  document.getElementById('constitution-question').innerHTML = '<div style="font-size:16px;font-weight:600;margin-bottom:20px;">' + q.text + '</div><div style="display:flex;flex-direction:column;gap:10px;">' + options.map(function(opt, idx) {
+    var style = _constitutionAnswers[q.id] === idx + 1 ? 'background:#2d8b5e;color:#fff;' : 'background:#fff;color:#333;border:1px solid #e2e8f0;';
+    return '<button class="constitution-option" data-value="' + (idx + 1) + '" onclick="selectConstitutionOption(' + (idx + 1) + ')" style="padding:14px;border-radius:12px;font-size:14px;text-align:left;' + style + '">' + opt + '</button>';
+  }).join('') + '</div>';
+  
+  var prevBtn = document.getElementById('constitution-prev');
+  var nextBtn = document.getElementById('constitution-next');
+  var submitBtn = document.getElementById('constitution-submit');
+  prevBtn.style.display = _constitutionCurrentIndex > 0 ? 'block' : 'none';
+  if (_constitutionCurrentIndex === total - 1) { nextBtn.style.display = 'none'; submitBtn.style.display = 'block'; }
+  else { nextBtn.style.display = 'block'; submitBtn.style.display = 'none'; }
+}
+
+function selectConstitutionOption(value) {
+  var q = _constitutionQuestions[_constitutionCurrentIndex];
+  _constitutionAnswers[q.id] = value;
+  document.querySelectorAll('.constitution-option').forEach(function(opt) {
+    if (parseInt(opt.dataset.value) === value) { opt.style.background='#2d8b5e'; opt.style.color='#fff'; opt.style.border='none'; }
+    else { opt.style.background='#fff'; opt.style.color='#333'; opt.style.border='1px solid #e2e8f0'; }
+  });
+}
+
+function constitutionPrev() { if (_constitutionCurrentIndex > 0) { _constitutionCurrentIndex--; renderConstitutionQuestion(); } }
+function constitutionNext() {
+  var q = _constitutionQuestions[_constitutionCurrentIndex];
+  if (!_constitutionAnswers[q.id]) { showToast('请选择答案'); return; }
+  if (_constitutionCurrentIndex < _constitutionQuestions.length - 1) { _constitutionCurrentIndex++; renderConstitutionQuestion(); }
+}
+
+async function constitutionSubmit() {
+  var unanswered = _constitutionQuestions.filter(function(q) { return !_constitutionAnswers[q.id]; });
+  if (unanswered.length > 0) { showToast('还有 ' + unanswered.length + ' 题未作答'); return; }
+  var answers = Object.keys(_constitutionAnswers).map(function(qid) { return { qid: parseInt(qid), value: _constitutionAnswers[qid] }; });
+  var res = await apiPost('/constitution/submit', { answers: answers, mode: _constitutionMode });
+  if (res) { renderConstitutionResult(res); } else { showToast('测评失败'); }
+}
+
+function renderConstitutionResult(data) {
+  var types = {
+    pinghe:{name:'平和质',color:'#2d8b5e',desc:'精力充沛，适应力强'},
+    qixu:{name:'气虚质',color:'#f59e0b',desc:'容易疲劳，活动气短'},
+    yangxu:{name:'阳虚质',color:'#3b82f6',desc:'手脚冰凉，尤其怕冷'},
+    yinxu:{name:'阴虚质',color:'#ef4444',desc:'手心发热，口干舌燥'},
+    tanshi:{name:'痰湿质',color:'#84cc16',desc:'身体沉重，腹部肥软'},
+    shire:{name:'湿热质',color:'#a855f7',desc:'面部油腻，易长痘痘'},
+    xueyu:{name:'血瘀质',color:'#7c3aed',desc:'皮肤暗沉，容易淤青'},
+    qiyu:{name:'气郁质',color:'#06b6d4',desc:'情绪抑郁，经常叹气'},
+    tebing:{name:'特禀质',color:'#ec4899',desc:'容易过敏'}
+  };
+
+  var matchMap = {
+    pinghe: [
+      {name:'山药枸杞粥',type:'粥类',desc:'健脾养胃，滋补肝肾，适合日常养生',herbs:['山药','枸杞','大米']},
+      {name:'大枣桂圆茶',type:'茶饮',desc:'补气养血，安神健脾，增强体质',herbs:['大枣','桂圆','枸杞']},
+      {name:'百合莲子汤',type:'汤品',desc:'滋阴润肺，养心安神，平和调养',herbs:['百合','莲子','冰糖']}
+    ],
+    qixu: [
+      {name:'人参粥',type:'粥类',desc:'大补元气，健脾养胃，适合气虚乏力',herbs:['人参','大米','大枣']},
+      {name:'黄芪炖鸡',type:'汤品',desc:'补气升阳，固表止汗，增强免疫力',herbs:['黄芪','鸡肉','生姜']},
+      {name:'党参山药炖排骨',type:'汤品',desc:'益气健脾，滋阴润燥，适合气虚体质',herbs:['党参','山药','排骨']}
+    ],
+    yangxu: [
+      {name:'肉桂粥',type:'粥类',desc:'温中散寒，补肾助阳，适合阳虚畏寒',herbs:['肉桂','大米','红糖']},
+      {name:'生姜羊肉汤',type:'汤品',desc:'温中补虚，散寒止痛，暖身驱寒',herbs:['生姜','羊肉','当归']},
+      {name:'附子炖狗肉',type:'汤品',desc:'温肾助阳，散寒止痛，适合严重阳虚',herbs:['附子','狗肉','生姜']}
+    ],
+    yinxu: [
+      {name:'麦冬百合粥',type:'粥类',desc:'滋阴润肺，清心安神，适合阴虚燥热',herbs:['麦冬','百合','大米']},
+      {name:'沙参玉竹炖鸡汤',type:'汤品',desc:'滋阴清热，润肺生津，适合阴虚口干',herbs:['沙参','玉竹','鸡肉']},
+      {name:'银耳莲子羹',type:'甜品',desc:'滋阴润燥，养心安神，适合阴虚体质',herbs:['银耳','莲子','冰糖']}
+    ],
+    tanshi: [
+      {name:'薏苡仁冬瓜汤',type:'汤品',desc:'利水渗湿，清热化痰，适合痰湿肥胖',herbs:['薏苡仁','冬瓜','排骨']},
+      {name:'荷叶茶',type:'茶饮',desc:'清热利湿，消水肿，帮助减肥',herbs:['荷叶','山楂','陈皮']},
+      {name:'茯苓粥',type:'粥类',desc:'利水渗湿，健脾和胃，消除体内湿气',herbs:['茯苓','大米','山药']}
+    ],
+    shire: [
+      {name:'绿豆粥',type:'粥类',desc:'清热解毒，消暑利水，适合湿热体质',herbs:['绿豆','大米','荷叶']},
+      {name:'苦瓜炒蛋',type:'菜品',desc:'清热解毒，明目解毒，降火祛湿',herbs:['苦瓜','鸡蛋']},
+      {name:'茵陈茶',type:'茶饮',desc:'清热利湿，利胆退黄，适合湿热黄疸',herbs:['茵陈','栀子','大黄']}
+    ],
+    xueyu: [
+      {name:'山楂粥',type:'粥类',desc:'活血化瘀，消食化积，适合血瘀体质',herbs:['山楂','大米','红糖']},
+      {name:'丹参酒',type:'饮品',desc:'活血化瘀，通经止痛，改善血液循环',herbs:['丹参','白酒']},
+      {name:'玫瑰花茶',type:'茶饮',desc:'疏肝理气，活血化瘀，美容养颜',herbs:['玫瑰花','枸杞','大枣']}
+    ],
+    qiyu: [
+      {name:'陈皮粥',type:'粥类',desc:'理气健脾，燥湿化痰，适合气郁体质',herbs:['陈皮','大米','生姜']},
+      {name:'佛手茶',type:'茶饮',desc:'疏肝理气，和胃止痛，缓解情绪抑郁',herbs:['佛手','玫瑰花','香附']},
+      {name:'香附炖鸡',type:'汤品',desc:'疏肝解郁，理气止痛，调节情志',herbs:['香附','鸡肉','生姜']}
+    ],
+    tebing: [
+      {name:'黄芪粥',type:'粥类',desc:'补气固表，增强体质，预防过敏',herbs:['黄芪','大米','大枣']},
+      {name:'灵芝茶',type:'茶饮',desc:'补气安神，增强免疫力，抗过敏',herbs:['灵芝','蜂蜜']},
+      {name:'防风粥',type:'粥类',desc:'祛风解表，胜湿止痛，预防过敏反应',herbs:['防风','大米','生姜']}
+    ]
+  };
+
+  var mainType = data.mainType || 'pinghe';
+  var mainTypeInfo = types[mainType] || types.pinghe;
+  var convertedScores = data.convertedScores || {};
+  var scoreList = Object.keys(convertedScores).map(function(k){return {type:k,name:(types[k]||types.pinghe).name,score:convertedScores[k],color:(types[k]||types.pinghe).color};}).sort(function(a,b){return b.score-a.score;});
+  var scoreHtml = scoreList.map(function(s){return '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;color:#333;">'+s.name+'</span><span style="font-size:13px;color:'+s.color+';">'+s.score+'%</span></div><div style="height:8px;background:#f0f9f4;border-radius:4px;overflow:hidden;"><div style="height:100%;width:'+s.score+'%;background:'+s.color+';border-radius:4px;"></div></div></div>';}).join('');
+
+  var mixedHtml = data.mixedTypes && data.mixedTypes.length>0 ? '<div style="margin-top:16px;"><div style="font-size:14px;font-weight:600;margin-bottom:8px;color:#333;">兼夹体质</div><div style="display:flex;flex-wrap:wrap;gap:8px;">'+data.mixedTypes.map(function(t){return '<span style="font-size:12px;color:#333;background:#f8fafc;padding:4px 12px;border-radius:20px;">'+(t.name||'-')+' '+(t.score||0)+'%</span>';}).join('')+'</div></div>' : '';
+
+  var matches = matchMap[mainType] || [];
+  var matchHtml = matches.map(function(m){
+    var herbTags = m.herbs.map(function(h){return '<span style="font-size:11px;color:#2d8b5e;background:rgba(45,139,94,0.08);border:1px solid rgba(45,139,94,0.2);padding:3px 10px;border-radius:12px;cursor:pointer;" onclick="goToHerbDetail(\''+h+'\')">'+h+'</span>';}).join('');
+    return '<div style="background:#f8fafc;border-left:3px solid #2d8b5e;border-radius:0 8px 8px 0;padding:14px;margin-bottom:12px;text-align:left;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:14px;font-weight:600;color:#333;">'+(m.name||'-')+'</span><span style="font-size:11px;color:#F59E0B;background:rgba(245,158,11,0.1);padding:2px 10px;border-radius:20px;">'+(m.type||'-')+'</span></div><div style="font-size:12px;color:#666;margin-bottom:10px;">'+(m.desc||'')+'</div><div style="font-size:11px;color:#999;margin-bottom:6px;">涉及药材：</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+herbTags+'</div></div>';
+  }).join('');
+
+  document.getElementById('constitution-question').innerHTML = '<div style="text-align:center;padding-bottom:20px;"><div style="width:100px;height:100px;border-radius:50%;background:'+mainTypeInfo.color+';display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 20px;">🧬</div><div style="font-size:24px;font-weight:700;color:'+mainTypeInfo.color+';margin-bottom:8px;">'+(data.mainTypeName||mainTypeInfo.name)+'</div><div style="font-size:14px;color:#666;margin-bottom:20px;">'+mainTypeInfo.desc+'</div><div style="background:#f8fafc;padding:16px;border-radius:12px;margin-bottom:16px;text-align:left;"><div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#333;">各体质得分</div>'+scoreHtml+'</div>'+mixedHtml+'<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-top:16px;text-align:left;"><div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#333;">🍲 药食同源搭配建议</div>'+matchHtml+'</div><div style="font-size:12px;color:#999;margin-top:16px;">测评时间：'+(data.date||'-')+'</div></div>';
+
+  document.getElementById('constitution-progress-bar').style.width='100%';
+  document.getElementById('constitution-progress-text').textContent='测评完成';
+  document.getElementById('constitution-prev').style.display='none';
+  document.getElementById('constitution-next').style.display='none';
+  document.getElementById('constitution-submit').style.display='none';
+}
+
+function loadConstitutionRecords() {
+  api('/constitution/records').then(function(res) {
+    var listEl = document.getElementById('constitution-records-list');
+    if (!listEl) return;
+    var records = (res && res.list) ? res.list : [];
+    if (records.length===0) { listEl.innerHTML='<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">🧬</div><div>暂无测评记录</div><div style="font-size:12px;margin-top:4px;">去首页进行体质测评</div></div>'; return; }
+    
+    var types = {pinghe:{name:'平和质',color:'#2d8b5e'},qixu:{name:'气虚质',color:'#f59e0b'},yangxu:{name:'阳虚质',color:'#3b82f6'},yinxu:{name:'阴虚质',color:'#ef4444'},tanshi:{name:'痰湿质',color:'#84cc16'},shire:{name:'湿热质',color:'#a855f7'},xueyu:{name:'血瘀质',color:'#7c3aed'},qiyu:{name:'气郁质',color:'#06b6d4'},tebing:{name:'特禀质',color:'#ec4899'}};
+    var showAll = records.length>3;
+    
+    listEl.innerHTML = (showAll?'<div style="margin:0 16px 8px;font-size:13px;color:#999;">'+records.length+'次测评（滑动查看更多）</div>':'') + '<div style="'+(showAll?'max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;':'')+'">'+records.map(function(r){
+      var mixedHtml = r.mixedTypes&&r.mixedTypes.length>0?'<div style="display:flex;flex-wrap:wrap;gap:4px;max-width:80px;">'+r.mixedTypes.slice(0,2).map(function(t){return '<span style="font-size:10px;color:#666;background:#f8fafc;padding:2px 6px;border-radius:8px;">'+t.name+'</span>';}).join('')+'</div>':'';
+      return '<div class="card" style="padding:14px;display:flex;align-items:center;margin:'+(showAll?'0 4px':'0 16px')+' 12px;cursor:pointer;" onclick="viewConstitutionDetail('+JSON.stringify(r).replace(/"/g,'&quot;')+')"><div style="width:50px;height:50px;border-radius:50%;background:'+types[r.mainType].color+';display:flex;align-items:center;justify-content:center;font-size:24px;margin-right:14px;">🧬</div><div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:600;color:'+types[r.mainType].color+';">'+r.mainTypeName+'</div><div style="font-size:12px;color:#666;">'+(r.mode==='quick'?'快速测评':'标准测评')+' · 得分 '+r.mainScore+'%</div><div style="font-size:11px;color:#999;margin-top:4px;">'+r.date+'</div></div>'+mixedHtml+'<button style="font-size:12px;color:#dc2626;background:rgba(239,68,68,0.08);padding:6px 12px;border-radius:12px;border:1px solid rgba(239,68,68,0.2);margin-left:8px;flex-shrink:0;" onclick="event.stopPropagation();deleteConstitutionRecord('+r.id+')">删除</button></div>';
+    }).join('')+'</div>';
+  });
+}
+
+function viewConstitutionDetail(record) {
+  _constitutionResult = record;
+  renderConstitutionResult(record);
+  document.getElementById('constitution-modal').style.display='flex';
+}
+
+function goToHerbDetail(herbName) {
+  closeConstitutionTest();
+  showPage('page-herb-list', false);
+  loadHerbList();
+  setTimeout(function() {
+    var herb = herbsData.find(function(h) {
+      return h.name === herbName || (h.alias && h.alias.indexOf(herbName) >= 0);
+    });
+    if (herb) {
+      if (typeof showHerbDetail === 'function') {
+        showHerbDetail(herb.id);
+      }
+    } else {
+      fetch(API_BASE + '/herb/detail/' + encodeURIComponent(herbName))
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res.code === 0 && res.data && res.data.id) {
+            if (typeof showHerbDetail === 'function') {
+              showHerbDetail(res.data.id);
+            }
+          } else {
+            showToast('暂无药材详情：' + herbName);
+          }
+        })
+        .catch(function() {
+          showToast('暂无药材详情：' + herbName);
+        });
+    }
+  }, 500);
+}
+
+function deleteConstitutionRecord(id) {
+  if (!confirm('确定要删除这条测评记录吗？')) return;
+  apiDelete('/constitution/record/'+id).then(function(res) {
+    if (res && res.code === 0) {
+      showToast('删除成功');
+      loadConstitutionRecords();
+    } else {
+      showToast('删除失败');
+    }
+  }).catch(function() {
+    showToast('删除失败');
+  });
+}
+
+initHome();
+</script>
+</body>
+</html>

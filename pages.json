@@ -1,0 +1,139 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "本草智识",
+        "navigationBarBackgroundColor": "#0891B2",
+        "navigationBarTextStyle": "white",
+        "enablePullDownRefresh": true,
+        "backgroundColor": "#ECFEFF"
+      }
+    },
+    {
+      "path": "pages/identify/identify",
+      "style": {
+        "navigationBarTitleText": "药材识别",
+        "navigationBarBackgroundColor": "#0891B2",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#ECFEFF"
+      }
+    },
+    {
+      "path": "pages/herb-list/herb-list",
+      "style": {
+        "navigationBarTitleText": "药材图鉴",
+        "navigationBarBackgroundColor": "#0891B2",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#ECFEFF"
+      }
+    },
+    {
+      "path": "pages/detail/detail",
+      "style": {
+        "navigationBarTitleText": "药材详情",
+        "navigationBarBackgroundColor": "#0891B2",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#ECFEFF"
+      }
+    },
+    {
+      "path": "pages/quiz/quiz",
+      "style": {
+        "navigationBarTitleText": "趣味问答",
+        "navigationBarBackgroundColor": "#0891B2",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#ECFEFF"
+      }
+    },
+    {
+      "path": "pages/classics/classics",
+      "style": {
+        "navigationBarTitleText": "典籍溯源",
+        "navigationBarBackgroundColor": "#0891B2",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#ECFEFF"
+      }
+    },
+    {
+      "path": "pages/match/match",
+      "style": {
+        "navigationBarTitleText": "药食同源",
+        "navigationBarBackgroundColor": "#0891B2",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#ECFEFF"
+      }
+    },
+    {
+      "path": "pages/constitution/constitution",
+      "style": {
+        "navigationBarTitleText": "体质测评",
+        "navigationBarBackgroundColor": "#0891B2",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#ECFEFF"
+      }
+    },
+    {
+      "path": "pages/constitution/constitution-result",
+      "style": {
+        "navigationBarTitleText": "测评结果",
+        "navigationBarBackgroundColor": "#0891B2",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#ECFEFF"
+      }
+    },
+    {
+      "path": "pages/mine/mine",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationBarBackgroundColor": "#0891B2",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#ECFEFF"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "本草智识",
+    "navigationBarBackgroundColor": "#0891B2",
+    "backgroundColor": "#ECFEFF"
+  },
+  "tabBar": {
+    "color": "#94A3B8",
+    "selectedColor": "#0891B2",
+    "borderStyle": "white",
+    "backgroundColor": "#FFFFFF",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabs/home.png",
+        "selectedIconPath": "static/tabs/home-active.png"
+      },
+      {
+        "pagePath": "pages/herb-list/herb-list",
+        "text": "图鉴",
+        "iconPath": "static/tabs/list.png",
+        "selectedIconPath": "static/tabs/list-active.png"
+      },
+      {
+        "pagePath": "pages/quiz/quiz",
+        "text": "问答",
+        "iconPath": "static/tabs/quiz.png",
+        "selectedIconPath": "static/tabs/quiz-active.png"
+      },
+      {
+        "pagePath": "pages/match/match",
+        "text": "搭配",
+        "iconPath": "static/tabs/match.png",
+        "selectedIconPath": "static/tabs/match-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "static/tabs/mine.png",
+        "selectedIconPath": "static/tabs/mine-active.png"
+      }
+    ]
+  }
+}

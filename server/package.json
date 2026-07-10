@@ -1,0 +1,25 @@
+{
+  "name": "herb-identify-server",
+  "version": "1.0.0",
+  "description": "本草智识 - 后端API服务",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.11.1",
+    "canvas": "^3.2.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
