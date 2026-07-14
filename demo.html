@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>本草智识 - AI中药识别</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -471,6 +474,175 @@
 
     .constitution-progress { height: 6px; background: #e2e8f0; border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
     .constitution-progress-bar { height: 100%; background: #2d8b5e; border-radius: 3px; transition: width 0.3s; }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 56px);
+      background: #f0f9f4;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      padding-bottom: 80px;
+    }
+    .chat-message {
+      display: flex;
+      margin-bottom: 16px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-message.user { justify-content: flex-end; }
+    .chat-message.assistant { justify-content: flex-start; }
+    .chat-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      margin: 0 8px;
+    }
+    .chat-message.user .chat-avatar { background: #a855f7; color: #fff; }
+    .chat-message.assistant .chat-avatar { background: #2d8b5e; color: #fff; }
+    .chat-bubble {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.7;
+      word-break: break-word;
+      white-space: pre-line;
+    }
+    .chat-message.user .chat-bubble {
+      background: #a855f7;
+      color: #fff;
+      border-bottom-right-radius: 6px;
+    }
+    .chat-message.assistant .chat-bubble {
+      background: #fff;
+      color: #333;
+      border-bottom-left-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .chat-input-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      padding: 10px 16px;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 100;
+    }
+    .chat-input-area input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 25px;
+      font-size: 14px;
+      outline: none;
+      background: #f8fafc;
+    }
+    .chat-input-area input:focus {
+      border-color: #a855f7;
+      background: #fff;
+    }
+    .chat-send-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #a855f7;
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .chat-send-btn:active { opacity: 0.8; }
+    .chat-send-btn:disabled { opacity: 0.5; }
+    .chat-loading {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      background: #fff;
+      border-radius: 18px;
+      border-bottom-left-radius: 6px;
+    }
+    .chat-loading .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #a855f7;
+      margin: 0 3px;
+      animation: bounce 0.6s infinite alternate;
+    }
+    .chat-loading .dot:nth-child(2) { animation-delay: 0.2s; }
+    .chat-loading .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+    .suggested-questions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .suggested-question {
+      padding: 8px 14px;
+      background: rgba(168,85,247,0.08);
+      color: #a855f7;
+      border: 1px solid rgba(168,85,247,0.2);
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .suggested-question:active {
+      background: #a855f7;
+      color: #fff;
+    }
+    .chat-diagnosis-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(168,85,247,0.1);
+      color: #a855f7;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .chat-prescription-card {
+      background: linear-gradient(135deg, rgba(168,85,247,0.05), rgba(168,85,247,0.1));
+      border-left: 4px solid #a855f7;
+      border-radius: 0 12px 12px 0;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .chat-prescription-card .prescription-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #a855f7;
+      margin-bottom: 6px;
+    }
+    .chat-prescription-card .prescription-ingredients {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+    .chat-prescription-card .prescription-explanation {
+      font-size: 12px;
+      color: #999;
+    }
   </style>
 </head>
 <body>
@@ -527,6 +699,24 @@
     <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:12px;border-top:1px dashed rgba(45,139,94,0.2);">
       <span style="font-size:12px;color:#999;">每日学习一种药材，打卡赢积分</span>
       <button id="daily-checkin-btn" style="padding:8px 20px;background:linear-gradient(135deg, #2d8b5e, #3da878);color:#fff;border:none;border-radius:30px;font-size:13px;cursor:pointer;" onclick="event.stopPropagation();handleDailyCheckin()">立即打卡</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px;background:linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(168,85,247,0.15) 100%);border:1px solid rgba(168,85,247,0.2);" onclick="showPage('page-consult')">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="section-title" style="font-size:16px;">🏥 经方问诊</div>
+      <div style="font-size:12px;color:#a855f7;background:rgba(168,85,247,0.1);padding:4px 12px;border-radius:20px;">倪海厦视角</div>
+    </div>
+    <div style="display:flex;align-items:center;">
+      <div style="width:60px;height:60px;background:rgba(168,85,247,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-right:14px;">📖</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:600;color:#333;">倪师经方辨证论治</div>
+        <div style="font-size:12px;color:#a855f7;margin-top:4px;">伤寒论 · 金匮要略 · 黄帝内经</div>
+      </div>
+      <div style="font-size:20px;color:#a855f7;">→</div>
+    </div>
+    <div style="font-size:12px;color:#666;margin-top:12px;line-height:1.6;">
+      基于倪海厦人纪系列教学内容，提供六经辨证、经方建议、养生指导
     </div>
   </div>
 
@@ -668,6 +858,51 @@
   <div id="herb-list-content"></div>
 </div>
 
+<div class="page" id="page-consult">
+  <div class="nav-bar">
+    <span class="back" onclick="endChat()">←</span>
+    <span class="title">经方问诊</span>
+    <span class="spacer"></span>
+  </div>
+  <div class="chat-container">
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-message assistant">
+        <div class="chat-avatar">📖</div>
+        <div class="chat-bubble">
+          您好！我是倪海厦经方中医助手。请描述您的症状，我将根据经方思维为您提供辨证和处方建议。
+          <div class="suggested-questions">
+            <span class="suggested-question" onclick="sendMessage('我感冒发烧了怎么办？')">我感冒发烧了怎么办？</span>
+            <span class="suggested-question" onclick="sendMessage('我有失眠问题')">我有失眠问题</span>
+            <span class="suggested-question" onclick="sendMessage('我胃痛不舒服')">我胃痛不舒服</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="chat-input" placeholder="输入您的症状或问题..." onkeypress="handleChatKey(event)">
+      <button class="chat-send-btn" id="chat-send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-chat-history">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-profile')">←</span>
+    <span class="title">问诊记录</span>
+    <span class="spacer"></span>
+  </div>
+  <div id="chat-history-content" style="padding:16px;padding-bottom:80px;"></div>
+</div>
+
+<div class="page" id="page-chat-detail">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-chat-history')">←</span>
+    <span class="title">问诊详情</span>
+    <span class="spacer"></span>
+  </div>
+  <div id="chat-detail-content" style="padding:16px;padding-bottom:20px;"></div>
+</div>
+
 <div class="page page-with-tab" id="page-profile">
   <div class="profile-header">
     <div class="profile-info">
@@ -708,6 +943,13 @@
       <span class="title">🔍 我的识别记录</span>
     </div>
     <div id="identify-records-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">🏥 我的问诊记录</span>
+      <span class="more" onclick="showPage('page-chat-history')">查看全部</span>
+    </div>
+    <div id="chat-history-list"></div>
   </div>
   <div class="favorite-section">
     <div class="section-header">
@@ -798,24 +1040,6 @@ let currentPage = 'page-home';
 let pageHistory = ['page-home'];
 let dailyHerbData = null;
 let selectedImage = null;
-
-function showPage(pageId, updateHistory) {
-  if (updateHistory === undefined) updateHistory = true;
-  if (updateHistory && pageId !== currentPage) { pageHistory.push(pageId); }
-  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-  var page = document.getElementById(pageId);
-  if (page) { page.classList.add('active'); currentPage = pageId; }
-  window.scrollTo(0, 0);
-  document.querySelectorAll('.tab-item').forEach(function(t) { t.classList.remove('active'); });
-  var tabMap = { 'page-home': 0, 'page-identify': 1, 'page-herb-list': 2, 'page-match': 3, 'page-profile': 4 };
-  var tabIdx = tabMap[pageId];
-  if (tabIdx !== undefined) { document.querySelectorAll('.tab-item')[tabIdx].classList.add('active'); }
-  if (pageId === 'page-home') { initHome(); }
-  else if (pageId === 'page-herb-list') { loadHerbList(); }
-  else if (pageId === 'page-match') { initMatchPage(); }
-  else if (pageId === 'page-quiz') { initQuizPage(); }
-  else if (pageId === 'page-profile') { initProfile(); }
-}
 
 function goBack() {
   if (pageHistory.length > 1) { pageHistory.pop(); showPage(pageHistory[pageHistory.length - 1], false); }
@@ -1003,16 +1227,56 @@ async function showHerbDetail(id) {
     return '<div class="search-result-item" onclick="showHerbDetail(' + (a.herbId || 0) + ')"><div class="result-visual herb-color-' + ((a.rank % 6) + 1) + '">🌿</div><div class="result-info"><div class="result-name">' + a.name + '</div><div class="result-effect">' + (a.effect || '') + '</div></div><div style="color:#F59E0B;font-size:14px;font-weight:600;">' + (a.probability * 100).toFixed(0) + '%</div></div>';
   }).join('') + '</div></div>' : '';
 
+  var isFavorited = isHerbFavorited(data.id);
+  
   content.innerHTML = '<div class="herb-hero"><div class="hero-bg herb-color-' + ((data.id % 6) + 1) + '"><div style="font-size:120px;">🌿</div></div><div class="herb-overlay"></div><div class="herb-title-area"><div class="name">' + data.name + '</div><div class="pinyin">' + (data.pinyin || '') + '</div><div class="alias">' + (data.alias && data.alias.length ? data.alias.join('、') : '') + '</div></div></div>' +
-    '<div class="card"><div class="info-row"><div class="info-item"><div class="label">分类</div><div class="value">' + (data.category || '-') + '</div></div><div class="info-item"><div class="label">性味</div><div class="value">' + (data.nature || '-') + ' · ' + (data.taste || '-') + '</div></div></div><div class="info-row"><div class="info-item"><div class="label">归经</div><div class="value">' + (data.meridian || '-') + '</div></div><div class="info-item"><div class="label">剂量</div><div class="value">' + (data.dosage || '-') + '</div></div></div></div>' +
+    '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="info-row" style="flex:1;"><div class="info-item"><div class="label">分类</div><div class="value">' + (data.category || '-') + '</div></div><div class="info-item"><div class="label">性味</div><div class="value">' + (data.nature || '-') + ' · ' + (data.taste || '-') + '</div></div></div><button id="herb-fav-btn" onclick="toggleHerbFavorite(' + data.id + ')" style="padding:10px 20px;border-radius:25px;font-size:14px;border:none;cursor:pointer;' + (isFavorited ? 'background:#ef4444;color:#fff;' : 'background:#f0f9f4;color:#2d8b5e;') + '">' + (isFavorited ? '❤️ 已收藏' : '🤍 收藏') + '</button></div><div class="info-row"><div class="info-item"><div class="label">归经</div><div class="value">' + (data.meridian || '-') + '</div></div><div class="info-item"><div class="label">剂量</div><div class="value">' + (data.dosage || '-') + '</div></div></div></div>' +
     '<div class="card"><div class="section-title">功效主治</div><div class="section-content">' + (data.effect || '') + '</div></div>' +
     ((data.indication || '') ? '<div class="card"><div class="section-title">适应症</div><div class="section-content">' + data.indication + '</div></div>' : '') +
     ((data.identify_points || '') ? '<div class="card"><div class="section-title">鉴别要点</div><div class="section-content">' + data.identify_points + '</div></div>' : '') +
-    ((data.key_identification || '') ? '<div class="card"><div class="section-title">关键鉴别点</div><div class="section-content">' + data.key_identification + '</div></div>' : '') +
+    (data.key_identification ? (function() { var ki = data.key_identification; if (typeof ki === 'string') return '<div class="card"><div class="section-title">关键鉴别点</div><div class="section-content">' + ki + '</div></div>'; var labels = {smell:'气味',texture:'质地',cross_section:'截面',outer_skin:'外皮',other:'其他'}; var items = Object.keys(ki).filter(function(k){return ki[k]}).map(function(k){return '<div style="display:flex;padding:8px 0;border-bottom:1px solid #f0f9f4;"><div style="width:60px;font-size:13px;color:#2d8b5e;font-weight:500;flex-shrink:0;">'+(labels[k]||k)+'</div><div style="font-size:13px;color:#333;flex:1;">'+ki[k]+'</div></div>';}).join(''); return items ? '<div class="card"><div class="section-title">关键鉴别点</div><div>'+items+'</div></div>' : ''; })() : '') +
     ((data.classics && data.classics.length) ? '<div class="card"><div class="section-title">典籍记载</div>' + classicsHtml + '</div>' : '') +
     foodMatchHtml +
     alternativeHtml +
     ((data.taboo || '') ? '<div class="card caution-card"><div class="section-title caution-title">注意事项</div><div class="section-content">' + data.taboo + '</div></div>' : '');
+}
+
+function isHerbFavorited(id) {
+  try {
+    var favs = JSON.parse(localStorage.getItem('favorites') || '{}');
+    return (favs.herbs || []).includes(id);
+  } catch (e) {
+    return false;
+  }
+}
+
+function toggleHerbFavorite(id) {
+  try {
+    var favs = JSON.parse(localStorage.getItem('favorites') || '{}');
+    if (!favs.herbs) favs.herbs = [];
+    var idx = favs.herbs.indexOf(id);
+    if (idx === -1) {
+      favs.herbs.push(id);
+      showToast('收藏成功');
+    } else {
+      favs.herbs.splice(idx, 1);
+      showToast('已取消收藏');
+    }
+    localStorage.setItem('favorites', JSON.stringify(favs));
+    apiPost('/favorite/add', { type: 'herb', id: id });
+    updateHerbFavBtn(id, idx === -1);
+  } catch (e) {
+    showToast('操作失败');
+  }
+}
+
+function updateHerbFavBtn(id, isFavorited) {
+  var btn = document.getElementById('herb-fav-btn');
+  if (btn) {
+    btn.textContent = isFavorited ? '❤️ 已收藏' : '🤍 收藏';
+    btn.style.background = isFavorited ? '#ef4444' : '#f0f9f4';
+    btn.style.color = isFavorited ? '#fff' : '#2d8b5e';
+  }
 }
 
 function takePhoto() {
@@ -1088,16 +1352,18 @@ async function initMatchPage() {
 function renderMatchHerbChips() {
   var chips = document.getElementById('match-herb-chips');
   if (!chips) return;
-  var herbs = [...new Set(matchData.map(function(m) { return m.herb_name; }))].slice(0, 10);
-  chips.innerHTML = '<div class="herb-chip active" onclick="filterMatchByHerb(null, this)">全部</div>' + herbs.map(function(h) {
-    return '<div class="herb-chip" onclick="filterMatchByHerb(\'' + h + '\', this)">' + h + '</div>';
+  var herbIds = [...new Set(matchData.map(function(m) { return m.herbId; }))].slice(0, 10);
+  chips.innerHTML = '<div class="herb-chip active" onclick="filterMatchByHerb(null, this)">全部</div>' + herbIds.map(function(hid) {
+    var herb = herbsData.find(function(h) { return h.id === hid; });
+    var name = herb ? herb.name : '药材' + hid;
+    return '<div class="herb-chip" onclick="filterMatchByHerb(' + hid + ', this)">' + name + '</div>';
   }).join('');
 }
 
-function filterMatchByHerb(herbName, el) {
+function filterMatchByHerb(herbId, el) {
   document.querySelectorAll('.herb-chip').forEach(function(c) { c.classList.remove('active'); });
   el.classList.add('active');
-  var filtered = herbName ? matchData.filter(function(m) { return m.herb_name === herbName; }) : matchData;
+  var filtered = herbId ? matchData.filter(function(m) { return m.herbId === herbId; }) : matchData;
   renderMatchList(filtered);
 }
 
@@ -1134,7 +1400,7 @@ function searchMatch() {
   document.getElementById('match-search-clear').style.display = 'block';
   
   var results = matchData.filter(function(m) {
-    return m.name.includes(keyword) || m.effect.includes(keyword) || m.symptom.includes(keyword) || m.ingredients.some(function(i) { return i.includes(keyword); });
+    return m.name.includes(keyword) || m.effect.includes(keyword) || (m.suitable && m.suitable.includes(keyword)) || m.ingredients.some(function(i) { return i.includes(keyword); });
   });
   
   document.getElementById('match-herb-section').style.display = 'none';
@@ -1154,15 +1420,61 @@ async function showMatchDetail(id) {
   var data = matchData.find(function(m) { return m.id === id; });
   if (!data) return;
   
+  var isFavorited = isMatchFavorited(id);
+  
   document.getElementById('modal-bg').className = 'modal-bg herb-color-' + ((id % 6) + 1);
-  document.getElementById('modal-body').innerHTML = '<div class="title">' + data.name + '</div>' +
+  
+  var imageHtml = data.image ? '<div style="width:100%;height:180px;border-radius:12px;overflow:hidden;margin-bottom:16px;"><img src="' + data.image + '" style="width:100%;height:100%;object-fit:cover;"></div>' : '';
+  
+  document.getElementById('modal-body').innerHTML = imageHtml +
+    '<div class="title" style="display:flex;justify-content:space-between;align-items:center;">' + data.name + 
+    '<button id="match-fav-btn" onclick="toggleMatchFavorite(' + id + ')" style="padding:8px 16px;border-radius:20px;font-size:13px;border:none;cursor:pointer;' + (isFavorited ? 'background:#ef4444;color:#fff;' : 'background:#f0f9f4;color:#2d8b5e;') + '">' +
+    (isFavorited ? '❤️ 已收藏' : '🤍 收藏') + '</button></div>' +
     '<div class="detail-section"><div class="label">功效</div><div class="text">' + (data.effect || '') + '</div></div>' +
-    '<div class="detail-section"><div class="label">适用症状</div><div class="text">' + (data.symptom || '') + '</div></div>' +
+    '<div class="detail-section"><div class="label">适用症状</div><div class="text">' + (data.suitable || data.symptom || '') + '</div></div>' +
     '<div class="detail-section"><div class="label">原料</div><div class="ingredient-list">' + data.ingredients.map(function(i) { return '<span>' + i + '</span>'; }).join('') + '</div></div>' +
     '<div class="detail-section"><div class="label">做法</div><div class="method-text">' + (data.method || '') + '</div></div>' +
-    ((data.note || '') ? '<div class="detail-section caution"><div class="label">注意事项</div><div class="text">' + data.note + '</div></div>' : '');
+    ((data.taboo || data.note || '') ? '<div class="detail-section caution"><div class="label">注意事项</div><div class="text">' + (data.taboo || data.note || '') + '</div></div>' : '');
   
   document.getElementById('match-modal').classList.add('active');
+}
+
+function isMatchFavorited(id) {
+  try {
+    var favs = JSON.parse(localStorage.getItem('favorites') || '{}');
+    return (favs.matches || []).includes(id);
+  } catch (e) {
+    return false;
+  }
+}
+
+function toggleMatchFavorite(id) {
+  try {
+    var favs = JSON.parse(localStorage.getItem('favorites') || '{}');
+    if (!favs.matches) favs.matches = [];
+    var idx = favs.matches.indexOf(id);
+    if (idx === -1) {
+      favs.matches.push(id);
+      showToast('收藏成功');
+    } else {
+      favs.matches.splice(idx, 1);
+      showToast('已取消收藏');
+    }
+    localStorage.setItem('favorites', JSON.stringify(favs));
+    apiPost('/favorite/add', { type: 'match', id: id });
+    updateMatchFavBtn(id, idx === -1);
+  } catch (e) {
+    showToast('操作失败');
+  }
+}
+
+function updateMatchFavBtn(id, isFavorited) {
+  var btn = document.getElementById('match-fav-btn');
+  if (btn) {
+    btn.textContent = isFavorited ? '❤️ 已收藏' : '🤍 收藏';
+    btn.style.background = isFavorited ? '#ef4444' : '#f0f9f4';
+    btn.style.color = isFavorited ? '#fff' : '#2d8b5e';
+  }
 }
 
 function closeMatchModal() {
@@ -1481,10 +1793,12 @@ function renderConstitutionResult(data) {
 }
 
 function loadConstitutionRecords() {
-  api('/constitution/records').then(function(res) {
+  api('/constitution/records').then(function(data) {
     var listEl = document.getElementById('constitution-records-list');
     if (!listEl) return;
-    var records = (res && res.list) ? res.list : [];
+    var records = [];
+    if (Array.isArray(data)) { records = data; }
+    else if (data && data.list) { records = data.list; }
     if (records.length===0) { listEl.innerHTML='<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">🧬</div><div>暂无测评记录</div><div style="font-size:12px;margin-top:4px;">去首页进行体质测评</div></div>'; return; }
     
     var types = {pinghe:{name:'平和质',color:'#2d8b5e'},qixu:{name:'气虚质',color:'#f59e0b'},yangxu:{name:'阳虚质',color:'#3b82f6'},yinxu:{name:'阴虚质',color:'#ef4444'},tanshi:{name:'痰湿质',color:'#84cc16'},shire:{name:'湿热质',color:'#a855f7'},xueyu:{name:'血瘀质',color:'#7c3aed'},qiyu:{name:'气郁质',color:'#06b6d4'},tebing:{name:'特禀质',color:'#ec4899'}};
@@ -1546,6 +1860,420 @@ function deleteConstitutionRecord(id) {
   }).catch(function() {
     showToast('删除失败');
   });
+}
+
+let chatSessionId = null;
+let isChatLoading = false;
+
+function showPage(pageId, updateHistory) {
+  if (updateHistory === undefined) updateHistory = true;
+  if (updateHistory && pageId !== currentPage) { pageHistory.push(pageId); }
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  var page = document.getElementById(pageId);
+  if (page) { page.classList.add('active'); currentPage = pageId; }
+  window.scrollTo(0, 0);
+  document.querySelectorAll('.tab-item').forEach(function(t) { t.classList.remove('active'); });
+  var tabMap = { 'page-home': 0, 'page-identify': 1, 'page-herb-list': 2, 'page-match': 3, 'page-profile': 4 };
+  var tabIdx = tabMap[pageId];
+  if (tabIdx !== undefined) { document.querySelectorAll('.tab-item')[tabIdx].classList.add('active'); }
+  if (pageId === 'page-home') { initHome(); }
+  else if (pageId === 'page-herb-list') { loadHerbList(); }
+  else if (pageId === 'page-match') { initMatchPage(); }
+  else if (pageId === 'page-quiz') { initQuizPage(); }
+  else if (pageId === 'page-profile') { initProfile(); loadChatHistory(); }
+  else if (pageId === 'page-consult') { initChat(); }
+  else if (pageId === 'page-chat-history') { renderChatHistoryPage(); }
+}
+
+async function initChat() {
+  if (!chatSessionId) {
+    var res = await fetch(API_BASE + '/chat/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    var data = await res.json();
+    if (data.code === 0 && data.data) {
+      chatSessionId = data.data.sessionId;
+    } else {
+      showToast('创建会话失败');
+    }
+  }
+}
+
+function endChat() {
+  if (chatSessionId) {
+    fetch(API_BASE + '/chat/end/' + chatSessionId, { method: 'POST' });
+    chatSessionId = null;
+  }
+  showPage('page-home', true);
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter') { sendMessage(); }
+}
+
+function sendMessage(text) {
+  var input = document.getElementById('chat-input');
+  var message = text || input.value.trim();
+  if (!message || isChatLoading) return;
+  
+  input.value = '';
+  
+  addMessage('user', message);
+  
+  isChatLoading = true;
+  document.getElementById('chat-send-btn').disabled = true;
+  
+  addLoadingMessage();
+  
+  fetch(API_BASE + '/chat/message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId: chatSessionId, message: message })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    removeLoadingMessage();
+    
+    if (data.code === 0 && data.data) {
+      addAssistantMessage(data.data);
+    } else if (data.code === -2) {
+      showToast('会话已过期，请重新开始');
+      resetChat();
+    } else {
+      showToast(data.message || '请求失败');
+    }
+  })
+  .catch(function(e) {
+    removeLoadingMessage();
+    console.error('聊天错误:', e);
+    showToast('网络错误');
+  })
+  .finally(function() {
+    isChatLoading = false;
+    document.getElementById('chat-send-btn').disabled = false;
+  });
+}
+
+function addMessage(role, text) {
+  var container = document.getElementById('chat-messages');
+  var messageDiv = document.createElement('div');
+  messageDiv.className = 'chat-message ' + role;
+  
+  var avatar = document.createElement('div');
+  avatar.className = 'chat-avatar';
+  avatar.textContent = role === 'user' ? '👤' : '📖';
+  
+  var bubble = document.createElement('div');
+  bubble.className = 'chat-bubble';
+  bubble.textContent = text;
+  
+  messageDiv.appendChild(avatar);
+  messageDiv.appendChild(bubble);
+  container.appendChild(messageDiv);
+  
+  scrollToBottom();
+}
+
+function addLoadingMessage() {
+  var container = document.getElementById('chat-messages');
+  var messageDiv = document.createElement('div');
+  messageDiv.className = 'chat-message assistant';
+  messageDiv.id = 'chat-loading';
+  
+  var avatar = document.createElement('div');
+  avatar.className = 'chat-avatar';
+  avatar.textContent = '📖';
+  
+  var bubble = document.createElement('div');
+  bubble.className = 'chat-loading';
+  bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  
+  messageDiv.appendChild(avatar);
+  messageDiv.appendChild(bubble);
+  container.appendChild(messageDiv);
+  
+  scrollToBottom();
+}
+
+function removeLoadingMessage() {
+  var loading = document.getElementById('chat-loading');
+  if (loading) loading.remove();
+}
+
+function addAssistantMessage(data) {
+  var container = document.getElementById('chat-messages');
+  var messageDiv = document.createElement('div');
+  messageDiv.className = 'chat-message assistant';
+  
+  var avatar = document.createElement('div');
+  avatar.className = 'chat-avatar';
+  avatar.textContent = '📖';
+  
+  var bubble = document.createElement('div');
+  bubble.className = 'chat-bubble';
+  
+  var textHtml = '';
+  if (data.diagnosis) {
+    textHtml += '<span class="chat-diagnosis-tag">🏥 ' + data.diagnosis + '</span><br><br>';
+  }
+  
+  var formattedText = (data.text || '').replace(/\n/g, '<br>');
+  textHtml += formattedText;
+  
+  if (data.prescription) {
+    textHtml += '<div class="chat-prescription-card">' +
+      '<div class="prescription-name">📜 ' + data.prescription.name + '</div>' +
+      '<div class="prescription-ingredients">成分：' + data.prescription.ingredients.join('、') + '</div>' +
+      '<div class="prescription-explanation">说明：' + data.prescription.explanation + '</div>' +
+      '</div>';
+  }
+  
+  if (data.suggestedQuestions && data.suggestedQuestions.length > 0) {
+    textHtml += '<div class="suggested-questions">' +
+      data.suggestedQuestions.map(function(q) {
+        return '<span class="suggested-question" onclick="sendMessage(\'' + q + '\')">' + q + '</span>';
+      }).join('') +
+      '</div>';
+  }
+  
+  bubble.innerHTML = textHtml;
+  
+  messageDiv.appendChild(avatar);
+  messageDiv.appendChild(bubble);
+  container.appendChild(messageDiv);
+  
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  var container = document.getElementById('chat-messages');
+  setTimeout(function() {
+    container.scrollTop = container.scrollHeight;
+  }, 100);
+}
+
+function resetChat() {
+  chatSessionId = null;
+  var container = document.getElementById('chat-messages');
+  container.innerHTML = '<div class="chat-message assistant"><div class="chat-avatar">📖</div><div class="chat-bubble">您好！我是倪海厦经方中医助手。请描述您的症状，我将根据经方思维为您提供辨证和处方建议。<div class="suggested-questions"><span class="suggested-question" onclick="sendMessage(\'我感冒发烧了怎么办？\')">我感冒发烧了怎么办？</span><span class="suggested-question" onclick="sendMessage(\'我有失眠问题\')">我有失眠问题</span><span class="suggested-question" onclick="sendMessage(\'我胃痛不舒服\')">我胃痛不舒服</span></div></div></div>';
+  initChat();
+}
+
+async function loadChatHistory() {
+  try {
+    var res = await fetch(API_BASE + '/chat/history');
+    var data = await res.json();
+    if (data.code === 0 && data.data) {
+      renderChatHistoryList(data.data);
+    }
+  } catch (e) {
+    console.error('加载问诊历史失败:', e);
+  }
+}
+
+function renderChatHistoryList(history) {
+  var container = document.getElementById('chat-history-list');
+  if (!container) return;
+  
+  if (!history || history.length === 0) {
+    container.innerHTML = '<div style="padding:12px 16px;color:#999;font-size:13px;">暂无问诊记录</div>';
+    return;
+  }
+  
+  var html = '';
+  history.slice(0, 3).forEach(function(item) {
+    var date = new Date(item.endedAt || item.createdAt).toLocaleDateString('zh-CN');
+    var diagnosis = item.diagnosis || '未辨证';
+    var prescription = item.prescription ? ' · ' + item.prescription : '';
+    html += '<div class="card" style="margin:0 16px 8px;padding:12px;cursor:pointer;" onclick="showChatDetail(\'' + item.sessionId + '\')">' +
+      '<div style="font-size:14px;font-weight:500;color:#333;margin-bottom:4px;">' + item.summary + '</div>' +
+      '<div style="font-size:12px;color:#999;">' + date + ' · ' + diagnosis + prescription + '</div>' +
+      '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function showChatDetail(sessionId) {
+  showPage('page-chat-detail');
+  loadChatDetail(sessionId);
+}
+
+async function loadChatDetail(sessionId) {
+  var container = document.getElementById('chat-detail-content');
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">加载中...</div>';
+  
+  try {
+    var res = await fetch(API_BASE + '/chat/history/' + sessionId);
+    var data = await res.json();
+    if (data.code === 0 && data.data) {
+      renderChatDetail(data.data);
+    } else {
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">记录不存在或已过期</div>';
+    }
+  } catch (e) {
+    console.error('加载问诊详情失败:', e);
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">加载失败</div>';
+  }
+}
+
+function renderChatDetail(data) {
+  var container = document.getElementById('chat-detail-content');
+  
+  if (data.history && data.history.length > 0) {
+    var html = '';
+    data.history.forEach(function(msg) {
+      if (msg.role === 'user') {
+        html += '<div class="chat-message user">' +
+          '<div class="chat-avatar">👤</div>' +
+          '<div class="chat-bubble">' + msg.content.replace(/\n/g, '<br>') + '</div>' +
+          '</div>';
+      } else {
+        html += '<div class="chat-message assistant">' +
+          '<div class="chat-avatar">📖</div>' +
+          '<div class="chat-bubble">' + msg.content.replace(/\n/g, '<br>') + '</div>' +
+          '</div>';
+      }
+    });
+    container.innerHTML = html;
+  } else if (data.summary) {
+    var date = new Date(data.endedAt || data.createdAt).toLocaleDateString('zh-CN');
+    var diagnosis = data.diagnosis || '未辨证';
+    var prescription = data.prescription || '未推荐处方';
+    container.innerHTML = '<div class="card">' +
+      '<div style="font-size:15px;font-weight:600;margin-bottom:12px;">问诊摘要</div>' +
+      '<div style="font-size:13px;color:#666;line-height:2;">' +
+      '<div>症状：' + data.summary + '</div>' +
+      '<div>辨证：' + diagnosis + '</div>' +
+      '<div>处方：' + prescription + '</div>' +
+      '<div>时间：' + date + '</div>' +
+      '</div>' +
+      '</div>' +
+      '<div style="text-align:center;padding:20px;color:#999;font-size:13px;">历史详情仅保留最近会话，完整对话记录请在当时查看</div>';
+  } else {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">暂无详细记录</div>';
+  }
+}
+
+function renderChatHistoryPage() {
+  var container = document.getElementById('chat-history-content');
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">加载中...</div>';
+  
+  fetch(API_BASE + '/chat/history')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.code === 0 && data.data && data.data.length > 0) {
+        var html = '<div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f0f0f0;">' +
+          '<span style="font-size:13px;color:#666;">共 ' + data.data.length + ' 条记录</span>' +
+          '<span style="font-size:13px;color:#dc2626;cursor:pointer;" onclick="clearAllChatHistory()">清空全部</span>' +
+          '</div>';
+        data.data.forEach(function(item) {
+          var date = new Date(item.endedAt || item.createdAt).toLocaleDateString('zh-CN');
+          var diagnosis = item.diagnosis || '未辨证';
+          var prescription = item.prescription ? ' · ' + item.prescription : '';
+          html += '<div class="card" style="margin:12px 16px;position:relative;">' +
+            '<div style="position:absolute;top:8px;right:8px;font-size:20px;color:#999;cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();deleteChatHistory(\'' + item.sessionId + '\')">×</div>' +
+            '<div style="cursor:pointer;" onclick="continueChat(\'' + item.sessionId + '\')">' +
+            '<div style="font-size:14px;font-weight:500;color:#333;margin-bottom:4px;padding-right:24px;">' + item.summary + '</div>' +
+            '<div style="font-size:12px;color:#999;">' + date + ' · ' + diagnosis + prescription + ' · ' + item.messageCount + '条对话</div>' +
+            '</div></div>';
+        });
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = '<div style="text-align:center;padding:60px;color:#999;"><div style="font-size:40px;margin-bottom:12px;">🏥</div><div>暂无问诊记录</div><div style="font-size:13px;margin-top:8px;">点击首页"经方问诊"开始第一次问诊</div></div>';
+      }
+    })
+    .catch(function(e) {
+      console.error('加载问诊历史失败:', e);
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">加载失败</div>';
+    });
+}
+
+function continueChat(sessionId) {
+  showPage('page-consult');
+  
+  var container = document.getElementById('chat-messages');
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">加载中...</div>';
+  
+  fetch(API_BASE + '/chat/history/' + sessionId)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.code === 0 && data.data) {
+        chatSessionId = sessionId;
+        renderExistingChat(data.data);
+      } else {
+        showToast('记录不存在或已过期');
+        resetChat();
+      }
+    })
+    .catch(function(e) {
+      console.error('加载问诊详情失败:', e);
+      showToast('加载失败');
+      resetChat();
+    });
+}
+
+function renderExistingChat(data) {
+  var container = document.getElementById('chat-messages');
+  container.innerHTML = '';
+  
+  if (data.history && data.history.length > 0) {
+    data.history.forEach(function(msg) {
+      var messageDiv = document.createElement('div');
+      messageDiv.className = 'chat-message ' + msg.role;
+      
+      var avatar = document.createElement('div');
+      avatar.className = 'chat-avatar';
+      avatar.textContent = msg.role === 'user' ? '👤' : '📖';
+      
+      var bubble = document.createElement('div');
+      bubble.className = 'chat-bubble';
+      bubble.innerHTML = msg.content.replace(/\n/g, '<br>');
+      
+      messageDiv.appendChild(avatar);
+      messageDiv.appendChild(bubble);
+      container.appendChild(messageDiv);
+    });
+    
+    scrollToBottom();
+  }
+}
+
+function deleteChatHistory(sessionId) {
+  if (!confirm('确定删除这条问诊记录吗？')) return;
+  
+  fetch(API_BASE + '/chat/history/' + sessionId, { method: 'DELETE' })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.code === 0) {
+        showToast('已删除');
+        renderChatHistoryPage();
+        loadChatHistory();
+      } else {
+        showToast(data.message || '删除失败');
+      }
+    })
+    .catch(function(e) {
+      console.error('删除失败:', e);
+      showToast('删除失败');
+    });
+}
+
+function clearAllChatHistory() {
+  if (!confirm('确定清空所有问诊记录吗？此操作不可恢复。')) return;
+  
+  fetch(API_BASE + '/chat/history', { method: 'DELETE' })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.code === 0) {
+        showToast('已清空');
+        renderChatHistoryPage();
+        loadChatHistory();
+      } else {
+        showToast(data.message || '清空失败');
+      }
+    })
+    .catch(function(e) {
+      console.error('清空失败:', e);
+      showToast('清空失败');
+    });
 }
 
 initHome();

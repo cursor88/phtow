@@ -36,8 +36,8 @@ const models = {
   },
   doubao: {
     name: '豆包大模型',
-    enabled: process.env.DOUBAO_API_KEY ? true : false,
-    apiKey: process.env.DOUBAO_API_KEY,
+    enabled: true,
+    apiKey: process.env.DOUBAO_API_KEY || '',
     apiBase: process.env.DOUBAO_API_BASE || 'https://ark.cn-beijing.volces.com/api/v3',
     model: process.env.DOUBAO_MODEL || 'doubao-1-5-vision-pro-32k-250115',
     timeout: 30000

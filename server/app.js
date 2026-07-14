@@ -27,9 +27,20 @@ app.use('/api/wrong-questions', require('./routes/wrong-questions'))
 app.use('/api/checkin', require('./routes/checkin'))
 app.use('/api/identify', require('./routes/identify'))
 app.use('/api/constitution', require('./routes/constitution'))
+app.use('/api/skill', require('./routes/skill'))
+app.use('/api/chat', require('./routes/chat'))
 
 // 静态文件服务 - 提供前端页面
 const projectRoot = path.join(__dirname, '..')
+
+// 禁用缓存中间件，确保前端更新立即生效
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+  res.set('Pragma', 'no-cache')
+  res.set('Expires', '0')
+  next()
+})
+
 app.use(express.static(projectRoot))
 
 app.get('/', (req, res) => {
