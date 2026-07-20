@@ -1,8 +1,10 @@
 const express = require('express')
 const router = express.Router()
+const path = require('path')
 const herbs = require('../data/herbs')
+const paths = require('../config/paths')
 
-const DATA_FILE = './server/data/identifyRecords.json'
+const DATA_FILE = paths.IDENTIFY_RECORDS
 const fs = require('fs')
 
 function loadRecords() {
@@ -14,7 +16,15 @@ function loadRecords() {
 }
 
 function saveRecords(records) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(records))
+  try {
+    const dir = path.dirname(DATA_FILE)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
+    fs.writeFileSync(DATA_FILE, JSON.stringify(records, null, 2))
+  } catch (e) {
+    console.error('[Identify] 保存记录失败:', e.message)
+  }
 }
 
 function getRecordsList(page, pageSize) {

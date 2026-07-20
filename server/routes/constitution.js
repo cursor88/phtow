@@ -1,8 +1,10 @@
 const express = require('express')
 const router = express.Router()
-
-const DATA_FILE = './server/data/constitutionRecords.json'
+const path = require('path')
 const fs = require('fs')
+const paths = require('../config/paths')
+
+const DATA_FILE = paths.CONSTITUTION_RECORDS
 
 const constitutionTypes = {
   pinghe: { name: '平和质', desc: '精力充沛，适应力强，很少不适', color: '#10b981', icon: '☀️' },
@@ -102,14 +104,18 @@ const quickQuestions = [
 
 function loadRecords() {
   try {
-    return require('../data/constitutionRecords.json')
+    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))
   } catch (e) {
     return []
   }
 }
 
 function saveRecords(records) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(records))
+  const dir = path.dirname(DATA_FILE)
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true })
+  }
+  fs.writeFileSync(DATA_FILE, JSON.stringify(records, null, 2))
 }
 
 router.get('/questions', (req, res) => {

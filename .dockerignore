@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+server/node_modules
+server/uploads/*
+dist
+技术文章-草木有方开发历程.md

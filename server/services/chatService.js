@@ -2,6 +2,7 @@ const nihaixia = require('./nihaixiaService');
 const llm = require('./llmService');
 const fs = require('fs');
 const path = require('path');
+const paths = require('../config/paths');
 
 class ChatService {
   constructor() {
@@ -9,7 +10,7 @@ class ChatService {
     this.maxHistory = 20;
     this.sessionTimeout = 3600000;
     this.llmEnabled = llm.isEnabled();
-    this.historyFile = path.join(__dirname, '../data/chatHistory.json');
+    this.historyFile = paths.CHAT_HISTORY;
     this.chatHistory = this.loadHistory();
   }
 
@@ -40,6 +41,9 @@ class ChatService {
   addToHistory(session) {
     if (!session || session.history.length === 0) return;
     
+    // 检查是否已存在同sessionId的记录，存在则更新而非新增
+    const existIndex = this.chatHistory.findIndex(h => h.sessionId === session.id);
+    
     const firstUserMsg = session.history.find(h => h.role === 'user');
     const summary = firstUserMsg ? firstUserMsg.content.substring(0, 30) : '问诊记录';
     
@@ -58,9 +62,13 @@ class ChatService {
       }))
     };
     
-    this.chatHistory.unshift(record);
-    if (this.chatHistory.length > 50) {
-      this.chatHistory = this.chatHistory.slice(0, 50);
+    if (existIndex !== -1) {
+      this.chatHistory[existIndex] = record;
+    } else {
+      this.chatHistory.unshift(record);
+      if (this.chatHistory.length > 50) {
+        this.chatHistory = this.chatHistory.slice(0, 50);
+      }
     }
     this.saveHistory();
   }
@@ -370,20 +378,20 @@ class ChatService {
   buildFallbackResponse(result) {
     let response = '';
     if (result.diagnosis) {
-      response += `**辨证结果：${result.diagnosis}**\n\n`;
+      response += `辨证结果：${result.diagnosis}\n\n`;
     }
     if (result.analysis) {
       response += `${result.analysis}\n\n`;
     }
     if (result.prescription) {
-      response += `**推荐处方：${result.prescription.name}**\n`;
+      response += `推荐处方：${result.prescription.name}\n`;
       response += `成分：${result.prescription.ingredients.join('、')}\n`;
       response += `说明：${result.prescription.explanation}\n\n`;
     }
     if (result.tips && result.tips.length > 0) {
-      response += `**注意事项：**\n${result.tips.map(t => `• ${t}`).join('\n')}\n\n`;
+      response += `注意事项：\n${result.tips.map(t => `• ${t}`).join('\n')}\n\n`;
     }
-    response += '请问还有其他症状需要补充吗？或者您想了解更多关于这个辨证的信息？';
+    response += '请问还有其他症状需要补充吗？';
     return response;
   }
 
@@ -439,24 +447,35 @@ class ChatService {
 
   buildFollowUpFallback(message, diagnosis, searchResults) {
     if (searchResults.length === 0) {
-      return `关于"${message}"的问题，我在知识库中暂未找到详细解答。您可以继续描述您的症状，我会尽力帮助您。`;
+      return `关于"${message}"的问题，我暂未找到详细解答。您可以继续描述您的症状，我会尽力帮助您。`;
     }
 
     let response = '';
     if (message.includes('为什么') || message.includes('原因') || message.includes('机理')) {
-      response += `关于您的问题"${message}"（针对${diagnosis}），根据经方思维分析：\n\n`;
+      response += `关于您的问题（针对${diagnosis}），根据经方思维分析：\n\n`;
     } else if (message.includes('怎么治') || message.includes('怎么办') || message.includes('如何')) {
-      response += `针对您的问题"${message}"，建议如下：\n\n`;
+      response += `针对您的问题，建议如下：\n\n`;
     } else {
-      response += `关于"${message}"，以下是相关知识：\n\n`;
+      response += `关于您的问题，以下是相关参考：\n\n`;
     }
 
-    searchResults.slice(0, 3).forEach((r, i) => {
-      response += `${i + 1}. **${r.title}**\n`;
-      response += `${r.content.substring(0, 200)}...\n\n`;
+    searchResults.slice(0, 2).forEach((r, i) => {
+      let cleanContent = r.content;
+      cleanContent = cleanContent.replace(/详见：.*$/gmi, '');
+      cleanContent = cleanContent.replace(/references\/research\/.*$/gmi, '');
+      cleanContent = cleanContent.replace(/文件\s+内容\s+用途.*$/gmi, '');
+      cleanContent = cleanContent.replace(/研究资料索引.*$/gmi, '');
+      cleanContent = cleanContent.replace(/原始研究素材.*$/gmi, '');
+      cleanContent = cleanContent.replace(/-{2,}.*$/gm, '');
+      cleanContent = cleanContent.replace(/={2,}.*$/gm, '');
+      cleanContent = cleanContent.split('\n').filter(line => {
+        const metaPatterns = ['详见：', '文件 ', '内容 ', '用途 ', '目录', '模块', 'research/', 'combined_reference'];
+        return !metaPatterns.some(p => line.trim().startsWith(p) || line.includes(p));
+      }).join(' ');
+      response += `${i + 1}. ${r.title}：${cleanContent.substring(0, 80)}\n`;
     });
 
-    response += '如果您有其他问题，请继续提问。';
+    response += '\n如果您有其他问题，请继续提问。';
     return response;
   }
 

@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>本草智识 - AI中药识别</title>
+  <title>草木有方 - AI经方中医问诊</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -643,14 +643,143 @@
       font-size: 12px;
       color: #999;
     }
+
+    .llm-status-bar {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      margin: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .llm-status-bar:active { transform: scale(0.98); }
+    .llm-status-bar.enabled {
+      background: linear-gradient(135deg, rgba(45,139,94,0.08), rgba(45,139,94,0.15));
+      border: 1px solid rgba(45,139,94,0.3);
+    }
+    .llm-status-bar.disabled {
+      background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.15));
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+    .llm-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+    .llm-status-dot.enabled { background: #2d8b5e; box-shadow: 0 0 6px rgba(45,139,94,0.5); }
+    .llm-status-dot.disabled { background: #F59E0B; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+    .llm-status-text { flex: 1; font-size: 13px; font-weight: 500; }
+    .llm-status-text.enabled { color: #2d8b5e; }
+    .llm-status-text.disabled { color: #F59E0B; }
+    .llm-status-arrow { font-size: 16px; margin-left: 8px; }
+    .llm-status-arrow.enabled { color: #2d8b5e; }
+    .llm-status-arrow.disabled { color: #F59E0B; }
+
+    .llm-config-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .llm-provider-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .llm-provider-item {
+      display: flex;
+      align-items: center;
+      padding: 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      transition: all 0.2s;
+    }
+    .llm-provider-item.active {
+      border-color: #2d8b5e;
+      background: #f0f9f4;
+    }
+    .llm-provider-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: 12px;
+      flex-shrink: 0;
+      background: #f8fafc;
+    }
+    .llm-provider-info { flex: 1; }
+    .llm-provider-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .llm-provider-desc { font-size: 12px; color: #999; }
+    .llm-provider-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .llm-provider-badge.active { background: rgba(45,139,94,0.1); color: #2d8b5e; }
+
+    .mode-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+    .mode-indicator.enabled { background: #2d8b5e; box-shadow: 0 0 4px rgba(45,139,94,0.6); }
+    .mode-indicator.disabled { background: #F59E0B; box-shadow: 0 0 4px rgba(245,158,11,0.6); }
+
+    .local-mode-tag {
+      font-size: 11px;
+      color: #F59E0B;
+      background: rgba(245,158,11,0.1);
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 6px;
+    }
+
+    .llm-config-step {
+      display: flex;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f9f4;
+    }
+    .llm-config-step:last-child { border-bottom: none; }
+    .llm-step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(45,139,94,0.1);
+      color: #2d8b5e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .llm-step-text { flex: 1; font-size: 13px; color: #333; line-height: 1.6; }
   </style>
 </head>
 <body>
 
 <div class="page active page-with-tab" id="page-home">
   <div class="banner">
-    <div class="banner-title">本草智识</div>
-    <div class="banner-subtitle">AI中药药材识别与学习平台</div>
+    <div class="banner-title">草木有方</div>
+    <div class="banner-subtitle">AI经方中医问诊与中药学习平台</div>
+  </div>
+  <div class="llm-status-bar disabled" id="home-llm-status" onclick="showPage('page-llm-config')">
+    <div class="llm-status-dot disabled" id="home-llm-dot"></div>
+    <div class="llm-status-text disabled" id="home-llm-text">本地知识库模式 - 配置API Key解锁AI增强</div>
+    <div class="llm-status-arrow disabled" id="home-llm-arrow">→</div>
   </div>
   <div class="card">
     <div class="section-title">快速识别</div>
@@ -705,7 +834,7 @@
   <div class="card" style="margin-top:12px;background:linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(168,85,247,0.15) 100%);border:1px solid rgba(168,85,247,0.2);" onclick="showPage('page-consult')">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div class="section-title" style="font-size:16px;">🏥 经方问诊</div>
-      <div style="font-size:12px;color:#a855f7;background:rgba(168,85,247,0.1);padding:4px 12px;border-radius:20px;">倪海厦视角</div>
+      <div style="display:flex;align-items:center;gap:6px;"><span id="local-mode-tag" class="local-mode-tag" style="display:none;">本地模式</span><span style="font-size:12px;color:#a855f7;background:rgba(168,85,247,0.1);padding:4px 12px;border-radius:20px;">倪海厦视角</span></div>
     </div>
     <div style="display:flex;align-items:center;">
       <div style="width:60px;height:60px;background:rgba(168,85,247,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-right:14px;">📖</div>
@@ -862,7 +991,7 @@
   <div class="nav-bar">
     <span class="back" onclick="endChat()">←</span>
     <span class="title">经方问诊</span>
-    <span class="spacer"></span>
+    <div class="mode-indicator disabled" id="consult-mode-indicator"></div>
   </div>
   <div class="chat-container">
     <div class="chat-messages" id="chat-messages">
@@ -903,6 +1032,66 @@
   <div id="chat-detail-content" style="padding:16px;padding-bottom:20px;"></div>
 </div>
 
+<div class="page" id="page-llm-config">
+  <div class="nav-bar">
+    <span class="back" onclick="goBack()">←</span>
+    <span class="title">AI模型配置</span>
+    <span class="spacer"></span>
+  </div>
+  <div id="llm-config-content" style="padding-bottom:20px;">
+    <div class="llm-config-card">
+      <div class="section-title">当前AI模式</div>
+      <div id="llm-config-status" style="display:flex;align-items:center;padding:12px;background:#f8fafc;border-radius:10px;margin-bottom:16px;">
+        <div class="llm-status-dot disabled" id="config-llm-dot"></div>
+        <div style="flex:1;">
+          <div id="config-llm-mode" style="font-size:14px;font-weight:600;color:#F59E0B;">本地知识库模式</div>
+          <div id="config-llm-detail" style="font-size:12px;color:#999;margin-top:2px;">未配置API Key</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="llm-config-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="section-title">📋 预设提供商</div>
+        <button style="font-size:12px;color:#2d8b5e;background:rgba(45,139,94,0.1);padding:4px 12px;border-radius:12px;border:none;cursor:pointer;" onclick="loadLLMPresets()">刷新列表</button>
+      </div>
+      <div id="llm-presets-list" style="display:grid;gap:8px;"></div>
+    </div>
+
+    <div class="llm-config-card">
+      <div class="section-title">➕ 自定义配置</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div>
+          <label style="font-size:12px;color:#666;margin-bottom:4px;display:block;">提供商名称</label>
+          <input type="text" id="custom-provider-name" placeholder="如：我的LLM" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:12px;color:#666;margin-bottom:4px;display:block;">API Key</label>
+          <input type="password" id="custom-api-key" placeholder="请输入 API Key" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:12px;color:#666;margin-bottom:4px;display:block;">API 地址</label>
+          <input type="text" id="custom-api-base" placeholder="如：https://api.example.com/v1" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:12px;color:#666;margin-bottom:4px;display:block;">模型名称</label>
+          <input type="text" id="custom-model" placeholder="如：my-model" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </div>
+        <button class="btn btn-primary" onclick="saveCustomProvider()" style="margin-top:8px;">添加并启用</button>
+      </div>
+    </div>
+
+    <div class="llm-config-card">
+      <div class="section-title">已配置的提供商</div>
+      <div id="llm-active-providers" style="display:grid;gap:8px;"></div>
+    </div>
+
+    <div style="padding:0 16px;margin-top:20px;">
+      <button class="btn btn-primary" onclick="checkLLMStatus()">🔍 检查状态</button>
+    </div>
+  </div>
+</div>
+
 <div class="page page-with-tab" id="page-profile">
   <div class="profile-header">
     <div class="profile-info">
@@ -917,6 +1106,19 @@
     <div class="profile-stat-item"><div class="num" id="stat-fav-herbs">0</div><div class="label">收藏药材</div></div>
     <div class="profile-stat-item"><div class="num" id="stat-fav-matches">0</div><div class="label">收藏搭配</div></div>
     <div class="profile-stat-item"><div class="num" id="stat-quiz-done">0</div><div class="label">完成问答</div></div>
+  </div>
+  <div class="llm-config-card" style="cursor:pointer;" onclick="goToLLMConfig()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div class="section-title">🤖 AI模型配置</div>
+      <span style="font-size:16px;color:#2d8b5e;">→</span>
+    </div>
+    <div style="display:flex;align-items:center;">
+      <div class="llm-status-dot disabled" id="profile-llm-dot"></div>
+      <div style="flex:1;margin-left:8px;">
+        <div id="profile-llm-mode" style="font-size:14px;font-weight:600;color:#F59E0B;">本地知识库模式</div>
+        <div id="profile-llm-detail" style="font-size:12px;color:#999;margin-top:2px;">点击配置API Key，解锁AI增强功能</div>
+      </div>
+    </div>
   </div>
   <div class="favorite-section">
     <div class="section-header">
@@ -1033,7 +1235,7 @@
 </div>
 
 <script>
-const API_BASE = '/api';
+const API_BASE = window.location.origin + '/api';
 let herbsData = [];
 let matchData = [];
 let currentPage = 'page-home';
@@ -1219,7 +1421,9 @@ async function showHerbDetail(id) {
   var foodMatchHtml = '';
   if (data.food_match && data.food_match.length) {
     foodMatchHtml = '<div class="card"><div class="section-title">🍲 药食同源搭配</div>' + data.food_match.map(function(f) {
-      return '<div class="food-item" onclick="showMatchDetail(' + (f.id || 0) + ')"><div class="food-visual herb-color-' + ((f.id % 6) + 1) + '">🍲</div><div class="food-info"><div class="name">' + f.name + '</div><div class="effect">' + (f.effect || '') + '</div><div class="ings">' + f.ingredients.map(function(i) { return '<span>' + i + '</span>'; }).join('') + '</div></div></div>';
+      if (!f) return '';
+      var fid = f.id || 0;
+      return '<div class="food-item" onclick="showMatchDetail(' + fid + ')"><div class="food-visual herb-color-' + ((fid % 6) + 1) + '">🍲</div><div class="food-info"><div class="name">' + (f.name || '未知搭配') + '</div><div class="effect">' + (f.effect || '') + '</div><div class="ings">' + (f.ingredients && f.ingredients.length ? f.ingredients.map(function(i) { return '<span>' + i + '</span>'; }).join('') : '') + '</div></div></div>';
     }).join('') + '</div>';
   }
 
@@ -1432,7 +1636,7 @@ async function showMatchDetail(id) {
     (isFavorited ? '❤️ 已收藏' : '🤍 收藏') + '</button></div>' +
     '<div class="detail-section"><div class="label">功效</div><div class="text">' + (data.effect || '') + '</div></div>' +
     '<div class="detail-section"><div class="label">适用症状</div><div class="text">' + (data.suitable || data.symptom || '') + '</div></div>' +
-    '<div class="detail-section"><div class="label">原料</div><div class="ingredient-list">' + data.ingredients.map(function(i) { return '<span>' + i + '</span>'; }).join('') + '</div></div>' +
+    (data.ingredients && data.ingredients.length ? '<div class="detail-section"><div class="label">原料</div><div class="ingredient-list">' + data.ingredients.map(function(i) { return '<span>' + i + '</span>'; }).join('') + '</div></div>' : '') +
     '<div class="detail-section"><div class="label">做法</div><div class="method-text">' + (data.method || '') + '</div></div>' +
     ((data.taboo || data.note || '') ? '<div class="detail-section caution"><div class="label">注意事项</div><div class="text">' + (data.taboo || data.note || '') + '</div></div>' : '');
   
@@ -1499,13 +1703,16 @@ async function initQuizPage() {
 function renderQuiz(quiz) {
   var content = document.getElementById('quiz-content');
   if (!content) return;
-  
+
+  quiz.options = cleanOptions(quiz.options);
+  quiz.answer = quiz.answer || 0;
+
   var optionsHtml = quiz.options.map(function(opt, i) {
     return '<div class="option-item" onclick="selectQuizOption(' + i + ', this)"><div class="opt-letter">' + String.fromCharCode(65 + i) + '</div><div class="opt-text">' + opt + '</div><div class="opt-check"></div></div>';
   }).join('');
-  
-  content.innerHTML = '<div class="card" id="quiz-card"><div class="quiz-header"><div class="quiz-tag">' + (quiz.difficulty || '中等') + '</div><div style="font-size:12px;color:#999;">' + (quiz.category || '') + '</div></div><div class="quiz-question">' + quiz.question + '</div>' + optionsHtml + '<div class="quiz-footer"><span style="color:#999;font-size:12px;">点击选项作答</span><span class="quiz-go" style="display:none;">下一题 →</span></div></div>';
-  
+
+  content.innerHTML = '<div class="card" id="quiz-card"><div class="quiz-header"><div class="quiz-tag">' + (quiz.difficulty || '中等') + '</div><div style="font-size:12px;color:#999;">' + (quiz.category || '') + '</div></div><div class="quiz-question">' + quiz.question + '</div>' + optionsHtml + '<div class="quiz-footer"><span style="color:#999;font-size:12px;">点击选项作答</span><span class="quiz-go" id="quiz-next-btn" style="display:none;cursor:pointer;" onclick="loadNextQuiz()">下一题 →</span></div></div>';
+
   window.currentQuiz = quiz;
   window.quizAnswered = false;
 }
@@ -1513,10 +1720,10 @@ function renderQuiz(quiz) {
 function selectQuizOption(idx, el) {
   if (window.quizAnswered) return;
   window.quizAnswered = true;
-  
+
   var options = document.querySelectorAll('.option-item');
   options.forEach(function(o) { o.classList.add('disabled'); });
-  
+
   if (idx === window.currentQuiz.answer) {
     el.classList.add('correct');
     el.querySelector('.opt-check').textContent = '✓';
@@ -1524,39 +1731,69 @@ function selectQuizOption(idx, el) {
   } else {
     el.classList.add('wrong');
     el.querySelector('.opt-check').textContent = '✗';
-    options[window.currentQuiz.answer].classList.add('correct');
-    options[window.currentQuiz.answer].querySelector('.opt-check').textContent = '✓';
+    if (options[window.currentQuiz.answer]) {
+      options[window.currentQuiz.answer].classList.add('correct');
+      options[window.currentQuiz.answer].querySelector('.opt-check').textContent = '✓';
+    }
     apiPost('/quiz/answer', { qid: window.currentQuiz.id, answer: idx, correct: false });
   }
-  
+
   if (window.currentQuiz.explanation) {
     document.getElementById('quiz-card').innerHTML += '<div class="explanation"><div class="title">解析</div><div class="text">' + window.currentQuiz.explanation + '</div></div>';
   }
+
+  var nextBtn = document.getElementById('quiz-next-btn');
+  if (nextBtn) nextBtn.style.display = 'inline-block';
+
+  api('/quiz/stats').then(function(stats) {
+    if (stats) {
+      var el1 = document.getElementById('stat-correct');
+      var el2 = document.getElementById('stat-total');
+      var el3 = document.getElementById('stat-accuracy');
+      if (el1) el1.textContent = stats.correct || 0;
+      if (el2) el2.textContent = stats.total || 0;
+      if (el3) el3.textContent = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) + '%' : '0%';
+    }
+  });
+}
+
+function loadNextQuiz() {
+  api('/quiz/random').then(function(data) {
+    if (data) renderQuiz(data);
+  });
 }
 
 function goToQuizList() {
-  showPage('page-quiz');
+  showPage('page-quiz', false);
+  window._quizListMode = 'list';
   api('/quiz/list').then(function(data) {
     var content = document.getElementById('quiz-content');
     if (!content) return;
     var list = Array.isArray(data) ? data : (data && data.list ? data.list : []);
     if (!list || list.length === 0) { content.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">暂无题目</div></div>'; return; }
-    content.innerHTML = list.map(function(q) {
+    window._quizListCache = list;
+    content.innerHTML = '<div style="margin:0 16px 12px;font-size:13px;color:#999;">共 ' + list.length + ' 道题，点击卡片开始作答</div>' + list.map(function(q, idx) {
       q.options = cleanOptions(q.options);
       q.answer = q.answer || 0;
-      return '<div class="card" onclick="renderQuiz(' + JSON.stringify(q).replace(/"/g, '&quot;') + ')"><div class="quiz-header"><div class="quiz-tag">' + (q.difficulty || '中等') + '</div><div style="font-size:12px;color:#999;">' + (q.category || '') + '</div></div><div class="quiz-question">' + q.question + '</div><div class="quiz-footer"><span style="color:#999;font-size:12px;">点击作答</span></div></div>';
+      return '<div class="card" onclick="openQuizFromList(' + idx + ')"><div class="quiz-header"><div class="quiz-tag">' + (q.difficulty || '中等') + '</div><div style="font-size:12px;color:#999;">' + (q.category || '') + '</div></div><div class="quiz-question">' + q.question + '</div><div class="quiz-footer"><span style="color:#999;font-size:12px;">点击作答</span></div></div>';
     }).join('');
   });
 }
 
+function openQuizFromList(idx) {
+  if (!window._quizListCache || !window._quizListCache[idx]) return;
+  renderQuiz(window._quizListCache[idx]);
+}
+
 function goToWrongQuestions() {
-  showPage('page-quiz');
+  showPage('page-quiz', false);
+  window._quizListMode = 'wrong';
   api('/wrong-questions/list').then(function(data) {
     var content = document.getElementById('quiz-content');
     if (!content) return;
     var list = Array.isArray(data) ? data : (data && data.list ? data.list : []);
     if (!list || list.length === 0) { content.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">暂无错题</div></div>'; return; }
-    content.innerHTML = list.map(function(q) {
+    content.innerHTML = '<div style="margin:0 16px 12px;font-size:13px;color:#999;">共 ' + list.length + ' 道错题</div>' + list.map(function(q) {
       q.options = cleanOptions(q.options);
       return '<div class="card"><div class="quiz-header"><div class="quiz-tag" style="background:rgba(239,68,68,0.1);color:#dc2626;">错题</div><div style="font-size:12px;color:#999;">' + (q.category || '') + '</div></div><div class="quiz-question">' + q.question + '</div><div class="quiz-footer"><span style="color:#dc2626;font-size:12px;">错误次数: ' + (q.wrong_count || 1) + '</span><button style="font-size:12px;color:#2d8b5e;" onclick="removeWrongQuestion(' + q.id + ')">移除</button></div></div>';
     }).join('');
@@ -2276,7 +2513,276 @@ function clearAllChatHistory() {
     });
 }
 
+let llmStatus = { enabled: false, provider: '', model: '' };
+
+async function checkLLMStatus() {
+  var btn = document.getElementById('check-status-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 检查中...'; }
+  try {
+    var res = await fetch(API_BASE + '/llm-status');
+    var data = await res.json();
+    if (data.code === 0 && data.data) {
+      llmStatus = {
+        enabled: !!data.data.enabled,
+        provider: data.data.provider || '',
+        model: data.data.model || ''
+      };
+    }
+  } catch (e) {
+    console.error('LLM状态检查失败:', e);
+    llmStatus = { enabled: false, provider: '', model: '' };
+  }
+  updateLLMUI();
+  if (btn) { btn.disabled = false; btn.textContent = '🔍 检查状态'; }
+  return llmStatus;
+}
+
+function updateLLMUI() {
+  var enabled = llmStatus.enabled;
+  var cls = enabled ? 'enabled' : 'disabled';
+
+  // 首页LLM状态条
+  var statusBar = document.getElementById('home-llm-status');
+  var statusDot = document.getElementById('home-llm-dot');
+  var statusText = document.getElementById('home-llm-text');
+  var statusArrow = document.getElementById('home-llm-arrow');
+  if (statusBar) { statusBar.className = 'llm-status-bar ' + cls; }
+  if (statusDot) { statusDot.className = 'llm-status-dot ' + cls; }
+  if (statusArrow) { statusArrow.className = 'llm-status-arrow ' + cls; }
+  if (statusText) {
+    statusText.className = 'llm-status-text ' + cls;
+    statusText.textContent = enabled
+      ? 'AI增强模式 已启用 - ' + llmStatus.provider + ' ' + llmStatus.model
+      : '本地知识库模式 - 配置API Key解锁AI增强';
+  }
+
+  // 聊天界面模式指示灯
+  var consultIndicator = document.getElementById('consult-mode-indicator');
+  if (consultIndicator) { consultIndicator.className = 'mode-indicator ' + cls; }
+
+  // 首页经方问诊本地模式标签
+  var localTag = document.getElementById('local-mode-tag');
+  if (localTag) { localTag.style.display = enabled ? 'none' : 'inline-block'; }
+
+  // 我的页面AI配置卡片
+  var profileDot = document.getElementById('profile-llm-dot');
+  var profileMode = document.getElementById('profile-llm-mode');
+  var profileDetail = document.getElementById('profile-llm-detail');
+  if (profileDot) { profileDot.className = 'llm-status-dot ' + cls; }
+  if (profileMode) {
+    profileMode.style.color = enabled ? '#2d8b5e' : '#F59E0B';
+    profileMode.textContent = enabled ? 'AI增强模式' : '本地知识库模式';
+  }
+  if (profileDetail) {
+    profileDetail.textContent = enabled
+      ? llmStatus.provider + ' ' + llmStatus.model + ' 已启用'
+      : '点击配置API Key，解锁AI增强功能';
+  }
+
+  // AI配置页面状态
+  var configDot = document.getElementById('config-llm-dot');
+  var configMode = document.getElementById('config-llm-mode');
+  var configDetail = document.getElementById('config-llm-detail');
+  if (configDot) { configDot.className = 'llm-status-dot ' + cls; }
+  if (configMode) {
+    configMode.style.color = enabled ? '#2d8b5e' : '#F59E0B';
+    configMode.textContent = enabled ? 'AI增强模式' : '本地知识库模式';
+  }
+  if (configDetail) {
+    configDetail.textContent = enabled
+      ? llmStatus.provider + ' ' + llmStatus.model + ' - 运行正常'
+      : '未配置API Key';
+  }
+}
+
+async function loadLLMPresets() {
+  try {
+    var res = await fetch(API_BASE + '/llm/presets');
+    var data = await res.json();
+    if (data.code === 0 && data.data && data.data.presets) {
+      var list = document.getElementById('llm-presets-list');
+      if (list) {
+        list.innerHTML = data.data.presets.map(function(preset) {
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">' +
+            '<div>' +
+            '<div style="font-size:14px;font-weight:600;color:#333;">' + preset.name + '</div>' +
+            '<div style="font-size:12px;color:#999;margin-top:2px;">' + preset.model + '</div>' +
+            '</div>' +
+            '<button onclick="selectPresetProvider(\'' + preset.key + '\', \'' + preset.name + '\')" style="padding:6px 14px;background:#2d8b5e;color:#fff;border:none;border-radius:14px;font-size:12px;cursor:pointer;">选择</button>' +
+            '</div>';
+        }).join('');
+      }
+    }
+  } catch (e) {
+    console.error('加载预设提供商失败:', e);
+  }
+}
+
+async function selectPresetProvider(key, name) {
+  var list = document.getElementById('llm-presets-list');
+  if (!list) return;
+
+  list.innerHTML = '<div style="padding:20px;text-align:center;">' +
+    '<div style="font-size:16px;font-weight:600;color:#333;margin-bottom:16px;">配置 ' + name + '</div>' +
+    '<div style="margin-bottom:12px;text-align:left;">' +
+    '<label style="font-size:12px;color:#666;margin-bottom:4px;display:block;">API Key</label>' +
+    '<input type="password" id="preset-api-key-input" placeholder="请输入 ' + name + ' 的 API Key" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">' +
+    '</div>' +
+    '<div style="display:flex;gap:10px;">' +
+    '<button onclick="cancelPresetSelection()" style="flex:1;padding:10px;background:#f1f5f9;color:#666;border:none;border-radius:8px;font-size:14px;cursor:pointer;">取消</button>' +
+    '<button onclick="confirmPresetSelection(\'' + key + '\', \'' + name + '\')" style="flex:1;padding:10px;background:#2d8b5e;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">确定</button>' +
+    '</div>' +
+    '</div>';
+}
+
+function cancelPresetSelection() {
+  loadLLMPresets();
+}
+
+async function confirmPresetSelection(key, name) {
+  var apiKeyInput = document.getElementById('preset-api-key-input');
+  var apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
+
+  if (!apiKey) {
+    alert('请输入 API Key');
+    return;
+  }
+
+  try {
+    var res = await fetch(API_BASE + '/llm/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        providers: { [key]: { apiKey: apiKey } },
+        activeProvider: key
+      })
+    });
+    var data = await res.json();
+    if (data.code === 0) {
+      alert(name + ' 配置成功！');
+      llmStatus = {
+        enabled: !!data.data.enabled,
+        provider: data.data.provider || '',
+        model: data.data.model || ''
+      };
+      updateLLMUI();
+      loadActiveProviders();
+      loadLLMPresets();
+    } else {
+      alert('配置失败：' + data.message);
+    }
+  } catch (e) {
+    alert('配置请求失败：' + e.message);
+  }
+}
+
+async function saveCustomProvider() {
+  var name = document.getElementById('custom-provider-name').value.trim();
+  var apiKey = document.getElementById('custom-api-key').value.trim();
+  var apiBase = document.getElementById('custom-api-base').value.trim();
+  var model = document.getElementById('custom-model').value.trim();
+
+  if (!name || !apiKey || !apiBase || !model) {
+    alert('请填写完整信息');
+    return;
+  }
+
+  var key = 'custom-' + Date.now();
+  try {
+    var res = await fetch(API_BASE + '/llm/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        providers: {
+          [key]: { name: name, apiKey: apiKey, apiBase: apiBase, model: model, requestFormat: 'openai' }
+        },
+        activeProvider: key
+      })
+    });
+    var data = await res.json();
+    if (data.code === 0) {
+      alert('自定义提供商添加成功！');
+      llmStatus = {
+        enabled: !!data.data.enabled,
+        provider: data.data.provider || '',
+        model: data.data.model || ''
+      };
+      updateLLMUI();
+      loadActiveProviders();
+
+      document.getElementById('custom-provider-name').value = '';
+      document.getElementById('custom-api-key').value = '';
+      document.getElementById('custom-api-base').value = '';
+      document.getElementById('custom-model').value = '';
+    } else {
+      alert('添加失败：' + data.message);
+    }
+  } catch (e) {
+    alert('添加请求失败：' + e.message);
+  }
+}
+
+async function loadActiveProviders() {
+  try {
+    var res = await fetch(API_BASE + '/llm/config');
+    var data = await res.json();
+    if (data.code === 0 && data.data && data.data.providers) {
+      var list = document.getElementById('llm-active-providers');
+      if (list) {
+        if (data.data.providers.length === 0) {
+          list.innerHTML = '<div style="text-align:center;color:#999;padding:16px;">暂无已配置的提供商</div>';
+        } else {
+          list.innerHTML = data.data.providers.map(function(p) {
+            var activeClass = p.isActive ? 'border:#2d8b5e;background:rgba(45,139,94,0.05)' : 'border:#e2e8f0;background:#f8fafc';
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;border:1px solid;' + activeClass + ';">' +
+              '<div>' +
+              '<div style="font-size:14px;font-weight:600;color:#333;">' + p.name + (p.isActive ? ' ✓' : '') + '</div>' +
+              '<div style="font-size:12px;color:#999;margin-top:2px;">' + p.model + '</div>' +
+              '</div>' +
+              '<button onclick="activateProvider(\'' + p.key + '\')" style="padding:4px 12px;background:#fff;color:#2d8b5e;border:1px solid #2d8b5e;border-radius:12px;font-size:12px;cursor:pointer;">' + (p.isActive ? '已启用' : '启用') + '</button>' +
+              '</div>';
+          }).join('');
+        }
+      }
+    }
+  } catch (e) {
+    console.error('加载已配置提供商失败:', e);
+  }
+}
+
+async function activateProvider(key) {
+  try {
+    var res = await fetch(API_BASE + '/llm/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activeProvider: key })
+    });
+    var data = await res.json();
+    if (data.code === 0) {
+      llmStatus = {
+        enabled: !!data.data.enabled,
+        provider: data.data.provider || '',
+        model: data.data.model || ''
+      };
+      updateLLMUI();
+      loadActiveProviders();
+      alert('已切换到 ' + data.data.provider + '！');
+    } else {
+      alert('切换失败：' + data.message);
+    }
+  } catch (e) {
+    alert('切换请求失败：' + e.message);
+  }
+}
+
+function goToLLMConfig() {
+  showPage('page-llm-config');
+  loadLLMPresets();
+  loadActiveProviders();
+}
+
 initHome();
+checkLLMStatus();
 </script>
 </body>
 </html>

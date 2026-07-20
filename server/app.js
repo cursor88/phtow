@@ -13,9 +13,10 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-const uploadDir = path.join(__dirname, 'uploads')
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true })
+const paths = require('./config/paths');
+
+if (!fs.existsSync(paths.UPLOAD_DIR)) {
+  fs.mkdirSync(paths.UPLOAD_DIR, { recursive: true })
 }
 
 app.use('/api/herb', require('./routes/herb'))
@@ -29,9 +30,10 @@ app.use('/api/identify', require('./routes/identify'))
 app.use('/api/constitution', require('./routes/constitution'))
 app.use('/api/skill', require('./routes/skill'))
 app.use('/api/chat', require('./routes/chat'))
+app.use('/api/llm', require('./routes/llmConfig'))
 
 // 静态文件服务 - 提供前端页面
-const projectRoot = path.join(__dirname, '..')
+const projectRoot = paths.PUBLIC_DIR
 
 // 禁用缓存中间件，确保前端更新立即生效
 app.use((req, res, next) => {
@@ -54,6 +56,18 @@ app.get('/api/health', (req, res) => {
     data: {
       status: 'ok',
       timestamp: new Date().toISOString()
+    }
+  })
+})
+
+app.get('/api/llm-status', (req, res) => {
+  const llm = require('./services/llmService');
+  res.json({
+    code: 0,
+    data: {
+      enabled: llm.isEnabled(),
+      provider: llm.isEnabled() ? llm.getProviderName() : null,
+      model: llm.isEnabled() ? llm.getModel() : null
     }
   })
 })

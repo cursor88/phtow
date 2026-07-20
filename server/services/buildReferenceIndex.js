@@ -3,8 +3,9 @@ const path = require('path')
 const { createCanvas } = require('canvas')
 const { extractFeatures } = require('./imageFeatureService')
 const herbs = require('../data/herbs')
+const paths = require('../config/paths')
 
-const REF_DIR = path.join(__dirname, '..', 'data', 'reference-images')
+const REF_DIR = paths.REF_IMAGES_DIR
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {

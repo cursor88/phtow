@@ -1,1 +1,42 @@
-[{"date":"2026-07-08","herbId":2,"available":true},{"date":"2026-07-09","herbId":21,"available":true},{"date":"2026-07-14","herbId":25,"available":true}]
+[
+  {
+    "date": "2026-07-08",
+    "herbId": 2,
+    "available": true
+  },
+  {
+    "date": "2026-07-09",
+    "herbId": 21,
+    "available": true
+  },
+  {
+    "date": "2026-07-14",
+    "herbId": 25,
+    "available": true
+  },
+  {
+    "date": "2026-07-15",
+    "herbId": 15,
+    "available": true
+  },
+  {
+    "date": "2026-07-16",
+    "herbId": 3,
+    "available": true
+  },
+  {
+    "date": "2026-07-17",
+    "herbId": 5,
+    "available": true
+  },
+  {
+    "date": "2026-07-18",
+    "herbId": 12,
+    "available": true
+  },
+  {
+    "date": "2026-07-19",
+    "herbId": 4,
+    "available": true
+  }
+]

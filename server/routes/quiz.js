@@ -1,6 +1,17 @@
 const express = require('express')
 const router = express.Router()
+const path = require('path')
 const quizzes = require('../data/quizzes')
+const paths = require('../config/paths')
+
+// 将字母答案（A/B/C/D）转换为数字索引（0/1/2/3）
+const toAnswerIndex = (answer) => {
+  if (typeof answer === 'number') return answer
+  if (typeof answer === 'string' && /^[A-Da-d]$/.test(answer)) {
+    return answer.toUpperCase().charCodeAt(0) - 65
+  }
+  return 0
+}
 
 const getDailyQuestion = () => {
   const today = new Date().toDateString()
@@ -11,7 +22,7 @@ const getDailyQuestion = () => {
 
 router.get('/daily', (req, res) => {
   const question = getDailyQuestion()
-  
+
   res.json({
     code: 0,
     message: '成功',
@@ -19,6 +30,8 @@ router.get('/daily', (req, res) => {
       id: question.id,
       question: question.question,
       options: question.options,
+      answer: toAnswerIndex(question.answer),
+      explanation: question.explanation,
       difficulty: question.difficulty,
       category: question.category,
       herbId: question.herbId
@@ -29,7 +42,7 @@ router.get('/daily', (req, res) => {
 router.get('/random', (req, res) => {
   const index = Math.floor(Math.random() * quizzes.length)
   const question = quizzes[index]
-  
+
   res.json({
     code: 0,
     message: '成功',
@@ -37,6 +50,8 @@ router.get('/random', (req, res) => {
       id: question.id,
       question: question.question,
       options: question.options,
+      answer: toAnswerIndex(question.answer),
+      explanation: question.explanation,
       difficulty: question.difficulty,
       category: question.category,
       herbId: question.herbId
@@ -47,7 +62,7 @@ router.get('/random', (req, res) => {
 router.post('/submit', (req, res) => {
   const { questionId, answer } = req.body
   const question = quizzes.find(q => q.id === questionId)
-  
+
   if (!question) {
     return res.json({
       code: 404,
@@ -55,16 +70,18 @@ router.post('/submit', (req, res) => {
       data: null
     })
   }
-  
-  const isCorrect = answer === question.answer
-  
+
+  const userAnswerIdx = toAnswerIndex(answer)
+  const correctAnswerIdx = toAnswerIndex(question.answer)
+  const isCorrect = userAnswerIdx === correctAnswerIdx
+
   res.json({
     code: 0,
     message: '成功',
     data: {
       questionId,
       isCorrect,
-      correctAnswer: question.answer,
+      correctAnswer: correctAnswerIdx,
       explanation: question.explanation
     }
   })
@@ -88,6 +105,8 @@ router.get('/list', (req, res) => {
     id: q.id,
     question: q.question,
     options: q.options,
+    answer: toAnswerIndex(q.answer),
+    explanation: q.explanation,
     difficulty: q.difficulty,
     category: q.category,
     herbId: q.herbId
@@ -124,7 +143,7 @@ router.get('/detail/:id', (req, res) => {
       id: question.id,
       question: question.question,
       options: question.options,
-      answer: question.answer,
+      answer: toAnswerIndex(question.answer),
       explanation: question.explanation,
       difficulty: question.difficulty,
       category: question.category,
@@ -133,7 +152,7 @@ router.get('/detail/:id', (req, res) => {
   })
 })
 
-const quizStateFile = './server/data/quizState.json'
+const quizStateFile = paths.QUIZ_STATE
 const fs = require('fs')
 
 function loadQuizState() {
@@ -145,7 +164,15 @@ function loadQuizState() {
 }
 
 function saveQuizState(state) {
-  fs.writeFileSync(quizStateFile, JSON.stringify(state, null, 2))
+  try {
+    const dir = path.dirname(quizStateFile)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
+    fs.writeFileSync(quizStateFile, JSON.stringify(state, null, 2))
+  } catch (e) {
+    console.error('[Quiz] 保存状态失败:', e.message)
+  }
 }
 
 router.get('/stats', (req, res) => {

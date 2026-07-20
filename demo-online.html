@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>草木有方 - AI中药学习平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #f0f9f4;
+      color: #333;
+      font-size: 14px;
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .nav-bar {
+      background: linear-gradient(135deg, #2d8b5e, #3da878);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-bar .title { font-size: 18px; font-weight: 600; }
+    .nav-bar .back { font-size: 20px; cursor: pointer; width: 32px; }
+    .nav-bar .spacer { width: 32px; }
+    .nav-bar .fav-btn {
+      font-size: 22px;
+      cursor: pointer;
+      width: 32px;
+      text-align: right;
+      transition: transform 0.2s;
+    }
+    .nav-bar .fav-btn:active { transform: scale(1.2); }
+    .nav-bar .fav-btn.active { color: #F59E0B; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      overflow: hidden;
+      word-break: break-word;
+    }
+    .section-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #2d8b5e;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+    }
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 18px;
+      background: #2d8b5e;
+      border-radius: 2px;
+      margin-right: 8px;
+    }
+
+    .banner {
+      background: linear-gradient(135deg, #2d8b5e, #3da878);
+      padding: 40px 24px 50px;
+    }
+    .banner-title { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .banner-subtitle { font-size: 14px; color: rgba(255,255,255,0.9); }
+
+    .action-btns { display: flex; justify-content: space-around; padding: 10px 0; }
+    .action-btn { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .action-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 8px;
+    }
+    .action-icon.cam { background: rgba(45, 139, 94, 0.08); }
+    .action-icon.alb { background: rgba(59, 130, 246, 0.08); }
+    .action-icon.qz { background: rgba(245, 158, 11, 0.08); }
+    .action-text { font-size: 13px; color: #333; }
+
+    .btn {
+      display: block; width: 100%; padding: 14px;
+      border-radius: 20px; font-size: 16px; text-align: center;
+      border: none; cursor: pointer; margin-bottom: 10px;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .btn:active { opacity: 0.85; transform: scale(0.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, #2d8b5e, #3da878);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: #fff; color: #2d8b5e;
+      border: 1px solid #2d8b5e;
+    }
+
+    .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .quiz-tag {
+      font-size: 12px; color: #F59E0B; background: rgba(245, 158, 11, 0.1);
+      padding: 2px 10px; border-radius: 20px;
+    }
+    .quiz-question { font-size: 15px; color: #333; line-height: 1.6; margin-bottom: 14px; font-weight: 500; }
+    .quiz-footer { display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid #f0f9f4; }
+    .quiz-go { color: #2d8b5e; font-weight: 500; }
+
+    .herb-list { display: flex; flex-wrap: wrap; gap: 10px; }
+    .herb-item {
+      width: calc(33.33% - 7px); border-radius: 8px; overflow: hidden;
+      background: #f8fafc; cursor: pointer;
+    }
+    .herb-item .herb-visual { width: 100%; height: 90px; display: flex; align-items: center; justify-content: center; }
+    .herb-info { padding: 6px; text-align: center; }
+    .herb-info .name { font-size: 14px; font-weight: 500; }
+    .herb-info .cat { font-size: 11px; color: #999; }
+
+    .preview-area {
+      margin: 16px; height: 300px; background: #000;
+      border-radius: 12px; overflow: hidden; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      box-sizing: border-box;
+    }
+    .preview-area img { width: 100%; height: 100%; object-fit: contain; }
+    .preview-mask {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.6);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #fff;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #2d8b5e; border-radius: 50%;
+      animation: spin 1s linear infinite; margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .placeholder {
+      width: calc(100% - 32px);
+      height: 300px;
+      background: linear-gradient(135deg, rgba(45,139,94,0.08), rgba(61,168,120,0.08));
+      border: 2px dashed #2d8b5e; border-radius: 12px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      margin: 16px;
+      box-sizing: border-box;
+    }
+    .placeholder .icon { font-size: 56px; margin-bottom: 12px; }
+    .placeholder .text { font-size: 16px; color: #2d8b5e; font-weight: 500; }
+    .placeholder .desc { font-size: 13px; color: #666; margin-top: 6px; }
+
+    .herb-hero { position: relative; height: 260px; overflow: hidden; }
+    .herb-hero .hero-bg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .herb-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 140px; background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    }
+    .herb-title-area {
+      position: absolute; bottom: 20px; left: 20px; right: 20px; color: #fff;
+    }
+    .herb-title-area .name { font-size: 28px; font-weight: 700; }
+    .herb-title-area .pinyin { font-size: 14px; opacity: 0.9; }
+    .herb-title-area .alias { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+
+    .info-row { display: flex; margin-bottom: 12px; }
+    .info-item { flex: 1; }
+    .info-item .label { font-size: 12px; color: #999; margin-bottom: 4px; }
+    .info-item .value { font-size: 14px; color: #333; font-weight: 500; }
+    .tag {
+      display: inline-block; padding: 4px 12px;
+      background: rgba(45, 139, 94, 0.08); color: #2d8b5e;
+      border-radius: 20px; font-size: 12px; margin-right: 6px;
+    }
+    .section-content { font-size: 14px; color: #333; line-height: 1.8; }
+    .caution-card { background: linear-gradient(135deg, rgba(239,68,68,0.03), rgba(239,68,68,0.06)); border: 1px solid rgba(239,68,68,0.15); }
+    .caution-title { color: #dc2626 !important; }
+    .caution-title::before { background: #F59E0B !important; }
+
+    .classics-item {
+      background: rgba(255,255,255,0.7); border-radius: 8px;
+      padding: 14px; margin-bottom: 10px;
+    }
+    .classics-book { font-size: 14px; color: #333; font-weight: 600; margin-bottom: 8px; }
+    .classics-content { font-size: 13px; color: #666; line-height: 1.8; font-style: italic; }
+
+    .food-item {
+      display: flex; background: #fff; border-radius: 12px;
+      overflow: hidden; margin-bottom: 12px;
+      cursor: pointer;
+    }
+    .card .food-item { box-shadow: none; margin-bottom: 12px; }
+    .card .food-item:last-child { margin-bottom: 0; }
+    .food-item .food-visual { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .food-info { flex: 1; padding: 12px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+    .food-info .name { font-size: 16px; font-weight: 600; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+    .food-info .effect { font-size: 12px; color: #2d8b5e; margin-bottom: 6px; }
+    .food-info .ings { display: flex; flex-wrap: wrap; gap: 4px; }
+    .food-info .ings span { font-size: 11px; color: #666; background: #f8fafc; padding: 2px 8px; border-radius: 20px; }
+    .fav-icon-list {
+      font-size: 18px;
+      cursor: pointer;
+      color: #ccc;
+      transition: transform 0.2s;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+    .fav-icon-list.active { color: #F59E0B; }
+    .fav-icon-list:active { transform: scale(1.3); }
+    .fav-icon-modal {
+      font-size: 24px;
+      cursor: pointer;
+      color: #ccc;
+      transition: transform 0.2s;
+    }
+    .fav-icon-modal.active { color: #F59E0B; }
+    .fav-icon-modal:active { transform: scale(1.3); }
+
+    .quiz-stats { display: flex; justify-content: space-around; align-items: center; }
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 22px; font-weight: 700; color: #2d8b5e; }
+    .stat-label { font-size: 12px; color: #999; }
+    .stat-divider { width: 1px; height: 40px; background: #f0f9f4; }
+
+    .option-item {
+      display: flex; align-items: center; padding: 14px;
+      border: 1.5px solid #e2e8f0; border-radius: 10px;
+      margin-bottom: 10px; cursor: pointer; background: #fff;
+      transition: all 0.2s;
+    }
+    .option-item.selected { border-color: #2d8b5e; background: #f0f9f4; }
+    .option-item.correct { border-color: #2d8b5e; background: #f0f9f4; }
+    .option-item.wrong { border-color: #dc2626; background: #fef2f2; }
+    .option-item.disabled { opacity: 0.6; }
+    .opt-letter {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #f1f5f9; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; color: #666; margin-right: 12px; flex-shrink: 0;
+    }
+    .option-item.selected .opt-letter { background: #2d8b5e; color: #fff; }
+    .option-item.correct .opt-letter { background: #2d8b5e; color: #fff; }
+    .option-item.wrong .opt-letter { background: #dc2626; color: #fff; }
+    .opt-text { flex: 1; font-size: 14px; min-width: 0; }
+    .opt-check { margin-left: 8px; font-weight: bold; }
+    .correct .opt-check { color: #2d8b5e; }
+    .wrong .opt-check { color: #dc2626; }
+
+    .explanation {
+      background: rgba(245, 158, 11, 0.1); border-radius: 8px; padding: 16px;
+      margin-bottom: 16px; border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    .explanation .title { font-size: 15px; font-weight: 600; color: #666; margin-bottom: 8px; }
+    .explanation .text { font-size: 13px; color: #666; line-height: 1.7; }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 999; display: none; align-items: flex-end;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      width: 100%; max-height: 85vh; background: #fff;
+      border-radius: 20px 20px 0 0; overflow: hidden;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-header { position: relative; height: 200px; }
+    .modal-header .modal-bg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .modal-close {
+      position: absolute; top: 12px; right: 12px;
+      width: 36px; height: 36px; background: rgba(0,0,0,0.5);
+      color: #fff; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 24px; cursor: pointer;
+    }
+    .modal-body { padding: 20px; max-height: calc(85vh - 200px); overflow-y: auto; }
+    .modal-body .title { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+    .detail-section { margin-bottom: 16px; }
+    .detail-section .label {
+      font-size: 14px; font-weight: 600; color: #2d8b5e;
+      margin-bottom: 6px; display: flex; align-items: center;
+    }
+    .detail-section .label::before {
+      content: ''; width: 4px; height: 14px; background: #2d8b5e;
+      border-radius: 2px; margin-right: 6px;
+    }
+    .detail-section.caution .label { color: #dc2626; }
+    .detail-section.caution .label::before { background: #dc2626; }
+    .detail-section .text { font-size: 13px; color: #333; line-height: 1.7; padding-left: 10px; }
+    .ingredient-list { display: flex; flex-wrap: wrap; gap: 6px; padding-left: 10px; }
+    .ingredient-list span {
+      padding: 4px 12px; background: rgba(45, 139, 94, 0.08); color: #2d8b5e;
+      border-radius: 20px; font-size: 12px;
+    }
+    .method-text { font-size: 13px; color: #333; line-height: 2; padding-left: 10px; white-space: pre-line; }
+
+    .tab-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #fff; display: flex; justify-content: space-around;
+      padding: 8px 0 12px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      max-width: 480px; margin: 0 auto; z-index: 50;
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .tab-item .icon { font-size: 22px; margin-bottom: 2px; }
+    .tab-item .text { font-size: 11px; color: #999; }
+    .tab-item.active .text { color: #2d8b5e; }
+
+    .page-with-tab { padding-bottom: 70px; }
+
+    .feature-item {
+      display: flex; align-items: center; padding: 12px 0;
+      border-bottom: 1px solid #f0f9f4;
+    }
+    .feature-item:last-child { border-bottom: none; }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: #f0f9f4; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-right: 14px;
+    }
+    .feature-title { font-size: 15px; font-weight: 500; margin-bottom: 2px; }
+    .feature-desc { font-size: 12px; color: #999; }
+
+    .loading { display: flex; flex-direction: column; align-items: center; padding: 80px 0; color: #999; }
+
+    .herb-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .herb-chip {
+      padding: 6px 16px; background: #f8fafc; color: #666;
+      border-radius: 20px; font-size: 13px; cursor: pointer;
+      border: 1.5px solid transparent;
+    }
+    .herb-chip.active { background: rgba(45, 139, 94, 0.08); color: #2d8b5e; border-color: #2d8b5e; font-weight: 500; }
+
+    input[type="file"] { display: none; }
+
+    .recognition-result {
+      background: #fff; border-radius: 16px; padding: 20px; margin: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .result-name { font-size: 28px; font-weight: 700; color: #2d8b5e; }
+    .result-accuracy { font-size: 22px; color: #F59E0B; background: rgba(245, 158, 11, 0.1); padding: 4px 14px; border-radius: 20px; }
+    .result-pinyin { font-size: 22px; color: #999; margin-bottom: 12px; }
+    .result-effect { font-size: 24px; color: #333; line-height: 1.6; }
+
+    .herb-color-1 { background: linear-gradient(135deg, #d4e5f7, #b3d7f5); }
+    .herb-color-2 { background: linear-gradient(135deg, #ffe4e1, #ffc9c5); }
+    .herb-color-3 { background: linear-gradient(135deg, #f9ead8, #f3dbb5); }
+    .herb-color-4 { background: linear-gradient(135deg, #f5e6d3, #edd5b8); }
+    .herb-color-5 { background: linear-gradient(135deg, #e8f8f5, #d1ebe6); }
+    .herb-color-6 { background: linear-gradient(135deg, #f5f5dc, #ebebcc); }
+
+    .search-bar {
+      display: flex; align-items: center; background: #fff;
+      border-radius: 25px; padding: 10px 16px; margin: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border: 1.5px solid #e2e8f0;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-bar:focus-within {
+      border-color: #2d8b5e;
+      box-shadow: 0 0 0 3px rgba(45,139,94,0.1);
+    }
+    .search-bar input {
+      flex: 1; border: none; outline: none; font-size: 14px;
+      background: transparent; margin-left: 10px; min-width: 0;
+    }
+    .search-bar input::placeholder { color: #ccc; }
+    .search-bar .search-icon { color: #999; font-size: 16px; }
+
+    .match-search-bar {
+      display: flex; align-items: center;
+      background: #f8fafc;
+      border-radius: 25px;
+      padding: 8px 16px;
+      margin-bottom: 12px;
+      border: 1.5px solid #e2e8f0;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .match-search-bar:focus-within {
+      border-color: #2d8b5e;
+      box-shadow: 0 0 0 3px rgba(45,139,94,0.1);
+    }
+    .match-search-bar input {
+      flex: 1; border: none; outline: none; font-size: 14px;
+      background: transparent; margin-left: 10px; min-width: 0;
+    }
+    .match-search-bar input::placeholder { color: #ccc; }
+    .match-search-bar .search-icon { color: #999; font-size: 16px; }
+    .match-search-bar .search-clear {
+      color: #999; font-size: 14px; cursor: pointer;
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+    }
+
+    .match-quick-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .quick-tag {
+      padding: 6px 14px;
+      background: #f0f9f4;
+      color: #2d8b5e;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid rgba(45, 139, 94, 0.2);
+      transition: all 0.2s;
+    }
+    .quick-tag:active { transform: scale(0.98); background: #2d8b5e; color: #fff; }
+
+    .search-result-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 16px; margin-bottom: 10px;
+    }
+    .search-result-header .title { font-size: 15px; font-weight: 600; color: #333; }
+    .search-result-header .count { font-size: 12px; color: #999; }
+    .search-result-item {
+      display: flex; align-items: center; background: #fff;
+      border-radius: 12px; padding: 14px; margin: 0 12px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      cursor: pointer;
+    }
+    .search-result-item .result-visual {
+      width: 60px; height: 60px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin-right: 12px; flex-shrink: 0;
+    }
+    .search-result-item .result-info { flex: 1; min-width: 0; }
+    .search-result-item .result-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .search-result-item .result-effect {
+      font-size: 12px; color: #2d8b5e; margin-bottom: 6px;
+      display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .category-tabs {
+      display: flex; gap: 8px; padding: 0 12px; margin-bottom: 12px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .category-tabs::-webkit-scrollbar { display: none; }
+    .category-tab {
+      padding: 8px 16px; background: #fff; border-radius: 20px;
+      font-size: 13px; color: #666; cursor: pointer; flex-shrink: 0;
+      border: 1.5px solid transparent;
+    }
+    .category-tab.active { background: rgba(45, 139, 94, 0.08); color: #2d8b5e; border-color: #2d8b5e; }
+
+    .herb-list-card {
+      display: flex; align-items: center; background: #fff;
+      border-radius: 12px; padding: 14px; margin: 0 12px 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      cursor: pointer;
+    }
+    .herb-list-card .herb-visual {
+      width: 70px; height: 70px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin-right: 14px; flex-shrink: 0;
+    }
+    .herb-list-card .herb-info { flex: 1; min-width: 0; }
+    .herb-list-card .herb-info .name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .herb-list-card .herb-info .effect { font-size: 12px; color: #666; line-height: 1.4; }
+
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 60px 20px; color: #999;
+    }
+    .empty-state .empty-icon { font-size: 64px; margin-bottom: 16px; }
+    .empty-state .empty-title { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+    .empty-state .empty-desc { font-size: 13px; text-align: center; }
+
+    .profile-header {
+      background: linear-gradient(135deg, #2d8b5e, #3da878);
+      padding: 30px 20px 40px;
+    }
+    .profile-info { display: flex; align-items: center; }
+    .profile-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin-right: 16px;
+    }
+    .profile-text { color: #fff; }
+    .profile-text .name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .profile-text .desc { font-size: 13px; opacity: 0.8; }
+
+    .profile-stats {
+      display: flex; justify-content: space-around;
+      background: #fff; border-radius: 12px;
+      margin: -20px 16px 16px; padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .profile-stat-item { text-align: center; }
+    .profile-stat-item .num { font-size: 22px; font-weight: 700; color: #2d8b5e; }
+    .profile-stat-item .label { font-size: 12px; color: #999; margin-top: 4px; }
+
+    .favorite-section { margin-bottom: 16px; }
+    .favorite-section .section-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 16px; margin-bottom: 12px;
+    }
+    .favorite-section .section-header .title { font-size: 16px; font-weight: 600; color: #333; }
+    .favorite-section .section-header .more { font-size: 13px; color: #2d8b5e; cursor: pointer; }
+
+    .constitution-progress { height: 6px; background: #e2e8f0; border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+    .constitution-progress-bar { height: 100%; background: #2d8b5e; border-radius: 3px; transition: width 0.3s; }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 56px);
+      background: #f0f9f4;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      padding-bottom: 80px;
+    }
+    .chat-message {
+      display: flex;
+      margin-bottom: 16px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-message.user { justify-content: flex-end; }
+    .chat-message.assistant { justify-content: flex-start; }
+    .chat-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      margin: 0 8px;
+    }
+    .chat-message.user .chat-avatar { background: #a855f7; color: #fff; }
+    .chat-message.assistant .chat-avatar { background: #2d8b5e; color: #fff; }
+    .chat-bubble {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.7;
+      word-break: break-word;
+      white-space: pre-line;
+    }
+    .chat-message.user .chat-bubble {
+      background: #a855f7;
+      color: #fff;
+      border-bottom-right-radius: 6px;
+    }
+    .chat-message.assistant .chat-bubble {
+      background: #fff;
+      color: #333;
+      border-bottom-left-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .chat-input-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      padding: 10px 16px;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 100;
+    }
+    .chat-input-area input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 25px;
+      font-size: 14px;
+      outline: none;
+      background: #f8fafc;
+    }
+    .chat-input-area input:focus {
+      border-color: #a855f7;
+      background: #fff;
+    }
+    .chat-send-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #a855f7;
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .chat-send-btn:active { opacity: 0.8; }
+    .chat-send-btn:disabled { opacity: 0.5; }
+    .chat-loading {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      background: #fff;
+      border-radius: 18px;
+      border-bottom-left-radius: 6px;
+    }
+    .chat-loading .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #a855f7;
+      margin: 0 3px;
+      animation: bounce 0.6s infinite alternate;
+    }
+    .chat-loading .dot:nth-child(2) { animation-delay: 0.2s; }
+    .chat-loading .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+    .suggested-questions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .suggested-question {
+      padding: 8px 14px;
+      background: rgba(168,85,247,0.08);
+      color: #a855f7;
+      border: 1px solid rgba(168,85,247,0.2);
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .suggested-question:active {
+      background: #a855f7;
+      color: #fff;
+    }
+    .chat-diagnosis-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(168,85,247,0.1);
+      color: #a855f7;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .chat-prescription-card {
+      background: linear-gradient(135deg, rgba(168,85,247,0.05), rgba(168,85,247,0.1));
+      border-left: 4px solid #a855f7;
+      border-radius: 0 12px 12px 0;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .chat-prescription-card .prescription-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #a855f7;
+      margin-bottom: 6px;
+    }
+    .chat-prescription-card .prescription-ingredients {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+    .chat-prescription-card .prescription-explanation {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .llm-status-bar {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      margin: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .llm-status-bar:active { transform: scale(0.98); }
+    .llm-status-bar.enabled {
+      background: linear-gradient(135deg, rgba(45,139,94,0.08), rgba(45,139,94,0.15));
+      border: 1px solid rgba(45,139,94,0.3);
+    }
+    .llm-status-bar.disabled {
+      background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.15));
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+    .llm-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+    .llm-status-dot.enabled { background: #2d8b5e; box-shadow: 0 0 6px rgba(45,139,94,0.5); }
+    .llm-status-dot.disabled { background: #F59E0B; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+    .llm-status-text { flex: 1; font-size: 13px; font-weight: 500; }
+    .llm-status-text.enabled { color: #2d8b5e; }
+    .llm-status-text.disabled { color: #F59E0B; }
+    .llm-status-arrow { font-size: 16px; margin-left: 8px; }
+    .llm-status-arrow.enabled { color: #2d8b5e; }
+    .llm-status-arrow.disabled { color: #F59E0B; }
+
+    .llm-config-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .llm-provider-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .llm-provider-item {
+      display: flex;
+      align-items: center;
+      padding: 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      transition: all 0.2s;
+    }
+    .llm-provider-item.active {
+      border-color: #2d8b5e;
+      background: #f0f9f4;
+    }
+    .llm-provider-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: 12px;
+      flex-shrink: 0;
+      background: #f8fafc;
+    }
+    .llm-provider-info { flex: 1; }
+    .llm-provider-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .llm-provider-desc { font-size: 12px; color: #999; }
+    .llm-provider-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .llm-provider-badge.active { background: rgba(45,139,94,0.1); color: #2d8b5e; }
+
+    .mode-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+    .mode-indicator.enabled { background: #2d8b5e; box-shadow: 0 0 4px rgba(45,139,94,0.6); }
+    .mode-indicator.disabled { background: #F59E0B; box-shadow: 0 0 4px rgba(245,158,11,0.6); }
+
+    .local-mode-tag {
+      font-size: 11px;
+      color: #F59E0B;
+      background: rgba(245,158,11,0.1);
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 6px;
+    }
+
+    .llm-config-step {
+      display: flex;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f9f4;
+    }
+    .llm-config-step:last-child { border-bottom: none; }
+    .llm-step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(45,139,94,0.1);
+      color: #2d8b5e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .llm-step-text { flex: 1; font-size: 13px; color: #333; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<div class="page active page-with-tab" id="page-home">
+  <div class="banner">
+    <div class="banner-title">草木有方</div>
+    <div class="banner-subtitle">AI中药学习平台</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">快速识别</div>
+    <div class="action-btns">
+      <div class="action-btn" onclick="takePhoto()">
+        <div class="action-icon cam">📷</div>
+        <div class="action-text">拍照识别</div>
+      </div>
+      <div class="action-btn" onclick="chooseImage()">
+        <div class="action-icon alb">🖼️</div>
+        <div class="action-text">相册选择</div>
+      </div>
+      <div class="action-btn" onclick="showPage('page-quiz')">
+        <div class="action-icon qz">📝</div>
+        <div class="action-text">趣味问答</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="daily-quiz-card" style="cursor:pointer;" onclick="goToDailyQuiz()">
+    <div class="quiz-header">
+      <div class="section-title">今日一题</div>
+      <div class="quiz-tag" id="daily-difficulty">中等</div>
+    </div>
+    <div class="quiz-question" id="daily-question">黄芪的主要功效是什么？</div>
+    <div class="quiz-footer">
+      <span style="color:#999;font-size:12px;" id="daily-category">中药学</span>
+      <span class="quiz-go">去答题 →</span>
+    </div>
+  </div>
+
+  <div class="card" id="daily-herb-card" style="cursor:pointer;background:linear-gradient(135deg, #f0f9f4 0%, rgba(45,139,94,0.08) 100%);border:1px solid rgba(45,139,94,0.2);" onclick="goToDailyHerbDetail()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="section-title">🌿 今日药材</div>
+      <div id="daily-herb-status" style="font-size:12px;color:#F59E0B;background:rgba(245,158,11,0.1);padding:4px 12px;border-radius:20px;">去学习</div>
+    </div>
+    <div id="daily-herb-content">
+      <div style="display:flex;align-items:center;">
+        <div id="daily-herb-visual" style="margin-right:14px;"></div>
+        <div style="flex:1;">
+          <div id="daily-herb-name" style="font-size:18px;font-weight:700;color:#333;">黄芪</div>
+          <div id="daily-herb-effect" style="font-size:13px;color:#2d8b5e;margin-top:6px;">补气固表，利尿托毒</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:12px;border-top:1px dashed rgba(45,139,94,0.2);">
+      <span style="font-size:12px;color:#999;">每日学习一种药材，打卡赢积分</span>
+      <button id="daily-checkin-btn" style="padding:8px 20px;background:linear-gradient(135deg, #2d8b5e, #3da878);color:#fff;border:none;border-radius:30px;font-size:13px;cursor:pointer;" onclick="event.stopPropagation();handleDailyCheckin()">立即打卡</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px;background:linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(168,85,247,0.15) 100%);border:1px solid rgba(168,85,247,0.2);" onclick="showPage('page-consult')">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="section-title" style="font-size:16px;">🏥 经方问诊</div>
+      <div style="display:flex;align-items:center;gap:6px;"><span id="local-mode-tag" class="local-mode-tag" style="display:none;">本地模式</span><span style="font-size:12px;color:#a855f7;background:rgba(168,85,247,0.1);padding:4px 12px;border-radius:20px;">中医医师视角</span></div>
+    </div>
+    <div style="display:flex;align-items:center;">
+      <div style="width:60px;height:60px;background:rgba(168,85,247,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-right:14px;">📖</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:600;color:#333;">中医医师经方辨证论治</div>
+        <div style="font-size:12px;color:#a855f7;margin-top:4px;">伤寒论 · 金匮要略 · 黄帝内经</div>
+      </div>
+      <div style="font-size:20px;color:#a855f7;">→</div>
+    </div>
+    <div style="font-size:12px;color:#666;margin-top:12px;line-height:1.6;">
+      基于传统中医经方理论，提供六经辨证、经方建议、养生指导
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px;background:linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(245,158,11,0.15) 100%);border:1px solid rgba(245,158,11,0.2);" onclick="openConstitutionTest()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="section-title" style="font-size:16px;">🧬 体质测评</div>
+      <div style="font-size:12px;color:#F59E0B;background:rgba(245,158,11,0.1);padding:4px 12px;border-radius:20px;">了解你的身体</div>
+    </div>
+    <div style="display:flex;align-items:center;">
+      <div style="width:60px;height:60px;background:rgba(245,158,11,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-right:14px;">🩺</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:600;color:#333;">中医体质辨识</div>
+        <div style="font-size:12px;color:#F59E0B;margin-top:4px;">依据国家标准 GB/T 46939-2025</div>
+      </div>
+      <div style="font-size:20px;color:#F59E0B;">→</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border:none;border-radius:8px;font-size:12px;color:#F59E0B;cursor:pointer;" onclick="event.stopPropagation();openConstitutionTest('standard')">标准测评 (60题)</button>
+      <button style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border:none;border-radius:8px;font-size:12px;color:#F59E0B;cursor:pointer;" onclick="event.stopPropagation();openConstitutionTest('quick')">快速测评(9题)</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">药材图鉴</div>
+    <div class="herb-list" id="herb-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">核心功能</div>
+    <div class="feature-item"><div class="feature-icon">🔬</div><div><div class="feature-title">AI识别</div><div class="feature-desc">拍照秒识药材品类</div></div></div>
+    <div class="feature-item"><div class="feature-icon">📚</div><div><div class="feature-title">典籍溯源</div><div class="feature-desc">本草纲目等古籍记载</div></div></div>
+    <div class="feature-item"><div class="feature-icon">🍲</div><div><div class="feature-title">药食同源</div><div class="feature-desc">养生搭配推荐</div></div></div>
+    <div class="feature-item"><div class="feature-icon">🎯</div><div><div class="feature-title">趣味学习</div><div class="feature-desc">问答互动涨知识</div></div></div>
+  </div>
+</div>
+
+<div class="page page-with-tab" id="page-identify">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-home')">←</span>
+    <span class="title">药材识别</span>
+    <span class="spacer"></span>
+  </div>
+  <div id="identify-preview">
+    <div class="placeholder" onclick="chooseImage()">
+      <div class="icon">📸</div>
+      <div class="text">选择图片开始识别</div>
+      <div class="desc">支持拍照或从相册选择药材图片</div>
+    </div>
+  </div>
+  <div id="identify-result"></div>
+  <div style="padding:0 16px;">
+    <button class="btn btn-primary" onclick="takePhoto()">📷 拍照识别</button>
+    <button class="btn btn-secondary" onclick="chooseImage()">🖼️ 从相册选择</button>
+  </div>
+  <div class="card">
+    <div class="section-title">识别小贴士</div>
+    <div style="font-size:13px;color:#666;line-height:1.8;">
+      <p>1. 确保光线充足，药材清晰可见</p>
+      <p>2. 尽量拍摄药材完整形态</p>
+      <p>3. 背景简洁，避免杂物干扰</p>
+      <p>4. 仅供参考，用药请遵医嘱</p>
+    </div>
+  </div>
+</div>
+
+<div class="page page-with-tab" id="page-detail">
+  <div class="nav-bar">
+    <span class="back" onclick="goBack()">←</span>
+    <span class="title">药材详情</span>
+    <span class="fav-btn" id="detail-fav-btn" onclick="toggleHerbFavorite()">♡</span>
+  </div>
+  <div id="detail-content"></div>
+</div>
+
+<div class="page page-with-tab" id="page-quiz">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-home')">←</span>
+    <span class="title">趣味问答</span>
+    <span class="spacer"></span>
+  </div>
+  <div class="card">
+    <div class="quiz-stats">
+      <div class="stat-item"><div class="stat-num" id="stat-correct">12</div><div class="stat-label">答对</div></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><div class="stat-num" id="stat-total">15</div><div class="stat-label">总题数</div></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><div class="stat-num" id="stat-accuracy">80%</div><div class="stat-label">正确率</div></div>
+    </div>
+  </div>
+  <div class="card" style="margin:16px;">
+    <div style="display:flex;gap:12px;">
+      <button style="flex:1;padding:12px;border:none;background:rgba(45,139,94,0.08);color:#2d8b5e;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="goToQuizList()">📚 题库</button>
+      <button style="flex:1;padding:12px;border:none;background:rgba(239,68,68,0.08);color:#dc2626;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="goToWrongQuestions()">📝 错题本</button>
+    </div>
+  </div>
+  <div id="quiz-content"></div>
+</div>
+
+<div class="page page-with-tab" id="page-match">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-home')">←</span>
+    <span class="title">药食同源</span>
+    <span class="spacer"></span>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <div class="match-search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="输入症状，如：口干舌燥、失眠、湿气重" id="match-search-input" onkeypress="handleMatchSearchKey(event)">
+      <span class="search-clear" onclick="clearMatchSearch()" id="match-search-clear" style="display:none;">×</span>
+    </div>
+    <div class="match-quick-tags">
+      <span class="quick-tag" onclick="quickSearchMatch('口干舌燥')">口干舌燥</span>
+      <span class="quick-tag" onclick="quickSearchMatch('失眠')">失眠</span>
+      <span class="quick-tag" onclick="quickSearchMatch('湿气重')">湿气重</span>
+      <span class="quick-tag" onclick="quickSearchMatch('疲劳')">疲劳乏力</span>
+      <span class="quick-tag" onclick="quickSearchMatch('上火')">上火</span>
+      <span class="quick-tag" onclick="quickSearchMatch('眼睛干涩')">眼睛干涩</span>
+    </div>
+  </div>
+  <div class="card" id="match-herb-section">
+    <div style="font-size:15px;font-weight:600;margin-bottom:12px;">选择药材查看搭配</div>
+    <div class="herb-chips" id="match-herb-chips"></div>
+  </div>
+  <div id="match-list"></div>
+  <div id="match-search-result" style="display:none;"></div>
+</div>
+
+<div class="page page-with-tab" id="page-herb-list">
+  <div class="nav-bar">
+    <span class="spacer"></span>
+    <span class="title">药材图鉴</span>
+    <span class="spacer"></span>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="搜索药材名称或别名" id="herb-search-input" oninput="handleHerbSearch()">
+  </div>
+  <div class="category-tabs" id="category-tabs"></div>
+  <div id="herb-list-content"></div>
+</div>
+
+<div class="page" id="page-consult">
+  <div class="nav-bar">
+    <span class="back" onclick="endChat()">←</span>
+    <span class="title">经方问诊</span>
+    <div class="mode-indicator disabled" id="consult-mode-indicator"></div>
+  </div>
+  <div class="chat-container">
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-message assistant">
+        <div class="chat-avatar">📖</div>
+        <div class="chat-bubble">
+          您好！我是中医经方助手。请描述您的症状，我将根据经方思维为您提供辨证和处方建议。
+          <div class="suggested-questions">
+            <span class="suggested-question" onclick="sendMessage('我感冒发烧了怎么办？')">感冒发烧</span>
+            <span class="suggested-question" onclick="sendMessage('我最近总是失眠')">失眠多梦</span>
+            <span class="suggested-question" onclick="sendMessage('我胃痛不舒服')">胃痛胃胀</span>
+            <span class="suggested-question" onclick="sendMessage('我咳嗽有痰')">咳嗽咳痰</span>
+            <span class="suggested-question" onclick="sendMessage('我经常感到乏力')">神疲乏力</span>
+            <span class="suggested-question" onclick="sendMessage('我便秘好几天了')">大便秘结</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="chat-input" placeholder="输入您的症状或问题..." onkeypress="handleChatKey(event)">
+      <button class="chat-send-btn" id="chat-send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-chat-history">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-profile')">←</span>
+    <span class="title">问诊记录</span>
+    <span class="spacer"></span>
+  </div>
+  <div id="chat-history-content" style="padding:16px;padding-bottom:80px;"></div>
+</div>
+
+<div class="page" id="page-chat-detail">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-chat-history')">←</span>
+    <span class="title">问诊详情</span>
+    <span class="spacer"></span>
+  </div>
+  <div id="chat-detail-content" style="padding:16px;padding-bottom:20px;"></div>
+</div>
+
+<div class="page" id="page-llm-config">
+  <div class="nav-bar">
+    <span class="back" onclick="goBack()">←</span>
+    <span class="title">AI模型配置</span>
+    <span class="spacer"></span>
+  </div>
+  <div id="llm-config-content">
+    <div class="llm-config-card">
+      <div class="section-title">当前AI模式</div>
+      <div id="llm-config-status" style="display:flex;align-items:center;padding:12px;background:#f8fafc;border-radius:10px;margin-bottom:16px;">
+        <div class="llm-status-dot disabled" id="config-llm-dot"></div>
+        <div style="flex:1;">
+          <div id="config-llm-mode" style="font-size:14px;font-weight:600;color:#F59E0B;">本地知识库模式</div>
+          <div id="config-llm-detail" style="font-size:12px;color:#999;margin-top:2px;">未配置API Key</div>
+        </div>
+      </div>
+    </div>
+    <div class="llm-config-card" id="llm-config-steps-card">
+      <div class="section-title">配置说明</div>
+      <div class="llm-config-step">
+        <div class="llm-step-num">1</div>
+        <div class="llm-step-text">选择一家AI服务商，获取API Key。推荐智谱AI（免费额度较大）</div>
+      </div>
+      <div class="llm-config-step">
+        <div class="llm-step-num">2</div>
+        <div class="llm-step-text">在服务器端配置环境变量，设置API Key和模型参数</div>
+      </div>
+      <div class="llm-config-step">
+        <div class="llm-step-num">3</div>
+        <div class="llm-step-text">重启服务，点击下方"检查状态"按钮验证配置是否生效</div>
+      </div>
+    </div>
+    <div class="llm-config-card">
+      <div class="section-title">支持的服务商</div>
+      <div class="llm-provider-list">
+        <div class="llm-provider-item" id="provider-zhipu">
+          <div class="llm-provider-icon">🟢</div>
+          <div class="llm-provider-info">
+            <div class="llm-provider-name">智谱AI</div>
+            <div class="llm-provider-desc">GLM-4V-Flash / 免费额度充足</div>
+          </div>
+          <div class="llm-provider-badge" id="badge-zhipu"></div>
+        </div>
+        <div class="llm-provider-item" id="provider-openai">
+          <div class="llm-provider-icon">🔵</div>
+          <div class="llm-provider-info">
+            <div class="llm-provider-name">OpenAI</div>
+            <div class="llm-provider-desc">GPT-4o / 需海外网络</div>
+          </div>
+          <div class="llm-provider-badge" id="badge-openai"></div>
+        </div>
+        <div class="llm-provider-item" id="provider-moonshot">
+          <div class="llm-provider-icon">🌙</div>
+          <div class="llm-provider-info">
+            <div class="llm-provider-name">月之暗面</div>
+            <div class="llm-provider-desc">Kimi / 长文本能力强</div>
+          </div>
+          <div class="llm-provider-badge" id="badge-moonshot"></div>
+        </div>
+        <div class="llm-provider-item" id="provider-qwen">
+          <div class="llm-provider-icon">🟠</div>
+          <div class="llm-provider-info">
+            <div class="llm-provider-name">通义千问</div>
+            <div class="llm-provider-desc">Qwen-Max / 阿里云服务</div>
+          </div>
+          <div class="llm-provider-badge" id="badge-qwen"></div>
+        </div>
+        <div class="llm-provider-item" id="provider-doubao">
+          <div class="llm-provider-icon">🔴</div>
+          <div class="llm-provider-info">
+            <div class="llm-provider-name">豆包</div>
+            <div class="llm-provider-desc">Doubao / 字节跳动</div>
+          </div>
+          <div class="llm-provider-badge" id="badge-doubao"></div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 16px;margin-bottom:20px;">
+      <button class="btn btn-primary" onclick="checkLLMStatus()" id="check-status-btn">🔍 检查状态</button>
+    </div>
+  </div>
+</div>
+
+<div class="page page-with-tab" id="page-profile">
+  <div class="profile-header">
+    <div class="profile-info">
+      <div class="profile-avatar">👤</div>
+      <div class="profile-text">
+        <div class="name">草木有方用户</div>
+        <div class="desc">探索中医药的奥秘</div>
+      </div>
+    </div>
+  </div>
+  <div class="profile-stats">
+    <div class="profile-stat-item"><div class="num" id="stat-fav-herbs">5</div><div class="label">收藏药材</div></div>
+    <div class="profile-stat-item"><div class="num" id="stat-fav-matches">3</div><div class="label">收藏搭配</div></div>
+    <div class="profile-stat-item"><div class="num" id="stat-quiz-done">15</div><div class="label">完成问答</div></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">❤️ 我的收藏药材</span>
+      <span class="more" onclick="showPage('page-herb-list')">查看全部</span>
+    </div>
+    <div id="fav-herbs-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">🍲 我的收藏搭配</span>
+      <span class="more" onclick="showPage('page-match')">查看全部</span>
+    </div>
+    <div id="fav-matches-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">📅 打卡记录</span>
+    </div>
+    <div id="checkin-records-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">🔍 我的识别记录</span>
+    </div>
+    <div id="identify-records-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">🏥 我的问诊记录</span>
+      <span class="more" onclick="showPage('page-chat-history')">查看全部</span>
+    </div>
+    <div id="chat-history-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">🧬 我的测评记录</span>
+    </div>
+    <div id="constitution-records-list"></div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
+      <span class="title">📊 打卡统计</span>
+    </div>
+    <div id="checkin-stats-list" style="margin:0 16px 12px;">
+      <div class="card" style="padding:14px;display:flex;justify-content:space-around;">
+        <div style="text-align:center;"><div id="checkin-stat-total" style="font-size:24px;font-weight:700;color:#2d8b5e;">12</div><div style="font-size:12px;color:#999;">累计打卡</div></div>
+        <div style="width:1px;background:#f0f9f4;"></div>
+        <div style="text-align:center;"><div id="checkin-stat-consecutive" style="font-size:24px;font-weight:700;color:#2d8b5e;">5</div><div style="font-size:12px;color:#999;">连续天数</div></div>
+        <div style="width:1px;background:#f0f9f4;"></div>
+        <div style="text-align:center;"><div id="checkin-stat-month" style="font-size:24px;font-weight:700;color:#2d8b5e;">8</div><div style="font-size:12px;color:#999;">本月打卡</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="match-modal" style="display:none;" onclick="closeMatchModal()">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-bg" id="modal-bg"></div>
+      <div class="modal-close" onclick="closeMatchModal()">×</div>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="constitution-modal" onclick="closeConstitutionTest()" style="display:none;">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header" style="background:linear-gradient(135deg, #2d8b5e, #3da878);height:160px;">
+      <div class="modal-close" onclick="closeConstitutionTest()">×</div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#fff;">
+        <div style="font-size:40px;margin-bottom:8px;">🧬</div>
+        <div style="font-size:20px;font-weight:600;">体质测评</div>
+        <div style="font-size:12px;opacity:0.9;" id="constitution-progress-text">1 / 1</div>
+      </div>
+    </div>
+    <div class="constitution-progress" style="margin:0 20px 16px;">
+      <div class="constitution-progress-bar" id="constitution-progress-bar" style="width:0%;"></div>
+    </div>
+    <div class="modal-body" style="padding:0 20px 20px;max-height:calc(85vh - 200px);">
+      <div id="constitution-question"></div>
+    </div>
+    <div style="padding:16px 20px;border-top:1px solid #f0f9f4;background:#f8fafc;">
+      <div style="display:flex;gap:12px;">
+        <button id="constitution-prev" style="flex:1;padding:12px;background:#fff;color:#333;border:1px solid #e2e8f0;border-radius:20px;font-size:14px;cursor:pointer;" onclick="constitutionPrev()">上一题</button>
+        <button id="constitution-next" style="flex:1;padding:12px;background:#2d8b5e;color:#fff;border:none;border-radius:20px;font-size:14px;cursor:pointer;" onclick="constitutionNext()">下一题</button>
+        <button id="constitution-submit" style="flex:1;padding:12px;background:#2d8b5e;color:#fff;border:none;border-radius:20px;font-size:14px;cursor:pointer;display:none;" onclick="constitutionSubmit()">提交测评</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item active" onclick="showPage('page-home')">
+    <div class="icon">🏠</div>
+    <div class="text">首页</div>
+  </div>
+  <div class="tab-item" onclick="showPage('page-identify')">
+    <div class="icon">🔍</div>
+    <div class="text">识别</div>
+  </div>
+  <div class="tab-item" onclick="showPage('page-herb-list')">
+    <div class="icon">🌿</div>
+    <div class="text">图鉴</div>
+  </div>
+  <div class="tab-item" onclick="showPage('page-match')">
+    <div class="icon">🍲</div>
+    <div class="text">搭配</div>
+  </div>
+  <div class="tab-item" onclick="showPage('page-profile')">
+    <div class="icon">👤</div>
+    <div class="text">我的</div>
+  </div>
+</div>
+
+<script>
+// ==================== 模拟数据 ====================
+const HERB_DATA = [
+  { id: 1, name: "黄芪", pinyin: "Huang Qi", alias: "黄耆、绵芪", category: "补气药", visual: "🟡", color: "herb-color-6", effect: "补气固表，利尿托毒，排脓，敛疮生肌", nature: "微温", taste: "甘", meridian: "肺、脾", keyIdentification: { smell: "有豆腥味", texture: "质硬而韧，不易折断", crossSection: "皮部黄白色，木部淡黄色，有放射状纹理及裂隙", outerSkin: "表面灰黄色或淡棕褐色，有不规则纵皱纹", other: "味微甜，嚼之有豆腥味" }, dosage: "9-30g", caution: "表实邪盛、气滞湿阻、食积停滞、阴虚阳亢、疮疡初起或溃后热毒尚盛等实证，均禁服", classics: [{ book: "《神农本草经》", content: "黄芪，味甘微温。主痈疽久败疮，排脓止痛，大风癞疾，五痔鼠瘘，补虚，小儿百病。" },{ book: "《名医别录》", content: "逐五脏间恶血，补丈夫虚损，五劳羸瘦，止渴，腹痛泄痢，益气，利阴气。" }] },
+  { id: 2, name: "当归", pinyin: "Dang Gui", alias: "干归、秦归", category: "补血药", visual: "🟤", color: "herb-color-4", effect: "补血活血，调经止痛，润肠通便", nature: "温", taste: "甘、辛", meridian: "肝、心、脾", keyIdentification: { smell: "有浓郁香气", texture: "质柔韧，断面黄白色或淡黄棕色", crossSection: "皮部厚，有棕色油点，木部色较淡，形成层环黄棕色", outerSkin: "表面黄棕色至棕褐色，具纵皱纹和横长皮孔样突起", other: "味甘、辛、微苦" }, dosage: "6-12g", caution: "湿盛中满、大便溏泄者忌服", classics: [{ book: "《神农本草经》", content: "当归，味甘温。主咳逆上气，温疟寒热洗洗在皮肤中，妇人漏下绝子，诸恶疮疡金疮，煮饮之。" }] },
+  { id: 3, name: "枸杞", pinyin: "Gou Qi Zi", alias: "杞子、红耳坠", category: "补阴药", visual: "🔴", color: "herb-color-2", effect: "滋补肝肾，益精明目", nature: "平", taste: "甘", meridian: "肝、肾", keyIdentification: { smell: "气微", texture: "质柔软而滋润", crossSection: "果肉柔软，种子类肾形", outerSkin: "表面鲜红色或暗红色，基部有白色果梗痕", other: "味甘" }, dosage: "6-12g", caution: "外邪实热、脾虚泄泻者慎服", classics: [{ book: "《神农本草经》", content: "枸杞，味苦寒。主五内邪气，热中消渴，周痹风湿。久服坚筋骨，轻身不老，耐寒暑。" }] },
+  { id: 4, name: "人参", pinyin: "Ren Shen", alias: "棒槌、地精", category: "补气药", visual: "🧅", color: "herb-color-5", effect: "大补元气，复脉固脱，补脾益肺，生津养血，安神益智", nature: "微温", taste: "甘、微苦", meridian: "脾、肺、心", keyIdentification: { smell: "气微香而特异", texture: "质较硬，断面淡黄白色，显粉性", crossSection: "形成层环纹棕黄色，皮部有黄棕色点状树脂道", outerSkin: "表面灰黄色，上部或全体有疏浅断续的粗横纹及明显的纵皱", other: "味微苦、甘" }, dosage: "3-9g", caution: "实证、热证而正气不虚者忌服。反藜芦，畏五灵脂", classics: [{ book: "《神农本草经》", content: "人参，味甘微寒。主补五脏，安精神，定魂魄，止惊悸，除邪气，明目，开心益智。久服轻身延年。" }] },
+  { id: 5, name: "白术", pinyin: "Bai Zhu", alias: "于术、冬术", category: "补气药", visual: "🟨", color: "herb-color-6", effect: "健脾益气，燥湿利水，止汗，安胎", nature: "温", taste: "甘、苦", meridian: "脾、胃", keyIdentification: { smell: "气清香", texture: "质坚硬，不易折断", crossSection: "断面不平坦，黄白色至淡棕色，有棕黄色的油点散在", outerSkin: "表面灰黄色或灰棕色，有瘤状突起及断续的纵皱和沟纹", other: "味甘、微辛，嚼之略带黏性" }, dosage: "6-12g", caution: "阴虚燥渴、气滞胀闷者忌服", classics: [{ book: "《神农本草经》", content: "白术，味苦温。主风寒湿痹，死肌，痉，疸，止汗，除热，消食。" }] },
+  { id: 6, name: "茯苓", pinyin: "Fu Ling", alias: "云苓、松苓", category: "利水渗湿药", visual: "⚪", color: "herb-color-1", effect: "利水渗湿，健脾，宁心", nature: "平", taste: "甘、淡", meridian: "心、肺、脾、肾", keyIdentification: { smell: "气微", texture: "体重，质坚实，断面颗粒性", crossSection: "断面不平坦，有的具裂隙，外层淡棕色，内部白色", outerSkin: "表面棕褐色至黑褐色，有皱缩纹理", other: "味淡，嚼之粘牙" }, dosage: "10-15g", caution: "阴虚而无湿热、虚寒滑精、气虚下陷者慎服", classics: [{ book: "《神农本草经》", content: "茯苓，味甘平。主胸胁逆气，忧恚惊邪恐悸，心下结痛，寒热烦满，咳逆，口焦舌干，利小便。久服安魂养神。" }] },
+  { id: 7, name: "甘草", pinyin: "Gan Cao", alias: "国老、甜草根", category: "补气药", visual: "🟫", color: "herb-color-4", effect: "补脾益气，清热解毒，祛痰止咳，缓急止痛，调和诸药", nature: "平", taste: "甘", meridian: "心、肺、脾、胃", keyIdentification: { smell: "气微，味甜而特殊", texture: "质坚实，断面略显纤维性，黄白色，粉性", crossSection: "形成层环明显，射线放射状，有的有裂隙", outerSkin: "表面红棕色或灰棕色，具显著的纵皱纹、沟纹及皮孔", other: "味甜而特殊" }, dosage: "2-10g", caution: "不宜与海藻、京大戟、红大戟、甘遂、芫花同用。湿盛胀满、水肿者不宜用", classics: [{ book: "《神农本草经》", content: "甘草，味甘平。主五脏六腑寒热邪气，坚筋骨，长肌肉，倍力，金疮肿，解毒。" }] },
+  { id: 8, name: "丹参", pinyin: "Dan Shen", alias: "赤参、紫丹参", category: "活血化瘀药", visual: "🟥", color: "herb-color-2", effect: "活血祛瘀，通经止痛，清心除烦，凉血消痈", nature: "微寒", taste: "苦", meridian: "心、肝", keyIdentification: { smell: "气微", texture: "质硬而脆，易折断", crossSection: "断面疏松，有裂隙或略平整而致密，皮部棕红色，木部灰黄色或紫褐色", outerSkin: "表面棕红色或暗棕红色，粗糙，具纵皱纹", other: "味微苦涩" }, dosage: "10-15g", caution: "不宜与藜芦同用。月经过多者及无瘀血者慎服", classics: [{ book: "《神农本草经》", content: "丹参，味苦微寒。主心腹邪气，肠鸣幽幽如走水，寒热积聚，破癥除瘕，止烦满，益气。" }] },
+  { id: 9, name: "生姜", pinyin: "Sheng Jiang", alias: "姜根、鲜姜", category: "解表药", visual: "🫚", color: "herb-color-3", effect: "解表散寒，温中止呕，化痰止咳，解鱼蟹毒", nature: "微温", taste: "辛", meridian: "肺、脾、胃", keyIdentification: { smell: "气香特异", texture: "质脆，易折断", crossSection: "断面浅黄色，内皮层环纹明显，维管束散在", outerSkin: "表面黄褐色或灰棕色，有环节，分枝顶端有茎痕或芽", other: "味辛辣" }, dosage: "3-10g", caution: "阴虚内热及实热证禁服", classics: [{ book: "《神农本草经》", content: "干姜，味辛温。主胸满咳逆上气，温中止血，出汗，逐风湿痹，肠澼下利。" }] }
+];
+
+const QUIZ_DATA = [
+  { id: 1, question: "黄芪的主要功效是什么？", options: ["补气固表", "活血化瘀", "清热解毒", "利水渗湿"], answer: 0, explanation: "黄芪味甘微温，归脾肺经，具有补气固表、利尿托毒、排脓、敛疮生肌的功效。", difficulty: "简单", category: "中药学" },
+  { id: 2, question: "当归的药用部位是？", options: ["根", "茎", "叶", "花"], answer: 0, explanation: "当归入药部位为伞形科植物当归的干燥根。", difficulty: "简单", category: "中药学" },
+  { id: 3, question: "枸杞主要归哪些经？", options: ["心、肝", "肝、肾", "脾、胃", "肺、肾"], answer: 1, explanation: "枸杞味甘性平，归肝、肾经，具有滋补肝肾、益精明目的功效。", difficulty: "中等", category: "中药学" },
+  { id: 4, question: "下列哪项不是甘草的功效？", options: ["补脾益气", "清热解毒", "活血化瘀", "调和诸药"], answer: 2, explanation: "甘草具有补脾益气、清热解毒、祛痰止咳、缓急止痛、调和诸药的功效，不具有活血化瘀作用。", difficulty: "中等", category: "中药学" },
+  { id: 5, question: "茯苓的性味是？", options: ["甘、淡，平", "苦，寒", "辛，温", "甘、苦，微寒"], answer: 0, explanation: "茯苓味甘、淡，性平，归心、肺、脾、肾经。", difficulty: "简单", category: "中药学" },
+  { id: 6, question: "丹参擅长治疗什么证型？", options: ["风寒感冒", "瘀血证", "脾虚泄泻", "肺虚咳嗽"], answer: 1, explanation: "丹参苦微寒，归心肝经，具有活血祛瘀、通经止痛的功效，擅长治疗瘀血证。", difficulty: "中等", category: "中药学" },
+  { id: 7, question: "生姜的功效不包括？", options: ["解表散寒", "温中止呕", "化痰止咳", "补气养血"], answer: 3, explanation: "生姜具有解表散寒、温中止呕、化痰止咳、解鱼蟹毒的功效，不具有补气养血作用。", difficulty: "简单", category: "中药学" },
+  { id: 8, question: "白术的主要功效是？", options: ["健脾益气", "补肾壮阳", "滋阴润燥", "清热泻火"], answer: 0, explanation: "白术苦甘温，归脾胃经，具有健脾益气、燥湿利水、止汗、安胎的功效。", difficulty: "中等", category: "中药学" },
+  { id: 9, question: "与人参相反的药物是？", options: ["甘草", "藜芦", "茯苓", "当归"], answer: 1, explanation: "十八反中，诸参辛芍叛藜芦，人参反藜芦。", difficulty: "困难", category: "中药学" },
+  { id: 10, question: "中药配伍中，\"相须\"是指？", options: ["两药合用增强疗效", "一种药减轻另一种的毒性", "两药合用产生不良反应", "一种药制约另一种的偏性"], answer: 0, explanation: "相须是指性能功效相类似的药物配合应用，可以增强原有疗效。", difficulty: "困难", category: "中药学" }
+];
+
+const DIET_DATA = [
+  { id: 1, name: "当归羊肉汤", herb: "当归", type: "药膳汤品", effect: "温中补虚，祛寒止痛", suitable: "虚寒体质、产后血虚", ingredients: ["当归20g", "羊肉500g", "生姜30g", "大枣5枚"], method: "羊肉切块焯水，与当归、生姜、大枣同炖2小时，加盐调味。", season: "冬季", icon: "🍲" },
+  { id: 2, name: "黄芪炖鸡", herb: "黄芪", type: "药膳汤品", effect: "补气固表，健脾益肺", suitable: "气虚体质、易感冒", ingredients: ["黄芪30g", "老母鸡1只", "大枣5枚", "生姜3片"], method: "鸡处理干净，与黄芪、大枣、生姜同炖1.5小时，加盐调味。", season: "四季皆宜", icon: "🍗" },
+  { id: 3, name: "枸杞菊花茶", herb: "枸杞", type: "茶饮", effect: "滋补肝肾，明目清热", suitable: "用眼过度、肝肾虚", ingredients: ["枸杞10g", "菊花5g", "冰糖适量"], method: "将枸杞、菊花放入杯中，沸水冲泡10分钟，可加冰糖调味。", season: "四季皆宜", icon: "🍵" },
+  { id: 4, name: "茯苓薏米粥", herb: "茯苓", type: "粥品", effect: "健脾祛湿，利水消肿", suitable: "湿气重、脾虚", ingredients: ["茯苓粉15g", "薏米30g", "大米50g", "红枣3枚"], method: "薏米、大米、红枣煮粥，将熟时加入茯苓粉搅匀，再煮5分钟。", season: "夏季", icon: "🥣" },
+  { id: 5, name: "丹参山楂茶", herb: "丹参", type: "茶饮", effect: "活血化瘀，消食化积", suitable: "血瘀体质、高血脂", ingredients: ["丹参10g", "山楂10g", "红糖适量"], method: "丹参加水煎煮15分钟，取汁冲泡山楂，加红糖调味。", season: "四季皆宜", icon: "🍵" },
+  { id: 6, name: "甘草大枣茶", herb: "甘草", type: "茶饮", effect: "补中益气，养心安神", suitable: "心脾两虚、失眠", ingredients: ["甘草5g", "大枣5枚", "小麦30g"], method: "甘草、大枣、小麦加水煎煮20分钟，取汁饮用。", season: "四季皆宜", icon: "🍵" }
+];
+
+const CONSTITUTION_QUICK_QUESTIONS = [
+  { question: "您平时容易疲劳吗？", type: "气虚" },
+  { question: "您手脚经常发凉吗？", type: "阳虚" },
+  { question: "您感觉口干咽燥吗？", type: "阴虚" },
+  { question: "您身体感觉沉重吗？", type: "痰湿" },
+  { question: "您容易生痤疮或湿疹吗？", type: "湿热" },
+  { question: "您皮肤容易出现瘀斑吗？", type: "血瘀" },
+  { question: "您容易感到焦虑或抑郁吗？", type: "气郁" },
+  { question: "您对某些食物或环境过敏吗？", type: "特禀" },
+  { question: "您睡眠质量好吗？", type: "平和" }
+];
+
+const CONSTITUTION_STANDARD_QUESTIONS = [
+  { question: "您平时容易疲劳吗？", type: "气虚" },
+  { question: "您说话声音低弱无力吗？", type: "气虚" },
+  { question: "您容易气短（呼吸短促、接不上气）吗？", type: "气虚" },
+  { question: "您容易头晕或站起时眩晕吗？", type: "气虚" },
+  { question: "您手脚经常发凉吗？", type: "阳虚" },
+  { question: "您胃脘部、背部或腰膝部怕冷吗？", type: "阳虚" },
+  { question: "您衣服穿得比别人多吗？", type: "阳虚" },
+  { question: "您比一般人耐受不了寒冷吗？", type: "阳虚" },
+  { question: "您感觉口干咽燥吗？", type: "阴虚" },
+  { question: "您手心脚心发热吗？", type: "阴虚" },
+  { question: "您皮肤或口唇干燥吗？", type: "阴虚" },
+  { question: "您大便干燥吗？", type: "阴虚" },
+  { question: "您身体感觉沉重吗？", type: "痰湿" },
+  { question: "您腹部肥满松软吗？", type: "痰湿" },
+  { question: "您额头油脂分泌多吗？", type: "痰湿" },
+  { question: "您嘴里有黏黏的感觉吗？", type: "痰湿" },
+  { question: "您容易生痤疮或湿疹吗？", type: "湿热" },
+  { question: "您面部油亮有光泽吗？", type: "湿热" },
+  { question: "您容易口苦口干吗？", type: "湿热" },
+  { question: "您大便黏滞不爽吗？", type: "湿热" },
+  { question: "您皮肤容易出现瘀斑吗？", type: "血瘀" },
+  { question: "您皮肤不知不觉出现青紫瘀斑吗？", type: "血瘀" },
+  { question: "您身体某处有固定的疼痛吗？", type: "血瘀" },
+  { question: "您面色晦暗或容易出现褐斑吗？", type: "血瘀" },
+  { question: "您容易感到焦虑或抑郁吗？", type: "气郁" },
+  { question: "您情绪低沉、精神紧张吗？", type: "气郁" },
+  { question: "您多愁善感、感情脆弱吗？", type: "气郁" },
+  { question: "您胸胁部胀痛吗？", type: "气郁" },
+  { question: "您对某些食物或环境过敏吗？", type: "特禀" },
+  { question: "您不感冒也会打喷嚏吗？", type: "特禀" },
+  { question: "您不感冒也会鼻塞流鼻涕吗？", type: "特禀" },
+  { question: "您皮肤一抓就红并出现抓痕吗？", type: "特禀" },
+  { question: "您精力充沛吗？", type: "平和" },
+  { question: "您容易入睡吗？", type: "平和" },
+  { question: "您大小便正常吗？", type: "平和" },
+  { question: "您食欲好吗？", type: "平和" },
+  { question: "您平时不易生病吗？", type: "平和" },
+  { question: "您面色红润有光泽吗？", type: "平和" },
+  { question: "您适应外界环境变化吗？", type: "平和" },
+  { question: "您说话声音洪亮吗？", type: "平和" },
+  { question: "您头发有光泽吗？", type: "平和" },
+  { question: "您眼睛明亮吗？", type: "平和" },
+  { question: "您舌苔薄白吗？", type: "平和" },
+  { question: "您脉象和缓有力吗？", type: "平和" },
+  { question: "您性格开朗吗？", type: "平和" },
+  { question: "您平时工作生活压力大吗？", type: "平和" },
+  { question: "您经常运动吗？", type: "平和" },
+  { question: "您饮食规律吗？", type: "平和" },
+  { question: "您经常熬夜吗？", type: "平和" },
+  { question: "您抽烟喝酒吗？", type: "平和" },
+  { question: "您每天喝水量足够吗？", type: "平和" },
+  { question: "您经常吃蔬菜水果吗？", type: "平和" },
+  { question: "您很少吃油腻辛辣食物吗？", type: "平和" },
+  { question: "您经常晒太阳吗？", type: "平和" },
+  { question: "您注意保暖吗？", type: "平和" },
+  { question: "您劳逸结合吗？", type: "平和" },
+  { question: "您人际关系好吗？", type: "平和" },
+  { question: "您心态平和吗？", type: "平和" },
+  { question: "您身体柔韧性好吗？", type: "平和" },
+  { question: "您反应敏捷吗？", type: "平和" }
+];
+
+const CONSTITUTION_RESULTS = {
+  "平和": { name: "平和质", icon: "😊", color: "#2d8b5e", description: "阴阳气血调和，体型匀称，面色红润，精力充沛", characteristics: ["精力充沛", "面色红润", "睡眠良好", "二便调畅", "适应力强"], diet: ["饮食多样化", "荤素搭配", "不偏食", "不过饥过饱", "少吃油腻辛辣"], exercise: ["跑步", "游泳", "太极拳", "散步", "瑜伽"], herbs: ["枸杞", "甘草", "茯苓"] },
+  "气虚": { name: "气虚质", icon: "😮‍💨", color: "#F59E0B", description: "元气不足，容易疲乏，声音低弱，易出汗", characteristics: ["容易疲劳", "声音低弱", "易出汗", "气短懒言", "易感冒"], diet: ["多吃补气食物", "山药、大枣", "鸡肉、牛肉", "小米、糯米", "少吃生冷"], exercise: ["散步", "太极拳", "八段锦", "慢跑", "避免剧烈运动"], herbs: ["黄芪", "人参", "白术"] },
+  "阳虚": { name: "阳虚质", icon: "🥶", color: "#3B82F6", description: "阳气不足，畏寒怕冷，手脚发凉，喜热饮食", characteristics: ["畏寒怕冷", "手脚发凉", "喜热饮食", "精神不振", "面色白"], diet: ["多吃温阳食物", "羊肉、牛肉", "生姜、韭菜", "核桃、栗子", "少吃生冷"], exercise: ["慢跑", "散步", "晒太阳", "太极拳", "避免大汗"], herbs: ["生姜", "当归", "人参"] },
+  "阴虚": { name: "阴虚质", icon: "🥵", color: "#EF4444", description: "阴液亏少，口燥咽干，手足心热，易失眠", characteristics: ["口干咽燥", "手足心热", "失眠多梦", "大便干燥", "舌红少津"], diet: ["多吃滋阴食物", "百合、银耳", "梨、鸭肉", "枸杞、麦冬", "少吃辛辣"], exercise: ["太极拳", "瑜伽", "散步", "游泳", "避免剧烈运动"], herbs: ["枸杞", "丹参", "甘草"] },
+  "痰湿": { name: "痰湿质", icon: "🤰", color: "#8B5CF6", description: "痰湿凝聚，体型肥胖，腹部肥满，口黏苔腻", characteristics: ["体型肥胖", "腹部肥满", "身体沉重", "口中黏腻", "苔厚腻"], diet: ["清淡饮食", "多吃蔬菜水果", "薏米、赤小豆", "冬瓜、荷叶", "少吃油腻甜腻"], exercise: ["快走", "慢跑", "游泳", "骑自行车", "长期坚持"], herbs: ["茯苓", "白术", "甘草"] },
+  "湿热": { name: "湿热质", icon: "🌡️", color: "#F97316", description: "湿热内蕴，面垢油光，易生痤疮，口苦口干", characteristics: ["面垢油光", "易生痤疮", "口苦口干", "大便黏滞", "舌红苔黄"], diet: ["清淡饮食", "苦瓜、黄瓜", "绿豆、薏米", "莲子、茯苓", "少吃辛辣油腻"], exercise: ["跑步", "游泳", "爬山", "球类运动", "多出汗"], herbs: ["茯苓", "丹参", "甘草"] },
+  "血瘀": { name: "血瘀质", icon: "🟣", color: "#A855F7", description: "血行不畅，肤色晦暗，易生瘀斑，口唇色暗", characteristics: ["肤色晦暗", "易生瘀斑", "口唇色暗", "固定疼痛", "脉涩"], diet: ["多吃活血食物", "山楂、醋", "玫瑰花", "黑豆、桃仁", "少吃寒凉"], exercise: ["快走", "慢跑", "舞蹈", "太极拳", "促进血液循环"], herbs: ["丹参", "当归", "甘草"] },
+  "气郁": { name: "气郁质", icon: "😔", color: "#6366F1", description: "气机郁滞，情绪低沉，胸胁胀痛，善太息", characteristics: ["情绪低沉", "胸胁胀痛", "善太息", "容易焦虑", "睡眠差"], diet: ["多吃理气食物", "玫瑰花、茉莉花", "柑橘、佛手", "香菜、洋葱", "少吃酸涩"], exercise: ["户外活动", "跑步", "跳舞", "旅游", "多与人交流"], herbs: ["甘草", "茯苓", "枸杞"] },
+  "特禀": { name: "特禀质", icon: "🤧", color: "#EC4899", description: "先天禀赋异常，过敏体质，易对药物食物过敏", characteristics: ["过敏体质", "易打喷嚏", "易起荨麻疹", "皮肤抓痕", "季节性发病"], diet: ["清淡均衡饮食", "少吃辛辣刺激", "少吃海鲜发物", "多吃蔬菜水果", "注意饮食禁忌"], exercise: ["适度运动", "散步", "太极拳", "避免剧烈运动", "注意环境"], herbs: ["甘草", "黄芪", "白术"] }
+};
+
+var currentPage = 'page-home';
+var pageHistory = [];
+var currentQuizIndex = 0;
+var quizAnswers = {};
+var constitutionQuestions = [];
+var constitutionCurrentQuestion = 0;
+var constitutionAnswers = [];
+var currentCategory = '全部';
+var llmStatus = { enabled: false, provider: '', model: '' };
+
+var checkinRecords = [
+  { date: getTodayDate(), herbId: 1, herbName: '黄芪', checked: true }
+];
+
+var identifyRecords = [
+  { date: '2024-01-15 14:30', herbName: '枸杞', accuracy: 92 },
+  { date: '2024-01-14 10:15', herbName: '当归', accuracy: 88 }
+];
+
+var chatHistoryData = [
+  {
+    id: 'demo-session-1',
+    summary: '咳嗽有痰咨询',
+    createdAt: '2024-01-15 14:30',
+    diagnosis: '风寒咳嗽',
+    prescription: '杏苏散加减',
+    history: [
+      { role: 'user', text: '医生你好，我最近咳嗽有痰，已经三天了' },
+      { role: 'assistant', text: '您好，感谢您的咨询。为了更好地为您辨证，我需要了解更多信息：\n\n1. 痰是什么颜色的？（白/黄/清稀）\n2. 有没有怕冷或发热的情况？\n3. 嗓子痛不痛？有没有出汗？' },
+      { role: 'user', text: '痰是白色的，有点怕冷，嗓子不痛' },
+      { role: 'assistant', text: '根据您描述的症状：咳嗽白痰、怕冷、无咽痛，初步辨证为风寒咳嗽。\n\n风寒咳嗽是由于风寒之邪侵袭肺卫，导致肺气失宣所致。\n\n建议参考方剂：杏苏散加减\n\n【方药组成】\n• 杏仁 10g\n• 紫苏叶 6g\n• 半夏 10g\n• 茯苓 12g\n• 甘草 6g\n• 生姜 3片\n• 大枣 3枚\n\n【功效】 疏风散寒，宣肺化痰\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。' }
+    ]
+  },
+  {
+    id: 'demo-session-2',
+    summary: '脾胃虚弱调理',
+    createdAt: '2024-01-12 09:15',
+    diagnosis: '脾胃气虚',
+    prescription: '四君子汤加减',
+    history: [
+      { role: 'user', text: '我最近胃口不好，吃一点就饱，还经常拉肚子' },
+      { role: 'assistant', text: '您好，为了更准确地辨证，请问您：\n\n1. 这种情况持续多久了？\n2. 大便是什么样的？稀溏还是有水样？\n3. 有没有乏力、腹胀的感觉？\n4. 舌头颜色和舌苔怎么样？' },
+      { role: 'user', text: '大概半个月了，大便稀溏，有时候一天两三次，人感觉乏力' },
+      { role: 'assistant', text: '根据您描述的症状：食欲不振、食后腹胀、大便稀溏、神疲乏力，初步辨证为脾胃气虚证。\n\n脾胃气虚是由于脾胃功能虚弱，运化失常所致。\n\n建议参考方剂：四君子汤加减\n\n【方药组成】\n• 人参 10g（或党参15g）\n• 白术 12g\n• 茯苓 12g\n• 甘草 6g\n• 山药 15g\n• 炒扁豆 12g\n\n【功效】 益气健脾，和胃渗湿\n\n建议配合食疗：山药薏米粥、四神汤等健脾食物。\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。' }
+    ]
+  }
+];
+
+const CHAT_HISTORY_DATA = chatHistoryData;
+
+const MATCH_DATA = [
+  { id: 1, name: '当归羊肉汤', herbIds: [2], effect: '温中补虚，祛寒止痛', ingredients: ['当归20g', '羊肉500g', '生姜30g', '大枣5枚'], method: '羊肉切块焯水，与当归、生姜、大枣同炖2小时，加盐调味。', caution: '湿热体质者不宜', tags: ['冬季', '补血', '温阳'] },
+  { id: 2, name: '黄芪炖鸡', herbIds: [1], effect: '补气固表，健脾益肺', ingredients: ['黄芪30g', '老母鸡1只', '大枣5枚', '生姜3片'], method: '鸡处理干净，与黄芪、大枣、生姜同炖1.5小时，加盐调味。', caution: '实证热证者不宜', tags: ['补气', '健脾', '四季皆宜'] },
+  { id: 3, name: '枸杞菊花茶', herbIds: [3], effect: '滋补肝肾，明目清热', ingredients: ['枸杞10g', '菊花5g', '冰糖适量'], method: '将枸杞、菊花放入杯中，沸水冲泡10分钟，可加冰糖调味。', caution: '脾胃虚寒者不宜过量', tags: ['茶饮', '明目', '四季皆宜'] },
+  { id: 4, name: '茯苓薏米粥', herbIds: [6], effect: '健脾祛湿，利水消肿', ingredients: ['茯苓粉15g', '薏米30g', '大米50g', '红枣3枚'], method: '薏米、大米、红枣煮粥，将熟时加入茯苓粉搅匀，再煮5分钟。', caution: '阴虚者不宜', tags: ['粥品', '祛湿', '夏季'] },
+  { id: 5, name: '丹参山楂茶', herbIds: [8], effect: '活血化瘀，消食化积', ingredients: ['丹参10g', '山楂10g', '红糖适量'], method: '丹参加水煎煮15分钟，取汁冲泡山楂，加红糖调味。', caution: '孕妇禁用，月经过多者不宜', tags: ['茶饮', '活血', '高血脂'] },
+  { id: 6, name: '甘草大枣茶', herbIds: [7], effect: '补中益气，养心安神', ingredients: ['甘草5g', '大枣5枚', '小麦30g'], method: '甘草、大枣、小麦加水煎煮20分钟，取汁饮用。', caution: '湿盛胀满者不宜', tags: ['茶饮', '安神', '四季皆宜'] },
+  { id: 7, name: '生姜红糖水', herbIds: [9], effect: '解表散寒，温中止呕', ingredients: ['生姜15g', '红糖20g', '葱白2根'], method: '生姜切片，与葱白加水煎煮10分钟，加入红糖调味。', caution: '热证者不宜', tags: ['茶饮', '散寒', '风寒感冒'] },
+  { id: 8, name: '人参乌鸡汤', herbIds: [4], effect: '大补元气，养血安神', ingredients: ['人参10g', '乌鸡1只', '枸杞10g', '大枣5枚'], method: '乌鸡处理干净，与人参、枸杞、大枣同炖2小时，加盐调味。', caution: '实证热证者忌服', tags: ['补气', '养血', '冬季'] },
+  { id: 9, name: '白术茯苓粥', herbIds: [5, 6], effect: '健脾益气，燥湿利水', ingredients: ['白术10g', '茯苓15g', '大米50g', '山药20g'], method: '白术、茯苓先煎取汁，加入大米、山药煮粥。', caution: '阴虚燥渴者不宜', tags: ['粥品', '健脾', '祛湿'] },
+  { id: 10, name: '当归黄芪补血汤', herbIds: [2, 1], effect: '补气生血', ingredients: ['黄芪30g', '当归6g', '大枣5枚'], method: '黄芪、当归、大枣加水煎煮30分钟，取汁饮用。', caution: '阴虚发热者不宜', tags: ['汤品', '补血', '补气'] }
+];
+
+var FAVORITE_HERBS = [1, 3, 6];
+var FAVORITE_MATCHES = [1, 3, 4];
+var currentMatchHerb = null;
+var currentDetailHerbId = null;
+var currentMatchDetailId = null;
+var isChatLoading = false;
+
+const CONSULT_RESPONSES = {
+  default: {
+    diagnosis: '需要进一步辨证',
+    prescription: '',
+    herbs: '',
+    explanation: '感谢您的描述。为了更准确地为您辨证，请补充以下信息：\n1. 症状持续多久了？\n2. 有没有怕冷或怕热的感觉？\n3. 饮食和睡眠情况如何？\n4. 大小便是否正常？\n\n您也可以点击下方的常见问题标签快速咨询。'
+  },
+  '感冒': {
+    diagnosis: '风寒感冒',
+    prescription: '桂枝汤',
+    herbs: '桂枝9g、白芍9g、炙甘草6g、生姜9g、大枣4枚',
+    explanation: '根据您描述的感冒发烧症状，结合中医经方理论，初步辨证为风寒表虚证。\n\n风寒感冒的典型表现：发热、汗出、恶风、头痛、脉浮缓。多由外感风寒，营卫不和所致。\n\n建议参考方剂：桂枝汤\n\n【功效】解肌发表，调和营卫\n\n【服用方法】水煎服，服后喝热粥一碗，温覆取微汗。\n\n【注意事项】\n• 服药期间忌食生冷、油腻食物\n• 若出现高热不退、咳嗽加重等情况，请及时就医\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '发烧': {
+    diagnosis: '外感发热',
+    prescription: '小柴胡汤',
+    herbs: '柴胡12g、黄芩9g、人参6g、半夏9g、炙甘草5g、生姜9g、大枣4枚',
+    explanation: '根据您描述的发烧症状，初步辨证为少阳证。\n\n少阳证的典型表现：往来寒热、胸胁苦满、默默不欲饮食、心烦喜呕、口苦咽干、目眩。\n\n建议参考方剂：小柴胡汤\n\n【功效】和解少阳\n\n【适用情况】\n• 感冒发烧反复不退\n• 伴有口苦、咽干、目眩\n• 食欲不振，心烦欲呕\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '咳嗽': {
+    diagnosis: '风寒咳嗽',
+    prescription: '小青龙汤',
+    herbs: '麻黄9g、芍药9g、细辛3g、干姜6g、炙甘草6g、桂枝9g、半夏9g、五味子6g',
+    explanation: '根据您描述的咳嗽症状，初步辨证为风寒束表，水饮内停证。\n\n风寒咳嗽的典型表现：咳嗽气喘、痰多清稀、恶寒发热、无汗、胸痞。\n\n建议参考方剂：小青龙汤\n\n【功效】解表散寒，温肺化饮\n\n【辨证要点】\n• 咳嗽痰多，痰液清稀色白\n• 伴有恶寒、无汗等表寒证\n• 舌苔白滑，脉浮紧\n\n【日常调养】\n• 注意保暖，避免受凉\n• 可饮用生姜红糖水散寒\n• 忌食生冷寒凉食物\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '失眠': {
+    diagnosis: '心脾两虚',
+    prescription: '归脾汤',
+    herbs: '白术9g、茯神9g、黄芪12g、龙眼肉12g、酸枣仁12g、人参6g、木香6g、炙甘草3g、当归9g、远志6g',
+    explanation: '根据您描述的失眠症状，初步辨证为心脾两虚证。\n\n心脾两虚失眠的典型表现：难以入睡或多梦易醒、心悸健忘、神疲食少、头晕目眩、面色少华。\n\n建议参考方剂：归脾汤\n\n【功效】益气补血，健脾养心\n\n【日常调养建议】\n• 睡前1小时不看手机，保持心情平静\n• 可每晚用温水泡脚15分钟\n• 适当食用桂圆、红枣、莲子等养心安神食物\n• 白天适当运动，晚上避免剧烈活动\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '胃痛': {
+    diagnosis: '脾胃虚寒',
+    prescription: '黄芪建中汤',
+    herbs: '黄芪15g、桂枝9g、白芍18g、炙甘草6g、生姜9g、大枣4枚、饴糖30g',
+    explanation: '根据您描述的胃痛症状，初步辨证为脾胃虚寒证。\n\n脾胃虚寒胃痛的典型表现：胃痛隐隐、喜温喜按、空腹痛甚、得食则缓、劳累或受凉后发作或加重。\n\n建议参考方剂：黄芪建中汤\n\n【功效】温中补虚，缓急止痛\n\n【日常调养建议】\n• 饮食规律，定时定量，避免暴饮暴食\n• 忌食生冷、辛辣、油腻食物\n• 可常食山药、小米、南瓜等健脾食物\n• 注意胃部保暖，避免受凉\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '腹泻': {
+    diagnosis: '脾虚湿盛',
+    prescription: '参苓白术散',
+    herbs: '人参10g、白术10g、茯苓10g、山药15g、白扁豆12g、莲子肉10g、薏苡仁10g、砂仁6g、桔梗6g、炙甘草6g',
+    explanation: '根据您描述的腹泻症状，初步辨证为脾虚湿盛证。\n\n脾虚湿盛的典型表现：大便溏稀、食少、腹胀、肢体倦怠、面色萎黄。\n\n建议参考方剂：参苓白术散\n\n【功效】益气健脾，渗湿止泻\n\n【日常调养建议】\n• 饮食清淡，忌食油腻、生冷食物\n• 可食用山药薏米粥、四神汤等健脾祛湿食物\n• 注意腹部保暖\n• 避免久坐，适当运动促进脾胃运化\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '头痛': {
+    diagnosis: '风寒头痛',
+    prescription: '川芎茶调散',
+    herbs: '川芎12g、荆芥12g、白芷6g、羌活6g、炙甘草6g、细辛3g、防风4.5g、薄荷6g',
+    explanation: '根据您描述的头痛症状，初步辨证为风寒头痛。\n\n风寒头痛的典型表现：头痛时作、痛连项背、恶风畏寒、遇风尤剧。\n\n建议参考方剂：川芎茶调散\n\n【功效】疏风止痛\n\n【辨证要点】\n• 头痛伴有恶风畏寒\n• 颈项拘紧不适\n• 常因吹风受凉诱发或加重\n\n【日常调养】\n• 注意头部保暖，避免直接吹风\n• 可配合按摩太阳穴、风池穴缓解\n• 保证充足睡眠，避免熬夜\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '便秘': {
+    diagnosis: '肠燥便秘',
+    prescription: '麻子仁丸',
+    herbs: '麻子仁20g、芍药15g、枳实15g、大黄15g、厚朴15g、杏仁15g',
+    explanation: '根据您描述的便秘症状，初步辨证为胃肠燥热，津液不足证。\n\n肠燥便秘的典型表现：大便干结、小便频数、腹胀腹痛、口干口臭。\n\n建议参考方剂：麻子仁丸\n\n【功效】润肠泄热，行气通便\n\n【日常调养建议】\n• 多喝水，每天饮水量不少于1500ml\n• 多吃蔬菜水果，特别是香蕉、蜂蜜、黑芝麻等润肠食物\n• 养成定时排便的习惯\n• 适当运动，促进肠道蠕动\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '乏力': {
+    diagnosis: '气虚证',
+    prescription: '四君子汤',
+    herbs: '人参10g（或党参15g）、白术9g、茯苓9g、炙甘草6g',
+    explanation: '根据您描述的乏力症状，初步辨证为气虚证。\n\n气虚的典型表现：神疲乏力、少气懒言、头晕自汗、食欲不振、舌淡苔白、脉虚弱。\n\n建议参考方剂：四君子汤\n\n【功效】益气健脾\n\n【日常调养建议】\n• 保证充足睡眠，避免过度劳累\n• 适当食用黄芪、党参、山药等补气食物\n• 循序渐进进行适度运动，如散步、太极拳等\n• 饮食规律，营养均衡\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '头晕': {
+    diagnosis: '气血两虚',
+    prescription: '八珍汤',
+    herbs: '人参9g、白术9g、茯苓9g、当归9g、白芍9g、川芎6g、熟地黄12g、炙甘草5g',
+    explanation: '根据您描述的头晕症状，初步辨证为气血两虚证。\n\n气血两虚头晕的典型表现：头晕目眩、动则加剧、劳累即发、面色苍白、心悸少寐、神疲乏力。\n\n建议参考方剂：八珍汤\n\n【功效】益气补血\n\n【日常调养建议】\n• 注意休息，避免突然起身\n• 适当食用红枣、桂圆、枸杞、当归等补血食物\n• 保证充足睡眠，避免熬夜\n• 体位变化时动作缓慢，防止晕倒\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '咽喉': {
+    diagnosis: '阴虚喉痹',
+    prescription: '麦门冬汤',
+    herbs: '麦门冬30g、半夏9g、人参6g、甘草6g、粳米15g、大枣4枚',
+    explanation: '根据您描述的咽喉不适症状，初步辨证为肺胃阴虚，虚火上炎证。\n\n阴虚喉痹的典型表现：咽喉干燥疼痛、声音嘶哑、干咳少痰、舌红少苔。\n\n建议参考方剂：麦门冬汤\n\n【功效】清养肺胃，降逆下气\n\n【日常调养建议】\n• 多喝水，可用麦冬、胖大海泡水代茶饮\n• 忌食辛辣刺激食物，戒烟酒\n• 避免过度用嗓\n• 室内保持适宜湿度\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '月经': {
+    diagnosis: '血虚月经不调',
+    prescription: '四物汤',
+    herbs: '当归12g、川芎9g、白芍12g、熟地黄15g',
+    explanation: '根据您描述的月经问题，初步辨证为血虚月经不调。\n\n血虚月经不调的典型表现：月经量少、色淡、经期错后、头晕心悸、面色萎黄。\n\n建议参考方剂：四物汤\n\n【功效】补血调血\n\n【日常调养建议】\n• 经期注意保暖，避免受凉\n• 适当食用当归、红枣、桂圆等补血食物\n• 避免过度劳累和情绪波动\n• 保持规律作息\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '出汗': {
+    diagnosis: '气虚自汗',
+    prescription: '玉屏风散',
+    herbs: '黄芪30g、白术15g、防风15g',
+    explanation: '根据您描述的多汗症状，初步辨证为气虚卫表不固证。\n\n气虚自汗的典型表现：汗出恶风、动则尤甚、面色㿠白、体弱易感冒。\n\n建议参考方剂：玉屏风散\n\n【功效】益气固表止汗\n\n【日常调养建议】\n• 适度运动，增强体质\n• 出汗后及时擦干，避免受风感冒\n• 可常食黄芪粥、山药粥等补气食物\n• 保证充足睡眠，避免过度劳累\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  },
+  '水肿': {
+    diagnosis: '脾虚水肿',
+    prescription: '五苓散',
+    herbs: '猪苓9g、泽泻15g、白术9g、茯苓9g、桂枝6g',
+    explanation: '根据您描述的水肿症状，初步辨证为水湿内停证。\n\n脾虚水肿的典型表现：肢体浮肿、小便不利、头痛微热、烦渴欲饮、水入即吐。\n\n建议参考方剂：五苓散\n\n【功效】利水渗湿，温阳化气\n\n【日常调养建议】\n• 饮食清淡，减少盐分摄入\n• 适当食用薏米、冬瓜、赤小豆等利水食物\n• 避免久坐久站，适当活动下肢\n• 保证充足睡眠，睡觉时可适当抬高下肢\n\n⚠️ 温馨提示：以上建议仅供学习参考，具体用药请咨询专业中医师。'
+  }
+};
+
+var constitutionRecords = [
+  { type: '气虚质', date: '2024-01-10', score: 72 }
+];
+
+var CONSTITUTION_TYPES = {
+  '平和': { color: '#2d8b5e' },
+  '气虚': { color: '#F59E0B' },
+  '阳虚': { color: '#3B82F6' },
+  '阴虚': { color: '#EF4444' },
+  '痰湿': { color: '#8B5CF6' },
+  '湿热': { color: '#F97316' },
+  '血瘀': { color: '#A855F7' },
+  '气郁': { color: '#6366F1' },
+  '特禀': { color: '#EC4899' }
+};
+
+function showPage(pageId, addToHistory) {
+  if (addToHistory !== false && currentPage !== pageId) pageHistory.push(currentPage);
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  var target = document.getElementById(pageId);
+  if (target) { target.classList.add('active'); currentPage = pageId; }
+  document.querySelectorAll('.tab-item').forEach(function(t){ t.classList.remove('active'); });
+  var tabs = document.querySelectorAll('.tab-item');
+  var map = { 'page-home': 0, 'page-identify': 1, 'page-herb-list': 2, 'page-match': 3, 'page-profile': 4 };
+  if (map[pageId] !== undefined && tabs[map[pageId]]) tabs[map[pageId]].classList.add('active');
+  window.scrollTo(0, 0);
+  if (pageId === 'page-home') renderHome();
+  if (pageId === 'page-herb-list') renderHerbList();
+  if (pageId === 'page-match') renderMatchList();
+  if (pageId === 'page-profile') renderProfile();
+  if (pageId === 'page-quiz') renderQuiz();
+  if (pageId === 'page-chat-history') renderChatHistory();
+}
+function goBack() {
+  if (pageHistory.length > 0) { var prev = pageHistory.pop(); showPage(prev, false); }
+  else showPage('page-home');
+}
+function getTodayDate() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function getDailyHerb() {
+  var idx = new Date().getDate() % HERB_DATA.length;
+  return HERB_DATA[idx];
+}
+function getDailyQuiz() {
+  var idx = new Date().getDate() % QUIZ_DATA.length;
+  return QUIZ_DATA[idx];
+}
+function renderHome() {
+  var dailyHerb = getDailyHerb();
+  var dailyQuiz = getDailyQuiz();
+  document.getElementById('daily-question').textContent = dailyQuiz.question;
+  document.getElementById('daily-difficulty').textContent = dailyQuiz.difficulty;
+  document.getElementById('daily-category').textContent = dailyQuiz.category;
+  document.getElementById('daily-herb-name').textContent = dailyHerb.name;
+  var effectParts = dailyHerb.effect.split('，');
+  document.getElementById('daily-herb-effect').textContent = effectParts[0] + '，' + effectParts[1];
+  var herbListEl = document.getElementById('herb-list');
+  if (herbListEl && herbListEl.children.length === 0) {
+    herbListEl.innerHTML = HERB_DATA.map(function(h){ return '<div class="herb-item" onclick="showHerbDetail('+h.id+')"><div class="herb-visual '+h.color+'"><div style="font-size:48px;">'+h.visual+'</div></div><div class="herb-info"><div class="name">'+h.name+'</div><div class="cat">'+h.category+'</div></div></div>'; }).join('');
+  }
+  var todayCheckin = checkinRecords.find(function(r){ return r.date === getTodayDate(); });
+  var checkinBtn = document.getElementById('daily-checkin-btn');
+  var statusEl = document.getElementById('daily-herb-status');
+  if (todayCheckin && todayCheckin.checked) {
+    if (checkinBtn) { checkinBtn.textContent = '✅ 已打卡'; checkinBtn.style.background = '#ccc'; checkinBtn.disabled = true; }
+    if (statusEl) statusEl.textContent = '已学习';
+  } else {
+    if (checkinBtn) { checkinBtn.textContent = '立即打卡'; checkinBtn.style.background = 'linear-gradient(135deg, #2d8b5e, #3da878)'; checkinBtn.disabled = false; }
+    if (statusEl) statusEl.textContent = '去学习';
+  }
+}
+function handleDailyCheckin() {
+  var today = getTodayDate();
+  var idx = checkinRecords.findIndex(function(r){ return r.date === today; });
+  var dailyHerb = getDailyHerb();
+  if (idx >= 0) { checkinRecords[idx].checked = true; checkinRecords[idx].herbId = dailyHerb.id; checkinRecords[idx].herbName = dailyHerb.name; }
+  else checkinRecords.unshift({ date: today, herbId: dailyHerb.id, herbName: dailyHerb.name, checked: true });
+  renderHome();
+  alert('打卡成功！\n今日学习药材：'+dailyHerb.name+'\n功效：'+dailyHerb.effect);
+}
+function goToDailyQuiz() { currentQuizIndex = new Date().getDate() % QUIZ_DATA.length; quizAnswers = {}; showPage('page-quiz'); }
+function goToDailyHerbDetail() { showHerbDetail(getDailyHerb().id); }
+function takePhoto() { simulateIdentify(); }
+function chooseImage() { simulateIdentify(); }
+function simulateIdentify() {
+  var previewEl = document.getElementById('identify-preview');
+  var resultEl = document.getElementById('identify-result');
+  var randomHerb = HERB_DATA[Math.floor(Math.random() * HERB_DATA.length)];
+  var accuracy = 85 + Math.floor(Math.random() * 15);
+  previewEl.innerHTML = '<div class="preview-area"><div class="preview-mask"><div class="spinner"></div><div style="font-size:16px;">正在识别中...</div></div></div>';
+  resultEl.innerHTML = '';
+  setTimeout(function(){
+    previewEl.innerHTML = '<div class="preview-area"><div style="font-size:120px;">'+randomHerb.visual+'</div></div>';
+    resultEl.innerHTML = '<div class="recognition-result"><div class="result-header"><div class="result-name">'+randomHerb.name+'</div><div class="result-accuracy">'+accuracy+'%</div></div><div class="result-pinyin">'+randomHerb.pinyin+'</div><div class="result-effect">'+randomHerb.effect+'</div><div style="display:flex;gap:8px;margin-top:16px;"><button class="btn btn-primary" style="flex:1;" onclick="showHerbDetail('+randomHerb.id+')">查看详情</button><button class="btn btn-secondary" style="flex:1;" onclick="showPage(\'page-identify\')">重新识别</button></div></div><div class="card"><div class="section-title">鉴别要点</div><div style="font-size:13px;color:#666;line-height:1.8;"><p><strong>气味：</strong>'+randomHerb.keyIdentification.smell+'</p><p><strong>质地：</strong>'+randomHerb.keyIdentification.texture+'</p><p><strong>截面：</strong>'+randomHerb.keyIdentification.crossSection+'</p><p><strong>外皮：</strong>'+randomHerb.keyIdentification.outerSkin+'</p></div></div>';
+    identifyRecords.unshift({ date: new Date().toLocaleString('zh-CN'), herbName: randomHerb.name, accuracy: accuracy });
+  }, 1500);
+}
+function showHerbDetail(herbId) {
+  var herb = HERB_DATA.find(function(h){ return h.id === herbId; });
+  if (!herb) return;
+  currentDetailHerbId = herbId;
+  pageHistory.push(currentPage);
+  showPage('page-detail', false);
+  updateHerbFavBtn();
+  var content = document.getElementById('detail-content');
+  content.innerHTML = '<div class="herb-hero"><div class="hero-bg '+herb.color+'"><div style="font-size:140px;">'+herb.visual+'</div></div><div class="herb-overlay"></div><div class="herb-title-area"><div class="name">'+herb.name+'</div><div class="pinyin">'+herb.pinyin+'</div><div class="alias">别名：'+herb.alias+'</div></div></div><div class="card"><div class="section-title">基本信息</div><div class="info-row"><div class="info-item"><div class="label">类别</div><div class="value">'+herb.category+'</div></div><div class="info-item"><div class="label">性味</div><div class="value">'+herb.nature+' / '+herb.taste+'</div></div><div class="info-item"><div class="label">归经</div><div class="value">'+herb.meridian+'</div></div></div><div style="margin-top:8px;"><span class="label" style="font-size:12px;color:#999;">功效</span><div style="margin-top:4px;font-size:14px;color:#333;font-weight:500;">'+herb.effect+'</div></div><div style="margin-top:12px;"><span class="label" style="font-size:12px;color:#999;">用量</span><div style="margin-top:4px;font-size:14px;color:#333;">'+herb.dosage+'</div></div></div><div class="card"><div class="section-title">鉴别要点</div><div style="font-size:13px;color:#333;line-height:1.8;"><p><strong>气味：</strong>'+herb.keyIdentification.smell+'</p><p><strong>质地：</strong>'+herb.keyIdentification.texture+'</p><p><strong>截面：</strong>'+herb.keyIdentification.crossSection+'</p><p><strong>外皮：</strong>'+herb.keyIdentification.outerSkin+'</p><p><strong>其他：</strong>'+herb.keyIdentification.other+'</p></div></div><div class="card caution-card"><div class="section-title caution-title">⚠️ 使用禁忌</div><div class="section-content">'+herb.caution+'</div></div><div class="card"><div class="section-title">📚 典籍记载</div>'+herb.classics.map(function(c){ return '<div class="classics-item"><div class="classics-book">'+c.book+'</div><div class="classics-content">'+c.content+'</div></div>'; }).join('')+'</div><div style="padding:0 16px 16px;"><button class="btn btn-primary" onclick="goBack()">← 返回</button></div>';
+}
+function updateHerbFavBtn() {
+  var btn = document.getElementById('detail-fav-btn');
+  if (!btn) return;
+  var isFav = FAVORITE_HERBS.indexOf(currentDetailHerbId) !== -1;
+  btn.textContent = isFav ? '♥' : '♡';
+  btn.className = 'fav-btn' + (isFav ? ' active' : '');
+}
+function toggleHerbFavorite() {
+  if (!currentDetailHerbId) return;
+  var idx = FAVORITE_HERBS.indexOf(currentDetailHerbId);
+  if (idx !== -1) {
+    FAVORITE_HERBS.splice(idx, 1);
+  } else {
+    FAVORITE_HERBS.push(currentDetailHerbId);
+  }
+  updateHerbFavBtn();
+}
+function renderQuiz() {
+  var quiz = QUIZ_DATA[currentQuizIndex];
+  var answered = quizAnswers[quiz.id];
+  var html = '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><span style="font-size:13px;color:#999;">第 '+(currentQuizIndex+1)+' / '+QUIZ_DATA.length+' 题</span><span class="quiz-tag">'+quiz.difficulty+'</span></div><div class="quiz-question">'+quiz.question+'</div>';
+  html += quiz.options.map(function(opt, i){
+    var cls = 'option-item';
+    var check = '';
+    if (answered !== undefined) {
+      if (i === quiz.answer) { cls += ' correct'; check = '✓'; }
+      else if (i === answered && i !== quiz.answer) { cls += ' wrong'; check = '✗'; }
+      else { cls += ' disabled'; }
+    }
+    return '<div class="'+cls+'" onclick="answerQuiz('+i+')" data-index="'+i+'"><div class="opt-letter">'+String.fromCharCode(65+i)+'</div><div class="opt-text">'+opt+'</div>'+(check?'<div class="opt-check">'+check+'</div>':'')+'</div>';
+  }).join('') + '</div>';
+  if (answered !== undefined) {
+    html += '<div class="card"><div class="explanation"><div class="title">📖 解析</div><div class="text">'+quiz.explanation+'</div></div><div style="display:flex;gap:12px;"><button class="btn btn-secondary" style="flex:1;" onclick="prevQuiz()">← 上一题</button><button class="btn btn-primary" style="flex:1;" onclick="nextQuiz()">下一题 →</button></div></div>';
+  }
+  document.getElementById('quiz-content').innerHTML = html;
+  updateQuizStats();
+}
+function answerQuiz(index) {
+  var quiz = QUIZ_DATA[currentQuizIndex];
+  if (quizAnswers[quiz.id] !== undefined) return;
+  quizAnswers[quiz.id] = index;
+  renderQuiz();
+}
+function nextQuiz() {
+  if (currentQuizIndex < QUIZ_DATA.length - 1) { currentQuizIndex++; renderQuiz(); }
+  else alert('🎉 恭喜完成所有题目！\n正确率：'+calculateAccuracy()+'%');
+}
+function prevQuiz() {
+  if (currentQuizIndex > 0) { currentQuizIndex--; renderQuiz(); }
+}
+function calculateAccuracy() {
+  var correct = 0, total = 0;
+  Object.keys(quizAnswers).forEach(function(id){
+    var q = QUIZ_DATA.find(function(q){ return q.id === parseInt(id); });
+    if (q && quizAnswers[id] === q.answer) correct++;
+    total++;
+  });
+  return total > 0 ? Math.round(correct / total * 100) : 0;
+}
+function updateQuizStats() {
+  var correct = 0, total = Object.keys(quizAnswers).length;
+  Object.keys(quizAnswers).forEach(function(id){
+    var q = QUIZ_DATA.find(function(q){ return q.id === parseInt(id); });
+    if (q && quizAnswers[id] === q.answer) correct++;
+  });
+  var elC = document.getElementById('stat-correct');
+  var elT = document.getElementById('stat-total');
+  var elA = document.getElementById('stat-accuracy');
+  if (elC) elC.textContent = correct;
+  if (elT) elT.textContent = total;
+  if (elA) elA.textContent = total > 0 ? Math.round(correct / total * 100) + '%' : '0%';
+}
+function goToQuizList() { currentQuizIndex = 0; quizAnswers = {}; showPage('page-quiz'); }
+function goToWrongQuestions() {
+  var wrongIds = Object.keys(quizAnswers).filter(function(id){
+    var q = QUIZ_DATA.find(function(q){ return q.id === parseInt(id); });
+    return q && quizAnswers[id] !== q.answer;
+  });
+  if (wrongIds.length === 0) { alert('🎉 太棒了！目前没有错题记录'); return; }
+  currentQuizIndex = QUIZ_DATA.findIndex(function(q){ return q.id === parseInt(wrongIds[0]); });
+  showPage('page-quiz');
+}
+function renderMatchList() {
+  var chipsEl = document.getElementById('match-herb-chips');
+  if (chipsEl && chipsEl.children.length === 0) {
+    chipsEl.innerHTML = '<div class="herb-chip active" onclick="filterMatchByHerb(null)">全部</div>' + HERB_DATA.map(function(h){ return '<div class="herb-chip" onclick="filterMatchByHerb('+h.id+')">'+h.name+'</div>'; }).join('');
+  }
+  var listEl = document.getElementById('match-list');
+  var items = currentMatchHerb ? MATCH_DATA.filter(function(m){ return m.herbIds.indexOf(currentMatchHerb) !== -1; }) : MATCH_DATA;
+  listEl.innerHTML = items.map(function(m){
+    var isFav = FAVORITE_MATCHES.indexOf(m.id) !== -1;
+    return '<div class="food-item" onclick="showMatchDetail('+m.id+')"><div class="food-visual herb-color-'+(m.id%6+1)+'"><div style="font-size:48px;">🍲</div></div><div class="food-info"><div class="name">'+m.name+'<span class="fav-icon-list '+(isFav?'active':'')+'" onclick="event.stopPropagation();toggleMatchFavorite('+m.id+')">'+(isFav?'♥':'♡')+'</span></div><div class="effect">'+m.effect+'</div><div class="ings">'+m.ingredients.slice(0,3).map(function(i){ return '<span>'+i+'</span>'; }).join('')+'</div></div></div>';
+  }).join('');
+}
+function filterMatchByHerb(herbId) {
+  currentMatchHerb = herbId;
+  var chips = document.querySelectorAll('#match-herb-chips .herb-chip');
+  chips.forEach(function(c){ c.classList.remove('active'); });
+  var idx = herbId ? HERB_DATA.findIndex(function(h){ return h.id === herbId; }) + 1 : 0;
+  if (chips[idx]) chips[idx].classList.add('active');
+  renderMatchList();
+}
+function showMatchDetail(matchId) {
+  var match = MATCH_DATA.find(function(m){ return m.id === matchId; });
+  if (!match) return;
+  currentMatchDetailId = matchId;
+  var modal = document.getElementById('match-modal');
+  var isFav = FAVORITE_MATCHES.indexOf(matchId) !== -1;
+  document.getElementById('modal-bg').className = 'modal-bg herb-color-'+(match.id%6+1);
+  document.getElementById('modal-bg').innerHTML = '<div style="font-size:80px;">🍲</div>';
+  document.getElementById('modal-body').innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;"><div class="title">'+match.name+'</div><span class="fav-icon-modal '+(isFav?'active':'')+'" onclick="toggleMatchFavorite('+match.id+')">'+(isFav?'♥':'♡')+'</span></div><div class="detail-section"><div class="label">功效</div><div class="text">'+match.effect+'</div></div><div class="detail-section"><div class="label">食材</div><div class="ingredient-list">'+match.ingredients.map(function(i){ return '<span>'+i+'</span>'; }).join('')+'</div></div><div class="detail-section"><div class="label">做法</div><div class="method-text">'+match.method+'</div></div><div class="detail-section"><div class="label">适宜季节</div><div class="text">'+match.season+'</div></div><div class="detail-section caution"><div class="label">禁忌</div><div class="text">'+match.caution+'</div></div><div style="display:flex;gap:12px;margin-top:16px;"><button class="btn btn-primary" style="flex:1;" onclick="closeMatchModal()">关闭</button></div>';
+  modal.classList.add('active');
+}
+function toggleMatchFavorite(matchId) {
+  var id = matchId || currentMatchDetailId;
+  if (!id) return;
+  var idx = FAVORITE_MATCHES.indexOf(id);
+  if (idx !== -1) {
+    FAVORITE_MATCHES.splice(idx, 1);
+  } else {
+    FAVORITE_MATCHES.push(id);
+  }
+  if (currentPage === 'page-match') renderMatchList();
+  if (currentMatchDetailId === id) {
+    var modal = document.getElementById('match-modal');
+    if (modal.classList.contains('active')) {
+      showMatchDetail(id);
+    }
+  }
+}
+function closeMatchModal() { document.getElementById('match-modal').classList.remove('active'); }
+function handleMatchSearchKey(e) { if (e.key === 'Enter') { var val = e.target.value.trim(); if (val) searchMatch(val); } }
+function searchMatch(keyword) {
+  var results = MATCH_DATA.filter(function(m){ return m.name.indexOf(keyword) !== -1 || m.effect.indexOf(keyword) !== -1 || m.ingredients.some(function(i){ return i.indexOf(keyword) !== -1; }) || m.tags.some(function(t){ return t.indexOf(keyword) !== -1; }); });
+  var resultEl = document.getElementById('match-search-result');
+  var listEl = document.getElementById('match-list');
+  var sectionEl = document.getElementById('match-herb-section');
+  if (results.length > 0) {
+    listEl.style.display = 'none'; sectionEl.style.display = 'none'; resultEl.style.display = 'block';
+    resultEl.innerHTML = '<div class="search-result-header"><span class="title">搜索结果</span><span class="count">共 '+results.length+' 个</span></div>' + results.map(function(m){ return '<div class="search-result-item" onclick="showMatchDetail('+m.id+')"><div class="result-visual herb-color-'+(m.id%6+1)+'"><div style="font-size:32px;">🍲</div></div><div class="result-info"><div class="result-name">'+m.name+'</div><div class="result-effect">'+m.effect+'</div></div></div>'; }).join('');
+  } else {
+    listEl.style.display = 'block'; sectionEl.style.display = 'block'; resultEl.style.display = 'none';
+    alert('未找到相关搭配，请尝试其他关键词');
+  }
+}
+function quickSearchMatch(keyword) { document.getElementById('match-search-input').value = keyword; searchMatch(keyword); }
+function clearMatchSearch() {
+  document.getElementById('match-search-input').value = '';
+  document.getElementById('match-list').style.display = 'block';
+  document.getElementById('match-herb-section').style.display = 'block';
+  document.getElementById('match-search-result').style.display = 'none';
+}
+var CATEGORIES = ['全部', '补气药', '补血药', '补阴药', '活血化瘀药', '利水渗湿药', '解表药'];
+var currentCategory = '全部';
+function renderHerbList() {
+  var tabsEl = document.getElementById('category-tabs');
+  if (tabsEl && tabsEl.children.length === 0) {
+    tabsEl.innerHTML = CATEGORIES.map(function(c, i){ return '<div class="category-tab '+(i===0?'active':'')+'" onclick="filterCategory(\''+c+'\')">'+c+'</div>'; }).join('');
+  }
+  var herbs = currentCategory === '全部' ? HERB_DATA : HERB_DATA.filter(function(h){ return h.category === currentCategory; });
+  var contentEl = document.getElementById('herb-list-content');
+  contentEl.innerHTML = herbs.map(function(h){ return '<div class="herb-list-card" onclick="showHerbDetail('+h.id+')"><div class="herb-visual '+h.color+'"><div style="font-size:48px;">'+h.visual+'</div></div><div class="herb-info"><div class="name">'+h.name+'</div><div class="effect">'+h.effect+'</div></div></div>'; }).join('');
+}
+function filterCategory(cat) {
+  currentCategory = cat;
+  document.querySelectorAll('.category-tab').forEach(function(t, i){ t.classList.toggle('active', CATEGORIES[i] === cat); });
+  renderHerbList();
+}
+function handleHerbSearch() {
+  var val = document.getElementById('herb-search-input').value.trim();
+  if (!val) { renderHerbList(); return; }
+  var herbs = HERB_DATA.filter(function(h){ return h.name.indexOf(val) !== -1 || h.alias.indexOf(val) !== -1 || h.pinyin.toLowerCase().indexOf(val.toLowerCase()) !== -1; });
+  document.getElementById('herb-list-content').innerHTML = herbs.map(function(h){ return '<div class="herb-list-card" onclick="showHerbDetail('+h.id+')"><div class="herb-visual '+h.color+'"><div style="font-size:48px;">'+h.visual+'</div></div><div class="herb-info"><div class="name">'+h.name+'</div><div class="effect">'+h.effect+'</div></div></div>'; }).join('');
+}
+function openConstitutionTest(type) {
+  constitutionCurrentQuestion = 0; constitutionAnswers = [];
+  if (type === 'quick') constitutionQuestions = CONSTITUTION_QUICK_QUESTIONS.slice();
+  else constitutionQuestions = CONSTITUTION_STANDARD_QUESTIONS.slice();
+  document.getElementById('constitution-modal').style.display = 'flex';
+  renderConstitutionQuestion();
+}
+function closeConstitutionTest() { document.getElementById('constitution-modal').style.display = 'none'; }
+function renderConstitutionQuestion() {
+  var q = constitutionQuestions[constitutionCurrentQuestion];
+  var progress = ((constitutionCurrentQuestion + 1) / constitutionQuestions.length * 100).toFixed(0);
+  document.getElementById('constitution-progress-text').textContent = (constitutionCurrentQuestion + 1) + ' / ' + constitutionQuestions.length;
+  document.getElementById('constitution-progress-bar').style.width = progress + '%';
+  document.getElementById('constitution-question').innerHTML = '<div style="font-size:16px;font-weight:600;color:#333;margin-bottom:20px;line-height:1.6;">'+q.question+'</div><div style="display:flex;flex-direction:column;gap:12px;"><button style="padding:14px;background:#f0f9f4;border:1.5px solid #2d8b5e;border-radius:10px;font-size:14px;color:#2d8b5e;cursor:pointer;font-weight:500;" onclick="answerConstitution(2)">是，经常如此</button><button style="padding:14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;color:#666;cursor:pointer;" onclick="answerConstitution(1)">有时如此</button><button style="padding:14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;color:#666;cursor:pointer;" onclick="answerConstitution(0)">很少或没有</button></div>';
+  document.getElementById('constitution-prev').style.display = constitutionCurrentQuestion > 0 ? 'block' : 'none';
+  document.getElementById('constitution-next').style.display = constitutionCurrentQuestion < constitutionQuestions.length - 1 ? 'block' : 'none';
+  document.getElementById('constitution-submit').style.display = constitutionCurrentQuestion === constitutionQuestions.length - 1 ? 'block' : 'none';
+}
+function answerConstitution(score) {
+  constitutionAnswers[constitutionCurrentQuestion] = { type: constitutionQuestions[constitutionCurrentQuestion].type, score: score };
+  if (constitutionCurrentQuestion < constitutionQuestions.length - 1) { constitutionCurrentQuestion++; renderConstitutionQuestion(); }
+}
+function constitutionPrev() { if (constitutionCurrentQuestion > 0) { constitutionCurrentQuestion--; renderConstitutionQuestion(); } }
+function constitutionNext() { if (constitutionCurrentQuestion < constitutionQuestions.length - 1) { constitutionCurrentQuestion++; renderConstitutionQuestion(); } }
+function constitutionSubmit() {
+  var scores = {};
+  constitutionAnswers.forEach(function(a){ if (!scores[a.type]) scores[a.type] = 0; scores[a.type] += a.score; });
+  var maxType = '平和', maxScore = -1;
+  Object.keys(scores).forEach(function(t){ if (scores[t] > maxScore) { maxScore = scores[t]; maxType = t; } });
+  var result = CONSTITUTION_TYPES[maxType];
+  document.getElementById('constitution-question').innerHTML = '<div style="text-align:center;margin-bottom:20px;"><div style="font-size:60px;margin-bottom:12px;">'+result.icon+'</div><div style="font-size:22px;font-weight:700;color:'+result.color+';">'+result.name+'</div><div style="font-size:13px;color:#666;margin-top:8px;">'+result.description+'</div></div><div style="margin-bottom:16px;"><div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">主要特征</div><div style="display:flex;flex-wrap:wrap;gap:8px;">'+result.characteristics.map(function(c){ return '<span style="padding:4px 12px;background:#f0f9f4;color:#2d8b5e;border-radius:20px;font-size:12px;">'+c+'</span>'; }).join('')+'</div></div><div style="margin-bottom:16px;"><div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">饮食建议</div><div style="font-size:13px;color:#666;line-height:1.8;">'+result.diet.map(function(d){ return '<p>• '+d+'</p>'; }).join('')+'</div></div><div style="margin-bottom:16px;"><div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">运动建议</div><div style="display:flex;flex-wrap:wrap;gap:8px;">'+result.exercise.map(function(e){ return '<span style="padding:4px 12px;background:rgba(245,158,11,0.1);color:#F59E0B;border-radius:20px;font-size:12px;">'+e+'</span>'; }).join('')+'</div></div><div style="margin-bottom:16px;"><div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">推荐药材</div><div style="display:flex;flex-wrap:wrap;gap:8px;">'+result.herbs.map(function(h){ var herb = HERB_DATA.find(function(herb){ return herb.name === h; }); return '<span style="padding:4px 12px;background:rgba(168,85,247,0.1);color:#a855f7;border-radius:20px;font-size:12px;cursor:pointer;" onclick="closeConstitutionTest();showHerbDetail('+(herb?herb.id:1)+')">'+h+'</span>'; }).join('')+'</div></div><button class="btn btn-primary" onclick="closeConstitutionTest()">完成测评</button>';
+  document.getElementById('constitution-prev').style.display = 'none';
+  document.getElementById('constitution-next').style.display = 'none';
+  document.getElementById('constitution-submit').style.display = 'none';
+  constitutionRecords.unshift({ date: getTodayDate(), type: result.name, score: maxScore });
+}
+const KEYWORD_SYNONYMS = {
+  '感冒': ['感冒', '着凉', '伤风', '受凉', '风寒'],
+  '发烧': ['发烧', '发热', '高烧', '低烧', '体温高'],
+  '咳嗽': ['咳嗽', '干咳', '咳痰', '咳喘', '咳嗽有痰', '嗓子痒'],
+  '失眠': ['失眠', '睡不着', '睡不好', '多梦', '易醒', '睡眠差', '入睡困难'],
+  '胃痛': ['胃痛', '胃疼', '胃脘痛', '胃不舒服', '胃部不适', '肚子痛', '腹痛', '胃胀气', '胃胀'],
+  '腹泻': ['腹泻', '拉肚子', '拉稀', '便溏', '大便稀', '泄泻', '拉肚子'],
+  '头痛': ['头痛', '头疼', '偏头痛', '头胀', '头昏'],
+  '便秘': ['便秘', '大便干', '排便困难', '大便不通', '便结'],
+  '乏力': ['乏力', '疲劳', '没力气', '浑身无力', '体虚', '精神差', '疲倦'],
+  '头晕': ['头晕', '头昏', '眩晕', '站不稳', '头晕目眩'],
+  '咽喉': ['咽喉', '嗓子疼', '喉咙痛', '咽痛', '咽部不适', '嗓子干', '喉咙干'],
+  '月经': ['月经', '例假', '大姨妈', '经期', '月经不调', '痛经'],
+  '出汗': ['出汗', '多汗', '自汗', '盗汗', '容易出汗', '汗多'],
+  '水肿': ['水肿', '浮肿', '腿肿', '脚肿', '脸肿', '身体肿']
+};
+
+function matchKeyword(message) {
+  var keys = Object.keys(KEYWORD_SYNONYMS);
+  for (var i = 0; i < keys.length; i++) {
+    var synonyms = KEYWORD_SYNONYMS[keys[i]];
+    for (var j = 0; j < synonyms.length; j++) {
+      if (message.indexOf(synonyms[j]) !== -1) {
+        return keys[i];
+      }
+    }
+  }
+  return null;
+}
+
+function handleChatKey(e) { if (e.key === 'Enter') sendMessage(); }
+function sendMessage(text) {
+  var input = document.getElementById('chat-input');
+  var message = text || input.value.trim();
+  if (!message) return;
+  if (isChatLoading) return;
+  addMessage('user', message);
+  if (!text) input.value = '';
+  isChatLoading = true;
+  var sendBtn = document.getElementById('chat-send-btn');
+  if (sendBtn) sendBtn.disabled = true;
+  var loadingId = 'loading-' + Date.now();
+  var messagesEl = document.getElementById('chat-messages');
+  messagesEl.innerHTML += '<div class="chat-message assistant" id="'+loadingId+'"><div class="chat-avatar">📖</div><div class="chat-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  setTimeout(function(){
+    var el = document.getElementById(loadingId);
+    if (el) el.remove();
+    var response = CONSULT_RESPONSES.default;
+    var matchedKey = matchKeyword(message);
+    if (matchedKey && CONSULT_RESPONSES[matchedKey]) {
+      response = CONSULT_RESPONSES[matchedKey];
+    }
+    var html = response.explanation.replace(/\n/g, '<br>');
+    if (response.diagnosis !== '需要进一步辨证') {
+      html += '<br><br><span class="chat-diagnosis-tag">辨证：'+response.diagnosis+'</span>';
+      html += '<div class="chat-prescription-card"><div class="prescription-name">📜 '+response.prescription+'</div><div class="prescription-ingredients">组成：'+response.herbs+'</div></div>';
+    }
+    addMessage('assistant', html);
+    isChatLoading = false;
+    if (sendBtn) sendBtn.disabled = false;
+  }, 1200);
+}
+function addMessage(role, text) {
+  var messagesEl = document.getElementById('chat-messages');
+  messagesEl.innerHTML += '<div class="chat-message '+role+'"><div class="chat-avatar">'+(role==='user'?'👤':'📖')+'</div><div class="chat-bubble">'+text+'</div></div>';
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+function endChat() { showPage('page-home'); }
+function renderChatHistory() {
+  var content = document.getElementById('chat-history-content');
+  if (CHAT_HISTORY_DATA.length === 0) {
+    content.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">暂无问诊记录</div><div class="empty-desc">前往经方问诊页面开始您的第一次问诊</div></div>';
+    return;
+  }
+  content.innerHTML = CHAT_HISTORY_DATA.map(function(chat){
+    return '<div class="card" style="cursor:pointer;margin-bottom:12px;" onclick="showChatDetail(\''+chat.id+'\')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:15px;font-weight:600;color:#333;">'+chat.summary+'</span><span style="font-size:12px;color:#999;">'+chat.createdAt+'</span></div><div style="font-size:13px;color:#666;margin-bottom:8px;">'+chat.history[0].text+'</div>'+(chat.diagnosis?'<span style="padding:2px 10px;background:rgba(168,85,247,0.1);color:#a855f7;border-radius:20px;font-size:12px;">'+chat.diagnosis+'</span>':'')+(chat.prescription?'<span style="padding:2px 10px;background:rgba(45,139,94,0.1);color:#2d8b5e;border-radius:20px;font-size:12px;margin-left:6px;">'+chat.prescription+'</span>':'')+'</div>';
+  }).join('');
+}
+function showChatDetail(sessionId) {
+  var chat = CHAT_HISTORY_DATA.find(function(c){ return c.id === sessionId; });
+  if (!chat) return;
+  pageHistory.push('page-chat-history');
+  showPage('page-chat-detail', false);
+  var html = '<div class="card" style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><span style="font-size:16px;font-weight:600;">'+chat.summary+'</span><span style="font-size:12px;color:#999;">'+chat.createdAt+'</span></div>';
+  if (chat.diagnosis) html += '<div style="margin-bottom:8px;"><span style="padding:4px 12px;background:rgba(168,85,247,0.1);color:#a855f7;border-radius:20px;font-size:13px;">辨证：'+chat.diagnosis+'</span></div>';
+  if (chat.prescription) html += '<div><span style="padding:4px 12px;background:rgba(45,139,94,0.1);color:#2d8b5e;border-radius:20px;font-size:13px;">处方：'+chat.prescription+'</span></div>';
+  html += '</div>';
+  html += chat.history.map(function(h){ return '<div class="chat-message '+h.role+'" style="margin-bottom:12px;"><div class="chat-avatar">'+(h.role==='user'?'👤':'📖')+'</div><div class="chat-bubble">'+h.text.replace(/\n/g, '<br>')+'</div></div>'; }).join('');
+  html += '<div style="padding:0 16px 16px;"><button class="btn btn-primary" onclick="goBack()">← 返回</button></div>';
+  document.getElementById('chat-detail-content').innerHTML = html;
+}
+function renderProfile() {
+  var favHerbsEl = document.getElementById('fav-herbs-list');
+  favHerbsEl.innerHTML = FAVORITE_HERBS.map(function(id){
+    var h = HERB_DATA.find(function(herb){ return herb.id === id; });
+    return '<div class="herb-list-card" onclick="showHerbDetail('+h.id+')" style="margin:0 16px 12px;"><div class="herb-visual '+h.color+'"><div style="font-size:40px;">'+h.visual+'</div></div><div class="herb-info"><div class="name">'+h.name+'</div><div class="effect">'+h.effect+'</div></div></div>';
+  }).join('');
+  var favMatchesEl = document.getElementById('fav-matches-list');
+  favMatchesEl.innerHTML = FAVORITE_MATCHES.map(function(id){
+    var m = MATCH_DATA.find(function(match){ return match.id === id; });
+    return '<div class="food-item" onclick="showMatchDetail('+m.id+')" style="margin:0 16px 12px;"><div class="food-visual herb-color-'+(m.id%6+1)+'"><div style="font-size:40px;">🍲</div></div><div class="food-info"><div class="name">'+m.name+'</div><div class="effect">'+m.effect+'</div></div></div>';
+  }).join('');
+  var checkinEl = document.getElementById('checkin-records-list');
+  checkinEl.innerHTML = checkinRecords.slice(0,5).map(function(r){
+    return '<div class="card" style="padding:12px 16px;margin:0 16px 8px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">'+(r.checked?'✅':'⭕')+'</span><div><div style="font-size:14px;font-weight:500;">'+r.herbName+'</div><div style="font-size:12px;color:#999;">'+r.date+'</div></div></div><span style="font-size:12px;color:'+(r.checked?'#2d8b5e':'#999')+';">'+(r.checked?'已打卡':'未打卡')+'</span></div>';
+  }).join('');
+  var identifyEl = document.getElementById('identify-records-list');
+  identifyEl.innerHTML = identifyRecords.slice(0,5).map(function(r){
+    return '<div class="card" style="padding:12px 16px;margin:0 16px 8px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:500;">'+r.herbName+'</div><div style="font-size:12px;color:#999;">'+r.date+'</div></div><span style="font-size:14px;font-weight:600;color:#2d8b5e;">'+r.accuracy+'%</span></div>';
+  }).join('');
+  var chatEl = document.getElementById('chat-history-list');
+  chatEl.innerHTML = CHAT_HISTORY_DATA.slice(0,3).map(function(chat){
+    return '<div class="card" style="padding:12px 16px;margin:0 16px 8px;cursor:pointer;" onclick="showChatDetail(\''+chat.id+'\')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-size:14px;font-weight:500;">'+chat.summary+'</span><span style="font-size:12px;color:#999;">'+chat.createdAt+'</span></div>'+(chat.diagnosis?'<span style="padding:2px 8px;background:rgba(168,85,247,0.1);color:#a855f7;border-radius:20px;font-size:11px;">'+chat.diagnosis+'</span>':'')+'</div>';
+  }).join('');
+  var constEl = document.getElementById('constitution-records-list');
+  constEl.innerHTML = constitutionRecords.map(function(r){
+    var ct = CONSTITUTION_TYPES[r.type.replace('质','')];
+    return '<div class="card" style="padding:12px 16px;margin:0 16px 8px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:500;">'+r.type+'</div><div style="font-size:12px;color:#999;">'+r.date+'</div></div><span style="font-size:14px;font-weight:600;color:'+(ct?ct.color:'#2d8b5e')+';">'+r.score+'分</span></div>';
+  }).join('');
+}
+function checkLLMStatus() {
+  var btn = document.getElementById('check-status-btn');
+  if (btn) { btn.textContent = '⏳ 检查中...'; btn.disabled = true; }
+  setTimeout(function(){
+    llmStatus = { enabled: false, provider: '', model: '' };
+    updateLLMUI();
+    if (btn) { btn.textContent = '🔍 检查状态'; btn.disabled = false; }
+    alert('当前为演示模式，未配置AI服务。\n\n本地知识库模式已启用，所有功能均可正常使用。');
+  }, 1000);
+}
+function updateLLMUI() {
+  var enabled = llmStatus.enabled;
+  var modeText = enabled ? 'AI增强模式' : '本地知识库模式';
+  var detailText = enabled ? llmStatus.provider + ' ' + llmStatus.model : '未配置API Key';
+  var homeBar = document.getElementById('home-llm-status');
+  var homeDot = document.getElementById('home-llm-dot');
+  var homeText = document.getElementById('home-llm-text');
+  var homeArrow = document.getElementById('home-llm-arrow');
+  if (homeBar) {
+    homeBar.className = 'llm-status-bar ' + (enabled ? 'enabled' : 'disabled');
+    homeDot.className = 'llm-status-dot ' + (enabled ? 'enabled' : 'disabled');
+    homeText.className = 'llm-status-text ' + (enabled ? 'enabled' : 'disabled');
+    homeText.textContent = enabled ? modeText + ' - ' + detailText : modeText + ' - 配置API Key解锁AI增强';
+    homeArrow.className = 'llm-status-arrow ' + (enabled ? 'enabled' : 'disabled');
+  }
+  var configDot = document.getElementById('config-llm-dot');
+  var configMode = document.getElementById('config-llm-mode');
+  var configDetail = document.getElementById('config-llm-detail');
+  if (configDot) configDot.className = 'llm-status-dot ' + (enabled ? 'enabled' : 'disabled');
+  if (configMode) { configMode.textContent = modeText; configMode.style.color = enabled ? '#2d8b5e' : '#F59E0B'; }
+  if (configDetail) configDetail.textContent = detailText;
+  var profileDot = document.getElementById('profile-llm-dot');
+  var profileMode = document.getElementById('profile-llm-mode');
+  var profileDetail = document.getElementById('profile-llm-detail');
+  if (profileDot) profileDot.className = 'llm-status-dot ' + (enabled ? 'enabled' : 'disabled');
+  if (profileMode) { profileMode.textContent = modeText; profileMode.style.color = enabled ? '#2d8b5e' : '#F59E0B'; }
+  if (profileDetail) profileDetail.textContent = enabled ? detailText : '点击配置API Key，解锁AI增强功能';
+  var consultIndicator = document.getElementById('consult-mode-indicator');
+  if (consultIndicator) consultIndicator.className = 'mode-indicator ' + (enabled ? 'enabled' : 'disabled');
+  var localTag = document.getElementById('local-mode-tag');
+  if (localTag) localTag.style.display = enabled ? 'none' : 'inline-block';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  renderHome();
+  updateLLMUI();
+});
+</script>
+</body>
+</html>

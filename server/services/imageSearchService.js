@@ -2,8 +2,9 @@ const fs = require('fs')
 const path = require('path')
 const { extractFeatures, computeSimilarity, FEATURE_VERSION } = require('./imageFeatureService')
 const herbs = require('../data/herbs')
+const paths = require('../config/paths')
 
-const REF_DIR = path.join(__dirname, '..', 'data', 'reference-images')
+const REF_DIR = paths.REF_IMAGES_DIR
 const INDEX_FILE = path.join(REF_DIR, 'feature-index.json')
 
 let featureIndex = null

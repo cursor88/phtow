@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const paths = require('../config/paths');
 
 class NihaixiaService {
   constructor() {
@@ -13,8 +14,7 @@ class NihaixiaService {
 
   loadSkill() {
     try {
-      const skillPath = path.join(__dirname, '../data/nihaixia/SKILL.md');
-      this.skillContent = fs.readFileSync(skillPath, 'utf-8');
+      this.skillContent = fs.readFileSync(paths.SKILL_MD, 'utf-8');
       console.log(`[倪海厦Skill] 已加载SKILL.md，约 ${(this.skillContent.length / 1024).toFixed(1)} KB`);
     } catch (e) {
       console.error('[倪海厦Skill] SKILL.md加载失败:', e.message);
@@ -22,12 +22,11 @@ class NihaixiaService {
   }
 
   loadModules() {
-    const modulesDir = path.join(__dirname, '../data/nihaixia/modules');
     try {
-      const files = fs.readdirSync(modulesDir);
+      const files = fs.readdirSync(paths.MODULES_DIR);
       files.forEach(file => {
         if (file.endsWith('.md')) {
-          const filePath = path.join(modulesDir, file);
+          const filePath = path.join(paths.MODULES_DIR, file);
           const content = fs.readFileSync(filePath, 'utf-8');
           this.moduleContent[file] = content;
           console.log(`[倪海厦Skill] 已加载 ${file}，约 ${(content.length / 1024).toFixed(1)} KB`);
@@ -328,7 +327,7 @@ class NihaixiaService {
     
     const result = {
       diagnosis: this.extractDiagnosis(symptoms, localResults),
-      analysis: this.cleanContent(`根据倪海厦经方思维，结合以下知识分析：\n\n${knowledge}`),
+      analysis: `根据经方思维，结合您的症状描述，初步判断为${this.extractDiagnosis(symptoms, localResults)}。相关知识点已检索到${localResults.length}条参考内容。`,
       prescription: this.extractPrescription(localResults, symptoms),
       tips: this.extractTips(localResults),
       reference: localResults.map(r => r.title).join('；'),

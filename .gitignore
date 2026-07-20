@@ -1,6 +1,17 @@
 node_modules/
 .env
+.env.local
 *.log
 .DS_Store
 uploads/
+server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
 server/data/chatHistory.json
+server/data/checkinRecords.json
+server/data/constitutionRecords.json
+server/data/dailyHerbs.json
+server/data/favoriteRecords.json
+server/data/identifyRecords.json
+server/data/wrongQuestions.json
+server/data/quizState.json

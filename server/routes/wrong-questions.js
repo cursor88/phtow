@@ -4,9 +4,10 @@ const { authRequired } = require('../middleware/auth');
 const quizzes = require('../data/quizzes');
 const fs = require('fs');
 const path = require('path');
+const paths = require('../config/paths');
 
 const router = express.Router();
-const WRONG_FILE = path.join(__dirname, '../data/wrongQuestions.json');
+const WRONG_FILE = paths.WRONG_QUESTIONS;
 
 function loadWrongQuestions() {
   try {

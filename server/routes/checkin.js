@@ -1,6 +1,12 @@
 const express = require('express')
 const router = express.Router()
+const path = require('path')
+const fs = require('fs')
 const herbs = require('../data/herbs')
+const paths = require('../config/paths')
+
+const DAILY_HERBS_FILE = paths.DAILY_HERBS
+const CHECKIN_RECORDS_FILE = paths.CHECKIN_RECORDS
 
 const getTodayStr = () => {
   const now = new Date()
@@ -40,8 +46,7 @@ router.get('/daily-herb', (req, res) => {
     }
     
     dailyHerbs.push(todayHerb)
-    const fs = require('fs')
-    fs.writeFileSync('./server/data/dailyHerbs.json', JSON.stringify(dailyHerbs))
+    saveJsonFile(DAILY_HERBS_FILE, dailyHerbs)
   }
   
   const herb = herbs.find(h => h.id === todayHerb.herbId)
@@ -111,9 +116,8 @@ router.post('/checkin', (req, res) => {
   }
   
   records.push(newRecord)
-  
-  const fs = require('fs')
-  fs.writeFileSync('./server/data/checkinRecords.json', JSON.stringify(records))
+
+  saveJsonFile(CHECKIN_RECORDS_FILE, records)
   
   const herb = herbs.find(h => h.id === newRecord.herbId)
   res.json({
@@ -236,6 +240,18 @@ function calculateMonthStats(records) {
     year: currentYear,
     checkedDays: monthRecords.length,
     totalDays: new Date(currentYear, currentMonth, 0).getDate()
+  }
+}
+
+function saveJsonFile(filePath, data) {
+  try {
+    const dir = path.dirname(filePath)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2))
+  } catch (e) {
+    console.error('[Checkin] 保存文件失败:', filePath, e.message)
   }
 }
 

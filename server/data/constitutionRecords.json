@@ -1,1 +1,791 @@
-[{"id":1784004489820,"mode":"quick","date":"2026-07-14","timestamp":1784004489820,"answers":[{"qid":1,"value":4},{"qid":2,"value":4},{"qid":3,"value":4},{"qid":4,"value":4},{"qid":5,"value":4},{"qid":6,"value":4},{"qid":7,"value":4},{"qid":8,"value":4},{"qid":9,"value":4}],"rawScores":{"qixu":4,"yangxu":4,"yinxu":4,"shire":4,"tanshi":4,"xueyu":4,"qiyu":4,"tebing":4,"pinghe":4},"convertedScores":{"qixu":75,"yangxu":75,"yinxu":75,"shire":75,"tanshi":75,"xueyu":75,"qiyu":75,"tebing":75,"pinghe":75},"mainType":"tebing","mainTypeName":"特禀质","mainScore":75,"mixedTypes":[{"type":"qixu","name":"气虚质","score":75},{"type":"yangxu","name":"阳虚质","score":75},{"type":"yinxu","name":"阴虚质","score":75},{"type":"shire","name":"湿热质","score":75},{"type":"tanshi","name":"痰湿质","score":75},{"type":"xueyu","name":"血瘀质","score":75},{"type":"qiyu","name":"气郁质","score":75},{"type":"tebing","name":"特禀质","score":75}],"constitutionInfo":{"name":"特禀质","desc":"容易过敏（如鼻炎、荨麻疹）","color":"#ec4899","icon":"🌸"}},{"id":1783590008442,"mode":"quick","date":"2026-07-09","timestamp":1783590008442,"answers":[{"qid":1,"value":4},{"qid":2,"value":5},{"qid":3,"value":5},{"qid":4,"value":5},{"qid":5,"value":5},{"qid":6,"value":5},{"qid":7,"value":5},{"qid":8,"value":5},{"qid":9,"value":5}],"rawScores":{"qixu":4,"yangxu":5,"yinxu":5,"shire":5,"tanshi":5,"xueyu":5,"qiyu":5,"tebing":5,"pinghe":5},"convertedScores":{"qixu":75,"yangxu":100,"yinxu":100,"shire":100,"tanshi":100,"xueyu":100,"qiyu":100,"tebing":100,"pinghe":100},"mainType":"tebing","mainTypeName":"特禀质","mainScore":100,"mixedTypes":[{"type":"qixu","name":"气虚质","score":75},{"type":"yangxu","name":"阳虚质","score":100},{"type":"yinxu","name":"阴虚质","score":100},{"type":"shire","name":"湿热质","score":100},{"type":"tanshi","name":"痰湿质","score":100},{"type":"xueyu","name":"血瘀质","score":100},{"type":"qiyu","name":"气郁质","score":100},{"type":"tebing","name":"特禀质","score":100}],"constitutionInfo":{"name":"特禀质","desc":"容易过敏（如鼻炎、荨麻疹）","color":"#ec4899","icon":"🌸"}},{"id":1783506147685,"mode":"quick","date":"2026-07-08","timestamp":1783506147685,"answers":[{"qid":1,"value":5},{"qid":2,"value":5},{"qid":3,"value":5},{"qid":4,"value":5},{"qid":5,"value":5},{"qid":6,"value":5},{"qid":7,"value":5},{"qid":8,"value":5},{"qid":9,"value":5}],"rawScores":{"qixu":5,"yangxu":5,"yinxu":5,"shire":5,"tanshi":5,"xueyu":5,"qiyu":5,"tebing":5,"pinghe":5},"convertedScores":{"qixu":100,"yangxu":100,"yinxu":100,"shire":100,"tanshi":100,"xueyu":100,"qiyu":100,"tebing":100,"pinghe":100},"mainType":"tebing","mainTypeName":"特禀质","mainScore":100,"mixedTypes":[{"type":"qixu","name":"气虚质","score":100},{"type":"yangxu","name":"阳虚质","score":100},{"type":"yinxu","name":"阴虚质","score":100},{"type":"shire","name":"湿热质","score":100},{"type":"tanshi","name":"痰湿质","score":100},{"type":"xueyu","name":"血瘀质","score":100},{"type":"qiyu","name":"气郁质","score":100},{"type":"tebing","name":"特禀质","score":100}],"constitutionInfo":{"name":"特禀质","desc":"容易过敏（如鼻炎、荨麻疹）","color":"#ec4899","icon":"🌸"}}]
+[
+  {
+    "id": 1783590008442,
+    "mode": "quick",
+    "date": "2026-07-09",
+    "timestamp": 1783590008442,
+    "answers": [
+      {
+        "qid": 1,
+        "value": 4
+      },
+      {
+        "qid": 2,
+        "value": 5
+      },
+      {
+        "qid": 3,
+        "value": 5
+      },
+      {
+        "qid": 4,
+        "value": 5
+      },
+      {
+        "qid": 5,
+        "value": 5
+      },
+      {
+        "qid": 6,
+        "value": 5
+      },
+      {
+        "qid": 7,
+        "value": 5
+      },
+      {
+        "qid": 8,
+        "value": 5
+      },
+      {
+        "qid": 9,
+        "value": 5
+      }
+    ],
+    "rawScores": {
+      "qixu": 4,
+      "yangxu": 5,
+      "yinxu": 5,
+      "shire": 5,
+      "tanshi": 5,
+      "xueyu": 5,
+      "qiyu": 5,
+      "tebing": 5,
+      "pinghe": 5
+    },
+    "convertedScores": {
+      "qixu": 75,
+      "yangxu": 100,
+      "yinxu": 100,
+      "shire": 100,
+      "tanshi": 100,
+      "xueyu": 100,
+      "qiyu": 100,
+      "tebing": 100,
+      "pinghe": 100
+    },
+    "mainType": "tebing",
+    "mainTypeName": "特禀质",
+    "mainScore": 100,
+    "mixedTypes": [
+      {
+        "type": "qixu",
+        "name": "气虚质",
+        "score": 75
+      },
+      {
+        "type": "yangxu",
+        "name": "阳虚质",
+        "score": 100
+      },
+      {
+        "type": "yinxu",
+        "name": "阴虚质",
+        "score": 100
+      },
+      {
+        "type": "shire",
+        "name": "湿热质",
+        "score": 100
+      },
+      {
+        "type": "tanshi",
+        "name": "痰湿质",
+        "score": 100
+      },
+      {
+        "type": "xueyu",
+        "name": "血瘀质",
+        "score": 100
+      },
+      {
+        "type": "qiyu",
+        "name": "气郁质",
+        "score": 100
+      },
+      {
+        "type": "tebing",
+        "name": "特禀质",
+        "score": 100
+      }
+    ],
+    "constitutionInfo": {
+      "name": "特禀质",
+      "desc": "容易过敏（如鼻炎、荨麻疹）",
+      "color": "#ec4899",
+      "icon": "🌸"
+    }
+  },
+  {
+    "id": 1783506147685,
+    "mode": "quick",
+    "date": "2026-07-08",
+    "timestamp": 1783506147685,
+    "answers": [
+      {
+        "qid": 1,
+        "value": 5
+      },
+      {
+        "qid": 2,
+        "value": 5
+      },
+      {
+        "qid": 3,
+        "value": 5
+      },
+      {
+        "qid": 4,
+        "value": 5
+      },
+      {
+        "qid": 5,
+        "value": 5
+      },
+      {
+        "qid": 6,
+        "value": 5
+      },
+      {
+        "qid": 7,
+        "value": 5
+      },
+      {
+        "qid": 8,
+        "value": 5
+      },
+      {
+        "qid": 9,
+        "value": 5
+      }
+    ],
+    "rawScores": {
+      "qixu": 5,
+      "yangxu": 5,
+      "yinxu": 5,
+      "shire": 5,
+      "tanshi": 5,
+      "xueyu": 5,
+      "qiyu": 5,
+      "tebing": 5,
+      "pinghe": 5
+    },
+    "convertedScores": {
+      "qixu": 100,
+      "yangxu": 100,
+      "yinxu": 100,
+      "shire": 100,
+      "tanshi": 100,
+      "xueyu": 100,
+      "qiyu": 100,
+      "tebing": 100,
+      "pinghe": 100
+    },
+    "mainType": "tebing",
+    "mainTypeName": "特禀质",
+    "mainScore": 100,
+    "mixedTypes": [
+      {
+        "type": "qixu",
+        "name": "气虚质",
+        "score": 100
+      },
+      {
+        "type": "yangxu",
+        "name": "阳虚质",
+        "score": 100
+      },
+      {
+        "type": "yinxu",
+        "name": "阴虚质",
+        "score": 100
+      },
+      {
+        "type": "shire",
+        "name": "湿热质",
+        "score": 100
+      },
+      {
+        "type": "tanshi",
+        "name": "痰湿质",
+        "score": 100
+      },
+      {
+        "type": "xueyu",
+        "name": "血瘀质",
+        "score": 100
+      },
+      {
+        "type": "qiyu",
+        "name": "气郁质",
+        "score": 100
+      },
+      {
+        "type": "tebing",
+        "name": "特禀质",
+        "score": 100
+      }
+    ],
+    "constitutionInfo": {
+      "name": "特禀质",
+      "desc": "容易过敏（如鼻炎、荨麻疹）",
+      "color": "#ec4899",
+      "icon": "🌸"
+    }
+  },
+  {
+    "id": 1784175329716,
+    "mode": "quick",
+    "date": "2026-07-16",
+    "timestamp": 1784175329716,
+    "answers": [
+      {
+        "qid": 1,
+        "value": 4
+      },
+      {
+        "qid": 2,
+        "value": 3
+      },
+      {
+        "qid": 3,
+        "value": 4
+      },
+      {
+        "qid": 4,
+        "value": 3
+      },
+      {
+        "qid": 5,
+        "value": 4
+      },
+      {
+        "qid": 6,
+        "value": 3
+      },
+      {
+        "qid": 7,
+        "value": 4
+      },
+      {
+        "qid": 8,
+        "value": 3
+      },
+      {
+        "qid": 9,
+        "value": 4
+      }
+    ],
+    "rawScores": {
+      "qixu": 4,
+      "yangxu": 3,
+      "yinxu": 4,
+      "shire": 3,
+      "tanshi": 4,
+      "xueyu": 3,
+      "qiyu": 4,
+      "tebing": 3,
+      "pinghe": 4
+    },
+    "convertedScores": {
+      "qixu": 75,
+      "yangxu": 50,
+      "yinxu": 75,
+      "shire": 50,
+      "tanshi": 75,
+      "xueyu": 50,
+      "qiyu": 75,
+      "tebing": 50,
+      "pinghe": 75
+    },
+    "mainType": "qiyu",
+    "mainTypeName": "气郁质",
+    "mainScore": 75,
+    "mixedTypes": [
+      {
+        "type": "qixu",
+        "name": "气虚质",
+        "score": 75
+      },
+      {
+        "type": "yangxu",
+        "name": "阳虚质",
+        "score": 50
+      },
+      {
+        "type": "yinxu",
+        "name": "阴虚质",
+        "score": 75
+      },
+      {
+        "type": "shire",
+        "name": "湿热质",
+        "score": 50
+      },
+      {
+        "type": "tanshi",
+        "name": "痰湿质",
+        "score": 75
+      },
+      {
+        "type": "xueyu",
+        "name": "血瘀质",
+        "score": 50
+      },
+      {
+        "type": "qiyu",
+        "name": "气郁质",
+        "score": 75
+      },
+      {
+        "type": "tebing",
+        "name": "特禀质",
+        "score": 50
+      }
+    ],
+    "constitutionInfo": {
+      "name": "气郁质",
+      "desc": "情绪抑郁，经常叹气或失眠",
+      "color": "#06b6d4",
+      "icon": "🌧️"
+    }
+  },
+  {
+    "id": 1784175416021,
+    "mode": "quick",
+    "date": "2026-07-16",
+    "timestamp": 1784175416022,
+    "answers": [
+      {
+        "qid": 1,
+        "value": 4
+      },
+      {
+        "qid": 2,
+        "value": 3
+      },
+      {
+        "qid": 3,
+        "value": 4
+      },
+      {
+        "qid": 4,
+        "value": 3
+      },
+      {
+        "qid": 5,
+        "value": 4
+      },
+      {
+        "qid": 6,
+        "value": 3
+      },
+      {
+        "qid": 7,
+        "value": 4
+      },
+      {
+        "qid": 8,
+        "value": 3
+      },
+      {
+        "qid": 9,
+        "value": 4
+      }
+    ],
+    "rawScores": {
+      "qixu": 4,
+      "yangxu": 3,
+      "yinxu": 4,
+      "shire": 3,
+      "tanshi": 4,
+      "xueyu": 3,
+      "qiyu": 4,
+      "tebing": 3,
+      "pinghe": 4
+    },
+    "convertedScores": {
+      "qixu": 75,
+      "yangxu": 50,
+      "yinxu": 75,
+      "shire": 50,
+      "tanshi": 75,
+      "xueyu": 50,
+      "qiyu": 75,
+      "tebing": 50,
+      "pinghe": 75
+    },
+    "mainType": "qiyu",
+    "mainTypeName": "气郁质",
+    "mainScore": 75,
+    "mixedTypes": [
+      {
+        "type": "qixu",
+        "name": "气虚质",
+        "score": 75
+      },
+      {
+        "type": "yangxu",
+        "name": "阳虚质",
+        "score": 50
+      },
+      {
+        "type": "yinxu",
+        "name": "阴虚质",
+        "score": 75
+      },
+      {
+        "type": "shire",
+        "name": "湿热质",
+        "score": 50
+      },
+      {
+        "type": "tanshi",
+        "name": "痰湿质",
+        "score": 75
+      },
+      {
+        "type": "xueyu",
+        "name": "血瘀质",
+        "score": 50
+      },
+      {
+        "type": "qiyu",
+        "name": "气郁质",
+        "score": 75
+      },
+      {
+        "type": "tebing",
+        "name": "特禀质",
+        "score": 50
+      }
+    ],
+    "constitutionInfo": {
+      "name": "气郁质",
+      "desc": "情绪抑郁，经常叹气或失眠",
+      "color": "#06b6d4",
+      "icon": "🌧️"
+    }
+  },
+  {
+    "id": 1784175580088,
+    "mode": "quick",
+    "date": "2026-07-16",
+    "timestamp": 1784175580088,
+    "answers": [
+      {
+        "qid": 1,
+        "value": 5
+      },
+      {
+        "qid": 2,
+        "value": 4
+      },
+      {
+        "qid": 3,
+        "value": 3
+      },
+      {
+        "qid": 4,
+        "value": 2
+      },
+      {
+        "qid": 5,
+        "value": 4
+      },
+      {
+        "qid": 6,
+        "value": 3
+      },
+      {
+        "qid": 7,
+        "value": 4
+      },
+      {
+        "qid": 8,
+        "value": 2
+      },
+      {
+        "qid": 9,
+        "value": 5
+      }
+    ],
+    "rawScores": {
+      "qixu": 5,
+      "yangxu": 4,
+      "yinxu": 3,
+      "shire": 2,
+      "tanshi": 4,
+      "xueyu": 3,
+      "qiyu": 4,
+      "tebing": 2,
+      "pinghe": 5
+    },
+    "convertedScores": {
+      "qixu": 100,
+      "yangxu": 75,
+      "yinxu": 50,
+      "shire": 25,
+      "tanshi": 75,
+      "xueyu": 50,
+      "qiyu": 75,
+      "tebing": 25,
+      "pinghe": 100
+    },
+    "mainType": "qixu",
+    "mainTypeName": "气虚质",
+    "mainScore": 100,
+    "mixedTypes": [
+      {
+        "type": "qixu",
+        "name": "气虚质",
+        "score": 100
+      },
+      {
+        "type": "yangxu",
+        "name": "阳虚质",
+        "score": 75
+      },
+      {
+        "type": "yinxu",
+        "name": "阴虚质",
+        "score": 50
+      },
+      {
+        "type": "tanshi",
+        "name": "痰湿质",
+        "score": 75
+      },
+      {
+        "type": "xueyu",
+        "name": "血瘀质",
+        "score": 50
+      },
+      {
+        "type": "qiyu",
+        "name": "气郁质",
+        "score": 75
+      }
+    ],
+    "constitutionInfo": {
+      "name": "气虚质",
+      "desc": "容易疲劳，稍微活动就气短",
+      "color": "#f59e0b",
+      "icon": "💨"
+    }
+  },
+  {
+    "id": 1784176449704,
+    "mode": "quick",
+    "date": "2026-07-16",
+    "timestamp": 1784176449704,
+    "answers": [
+      {
+        "value": 5,
+        "qid": 1
+      },
+      {
+        "value": 4,
+        "qid": 2
+      },
+      {
+        "value": 3,
+        "qid": 3
+      },
+      {
+        "value": 2,
+        "qid": 4
+      },
+      {
+        "value": 4,
+        "qid": 5
+      },
+      {
+        "value": 3,
+        "qid": 6
+      },
+      {
+        "value": 4,
+        "qid": 7
+      },
+      {
+        "value": 2,
+        "qid": 8
+      },
+      {
+        "value": 5,
+        "qid": 9
+      }
+    ],
+    "rawScores": {
+      "qixu": 5,
+      "yangxu": 4,
+      "yinxu": 3,
+      "shire": 2,
+      "tanshi": 4,
+      "xueyu": 3,
+      "qiyu": 4,
+      "tebing": 2,
+      "pinghe": 5
+    },
+    "convertedScores": {
+      "qixu": 100,
+      "yangxu": 75,
+      "yinxu": 50,
+      "shire": 25,
+      "tanshi": 75,
+      "xueyu": 50,
+      "qiyu": 75,
+      "tebing": 25,
+      "pinghe": 100
+    },
+    "mainType": "qixu",
+    "mainTypeName": "气虚质",
+    "mainScore": 100,
+    "mixedTypes": [
+      {
+        "type": "qixu",
+        "name": "气虚质",
+        "score": 100
+      },
+      {
+        "type": "yangxu",
+        "name": "阳虚质",
+        "score": 75
+      },
+      {
+        "type": "yinxu",
+        "name": "阴虚质",
+        "score": 50
+      },
+      {
+        "type": "tanshi",
+        "name": "痰湿质",
+        "score": 75
+      },
+      {
+        "type": "xueyu",
+        "name": "血瘀质",
+        "score": 50
+      },
+      {
+        "type": "qiyu",
+        "name": "气郁质",
+        "score": 75
+      }
+    ],
+    "constitutionInfo": {
+      "name": "气虚质",
+      "desc": "容易疲劳，稍微活动就气短",
+      "color": "#f59e0b",
+      "icon": "💨"
+    }
+  },
+  {
+    "id": 1784183405805,
+    "mode": "quick",
+    "date": "2026-07-16",
+    "timestamp": 1784183405805,
+    "answers": [
+      {
+        "value": 5,
+        "qid": 1
+      },
+      {
+        "value": 4,
+        "qid": 2
+      },
+      {
+        "value": 3,
+        "qid": 3
+      },
+      {
+        "value": 2,
+        "qid": 4
+      },
+      {
+        "value": 4,
+        "qid": 5
+      },
+      {
+        "value": 3,
+        "qid": 6
+      },
+      {
+        "value": 4,
+        "qid": 7
+      },
+      {
+        "value": 2,
+        "qid": 8
+      },
+      {
+        "value": 5,
+        "qid": 9
+      }
+    ],
+    "rawScores": {
+      "qixu": 5,
+      "yangxu": 4,
+      "yinxu": 3,
+      "shire": 2,
+      "tanshi": 4,
+      "xueyu": 3,
+      "qiyu": 4,
+      "tebing": 2,
+      "pinghe": 5
+    },
+    "convertedScores": {
+      "qixu": 100,
+      "yangxu": 75,
+      "yinxu": 50,
+      "shire": 25,
+      "tanshi": 75,
+      "xueyu": 50,
+      "qiyu": 75,
+      "tebing": 25,
+      "pinghe": 100
+    },
+    "mainType": "qixu",
+    "mainTypeName": "气虚质",
+    "mainScore": 100,
+    "mixedTypes": [
+      {
+        "type": "qixu",
+        "name": "气虚质",
+        "score": 100
+      },
+      {
+        "type": "yangxu",
+        "name": "阳虚质",
+        "score": 75
+      },
+      {
+        "type": "yinxu",
+        "name": "阴虚质",
+        "score": 50
+      },
+      {
+        "type": "tanshi",
+        "name": "痰湿质",
+        "score": 75
+      },
+      {
+        "type": "xueyu",
+        "name": "血瘀质",
+        "score": 50
+      },
+      {
+        "type": "qiyu",
+        "name": "气郁质",
+        "score": 75
+      }
+    ],
+    "constitutionInfo": {
+      "name": "气虚质",
+      "desc": "容易疲劳，稍微活动就气短",
+      "color": "#f59e0b",
+      "icon": "💨"
+    }
+  }
+]

@@ -5,9 +5,10 @@ const fs = require('fs');
 const path = require('path');
 const herbs = require('../data/herbs');
 const foodMatches = require('../data/foodMatches');
+const paths = require('../config/paths');
 
 const router = express.Router();
-const FAVORITE_FILE = path.join(__dirname, '../data/favoriteRecords.json');
+const FAVORITE_FILE = paths.FAVORITE_RECORDS;
 
 function loadFavorites() {
   try {
