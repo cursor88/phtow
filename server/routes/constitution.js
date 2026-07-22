@@ -91,15 +91,32 @@ const standardQuestions = [
 ]
 
 const quickQuestions = [
-  { id: 1, type: 'qixu', text: '容易疲劳，稍微活动就气短' },
-  { id: 2, type: 'yangxu', text: '手脚冰凉，尤其怕冷' },
-  { id: 3, type: 'yinxu', text: '感到手脚心发热，口干舌燥' },
-  { id: 4, type: 'shire', text: '面部油腻，易长痘痘或疮疡' },
-  { id: 5, type: 'tanshi', text: '身体沉重，腹部肥软，痰多' },
-  { id: 6, type: 'xueyu', text: '皮肤暗沉、容易出现淤青' },
-  { id: 7, type: 'qiyu', text: '情绪抑郁，经常叹气或失眠' },
-  { id: 8, type: 'tebing', text: '容易过敏（如鼻炎、荨麻疹）' },
-  { id: 9, type: 'pinghe', text: '精力充沛，适应力强，很少不适' }
+  { id: 1, type: 'pinghe', text: '您精力充沛吗？' },
+  { id: 2, type: 'pinghe', text: '您能适应自然环境变化吗？' },
+  
+  { id: 3, type: 'qixu', text: '您容易疲乏吗？' },
+  { id: 4, type: 'qixu', text: '您容易气短（呼吸短促，接不上气）吗？' },
+  
+  { id: 5, type: 'yangxu', text: '您手脚发凉吗？' },
+  { id: 6, type: 'yangxu', text: '您怕冷吗？' },
+  
+  { id: 7, type: 'yinxu', text: '您感到口干咽燥、总想喝水吗？' },
+  { id: 8, type: 'yinxu', text: '您感到手脚心发热吗？' },
+  
+  { id: 9, type: 'tanshi', text: '您身体沉重不舒或身体困重吗？' },
+  { id: 10, type: 'tanshi', text: '您感到痰多、咽喉部有痰堵着吗？' },
+  
+  { id: 11, type: 'shire', text: '您面部或鼻部油腻吗？' },
+  { id: 12, type: 'shire', text: '您容易生痤疮或疮疖吗？' },
+  
+  { id: 13, type: 'xueyu', text: '您的皮肤在不知不觉中会出现青紫瘀斑（皮下出血）吗？' },
+  { id: 14, type: 'xueyu', text: '您面色晦黯或容易出现褐斑吗？' },
+  
+  { id: 15, type: 'qiyu', text: '您感到闷闷不乐、情绪低沉吗？' },
+  { id: 16, type: 'qiyu', text: '您容易精神紧张、焦虑不安吗？' },
+  
+  { id: 17, type: 'tebing', text: '您容易过敏（药物、食物、气味、花粉、季节交替、温度变化等）吗？' },
+  { id: 18, type: 'tebing', text: '您没有感冒时也会打喷嚏吗？' }
 ]
 
 function loadRecords() {
@@ -182,10 +199,71 @@ router.post('/submit', (req, res) => {
   let mainType = 'pinghe'
   let mainScore = convertedScores.pinghe || 0
   let mainTypeName = '平和质'
+  const isQuickMode = mode === 'quick'
+  
+  if (isQuickMode) {
+    const allTypes = Object.keys(scores)
+    let topAvgScore = 0
+    let topTypes = []
+    
+    allTypes.forEach(type => {
+      const count = counts[type] || 1
+      const avg = scores[type] / count
+      if (avg > topAvgScore) {
+        topAvgScore = avg
+        topTypes = [type]
+      } else if (Math.abs(avg - topAvgScore) < 0.01) {
+        topTypes.push(type)
+      }
+    })
+    
+    if (topTypes.length > 0) {
+      const nonPinghe = topTypes.filter(t => t !== 'pinghe')
+      mainType = nonPinghe.length > 0 ? nonPinghe[0] : topTypes[0]
+      mainTypeName = constitutionTypes[mainType].name
+      mainScore = topAvgScore
+    }
+    
+    const sortedTypes = allTypes
+      .filter(t => t !== mainType)
+      .map(t => ({ type: t, name: constitutionTypes[t].name, score: scores[t] / (counts[t] || 1) }))
+      .sort((a, b) => b.score - a.score)
+    
+    const mixedTypes = sortedTypes.slice(0, 4).filter(t => t.score >= 2.5)
+    
+    const record = {
+      id: Date.now(),
+      mode,
+      date: new Date().toISOString().split('T')[0],
+      timestamp: Date.now(),
+      answers,
+      rawScores: scores,
+      convertedScores,
+      mainType,
+      mainTypeName,
+      mainScore: Math.round(((mainScore - 1) / 4) * 100),
+      mixedTypes: mixedTypes.map(t => ({
+        type: t.type,
+        name: t.name,
+        score: Math.round(((t.score - 1) / 4) * 100)
+      })),
+      constitutionInfo: constitutionTypes[mainType]
+    }
+    
+    const records = loadRecords()
+    records.push(record)
+    saveRecords(records)
+    
+    return res.json({
+      code: 0,
+      message: '测评完成',
+      data: record
+    })
+  }
   
   const types = Object.keys(convertedScores).filter(k => k !== 'pinghe')
   types.forEach(type => {
-    if (convertedScores[type] >= mainScore) {
+    if (convertedScores[type] > mainScore) {
       mainScore = convertedScores[type]
       mainType = type
       mainTypeName = constitutionTypes[type].name
@@ -207,7 +285,9 @@ router.post('/submit', (req, res) => {
   }
   
   const highTypes = types.filter(t => convertedScores[t] >= 40)
-  const mixedTypes = highTypes.map(t => ({ type: t, name: constitutionTypes[t].name, score: convertedScores[t] }))
+  const mixedTypes = highTypes
+    .map(t => ({ type: t, name: constitutionTypes[t].name, score: convertedScores[t] }))
+    .sort((a, b) => b.score - a.score)
   
   const record = {
     id: Date.now(),

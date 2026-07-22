@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const foodMatches = require('../data/foodMatches')
-const herbs = require('../data/herbs')
+const mysqlService = require('../services/mysqlService')
 
 const symptomKeywordMap = {
   '口干舌燥': ['滋阴', '生津', '润燥', '阴虚', '口干'],
@@ -60,7 +59,7 @@ function extractKeywords(text) {
   return Array.from(keywords)
 }
 
-function calculateMatchScore(match, keywords) {
+function calculateMatchScore(match, keywords, herb) {
   let score = 0
   const fields = [
     { text: match.effect, weight: 3 },
@@ -69,7 +68,6 @@ function calculateMatchScore(match, keywords) {
     { text: (match.ingredients || []).join(','), weight: 1 }
   ]
   
-  const herb = herbs.find(h => h.id === match.herbId)
   if (herb) {
     fields.push({ text: herb.effect || '', weight: 2 })
     fields.push({ text: herb.name || '', weight: 1 })
@@ -88,7 +86,7 @@ function calculateMatchScore(match, keywords) {
   return score
 }
 
-router.get('/search', (req, res) => {
+router.get('/search', async (req, res) => {
   const { keyword } = req.query
   
   if (!keyword || !keyword.trim()) {
@@ -101,15 +99,18 @@ router.get('/search', (req, res) => {
   
   const keywords = extractKeywords(keyword)
   
-  const scored = foodMatches.map(match => {
-    const score = calculateMatchScore(match, keywords)
-    const herb = herbs.find(h => h.id === match.herbId)
-    return {
+  const allMatches = await mysqlService.getAllFoodMatches()
+  
+  const scored = []
+  for (const match of allMatches) {
+    const herb = await mysqlService.getHerbById(match.herb_id)
+    const score = calculateMatchScore(match, keywords, herb)
+    scored.push({
       ...match,
       herbName: herb ? herb.name : '',
       score
-    }
-  })
+    })
+  }
   
   const results = scored
     .filter(m => m.score > 0)
@@ -127,27 +128,21 @@ router.get('/search', (req, res) => {
   })
 })
 
-router.get('/list', (req, res) => {
-  const { herbId } = req.query
-  let list = foodMatches
+router.get('/list', async (req, res) => {
+  const { herbId, page = 1, pageSize = 10 } = req.query
   
-  if (herbId) {
-    const herb = herbs.find(h => h.id === parseInt(herbId))
-    if (herb) {
-      list = foodMatches.filter(m => herb.food_match.includes(m.id))
-    }
-  }
+  const result = await mysqlService.getFoodMatches(page, pageSize, herbId ? parseInt(herbId) : null)
   
   res.json({
     code: 0,
     message: '成功',
-    data: list
+    data: result
   })
 })
 
-router.get('/detail/:id', (req, res) => {
+router.get('/detail/:id', async (req, res) => {
   const id = parseInt(req.params.id)
-  const match = foodMatches.find(m => m.id === id)
+  const match = await mysqlService.getFoodMatchById(id)
   
   if (!match) {
     return res.json({
@@ -157,15 +152,10 @@ router.get('/detail/:id', (req, res) => {
     })
   }
   
-  const herb = herbs.find(h => h.id === match.herbId)
-  
   res.json({
     code: 0,
     message: '成功',
-    data: {
-      ...match,
-      herbName: herb ? herb.name : ''
-    }
+    data: match
   })
 })
 

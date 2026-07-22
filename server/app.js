@@ -5,6 +5,7 @@ const path = require('path')
 const fs = require('fs')
 
 const db = require('./config/db');
+const { testConnection, initTables } = require('./config/mysql')
 
 const app = express()
 const PORT = process.env.PORT || 8080
@@ -31,6 +32,8 @@ app.use('/api/constitution', require('./routes/constitution'))
 app.use('/api/skill', require('./routes/skill'))
 app.use('/api/chat', require('./routes/chat'))
 app.use('/api/llm', require('./routes/llmConfig'))
+app.use('/api/feedback', require('./routes/feedback'))
+app.use('/api/admin', require('./routes/admin'))
 
 // 静态文件服务 - 提供前端页面
 const projectRoot = paths.PUBLIC_DIR
@@ -44,6 +47,8 @@ app.use((req, res, next) => {
 })
 
 app.use(express.static(projectRoot))
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+app.use('/feedback-images', express.static(path.join(__dirname, 'data/feedback-images')))
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(projectRoot, 'demo.html'))
@@ -72,10 +77,22 @@ app.get('/api/llm-status', (req, res) => {
   })
 })
 
-app.listen(PORT, () => {
-  console.log(`\n========================================`)
-  console.log(`  本草智识 - 后端API服务已启动`)
-  console.log(`  服务地址: http://localhost:${PORT}`)
-  console.log(`  健康检查: http://localhost:${PORT}/api/health`)
-  console.log(`========================================\n`)
-})
+async function startServer() {
+  const ok = await testConnection()
+  if (!ok) {
+    console.error('[启动] MySQL连接失败，服务未启动')
+    process.exit(1)
+  }
+
+  await initTables()
+
+  app.listen(PORT, () => {
+    console.log(`\n========================================`)
+    console.log(`  本草智识 - 后端API服务已启动`)
+    console.log(`  服务地址: http://localhost:${PORT}`)
+    console.log(`  健康检查: http://localhost:${PORT}/api/health`)
+    console.log(`========================================\n`)
+  })
+}
+
+startServer()

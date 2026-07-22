@@ -443,6 +443,13 @@
     }
     .category-tab.active { background: rgba(45, 139, 94, 0.08); color: #2d8b5e; border-color: #2d8b5e; }
 
+    .herb-food-tag {
+      display: inline-block; padding: 2px 8px; margin-left: 6px;
+      background: rgba(34, 197, 94, 0.1); color: #22c55e;
+      border-radius: 12px; font-size: 10px; font-weight: 500;
+      vertical-align: middle;
+    }
+
     .herb-list-card {
       display: flex; align-items: center; background: #fff;
       border-radius: 12px; padding: 14px; margin: 0 12px 12px;
@@ -1273,15 +1280,15 @@
 <script>
 // ==================== 模拟数据 ====================
 const HERB_DATA = [
-  { id: 1, name: "黄芪", pinyin: "Huang Qi", alias: "黄耆、绵芪", category: "补气药", visual: "🟡", color: "herb-color-6", effect: "补气固表，利尿托毒，排脓，敛疮生肌", nature: "微温", taste: "甘", meridian: "肺、脾", keyIdentification: { smell: "有豆腥味", texture: "质硬而韧，不易折断", crossSection: "皮部黄白色，木部淡黄色，有放射状纹理及裂隙", outerSkin: "表面灰黄色或淡棕褐色，有不规则纵皱纹", other: "味微甜，嚼之有豆腥味" }, dosage: "9-30g", caution: "表实邪盛、气滞湿阻、食积停滞、阴虚阳亢、疮疡初起或溃后热毒尚盛等实证，均禁服", classics: [{ book: "《神农本草经》", content: "黄芪，味甘微温。主痈疽久败疮，排脓止痛，大风癞疾，五痔鼠瘘，补虚，小儿百病。" },{ book: "《名医别录》", content: "逐五脏间恶血，补丈夫虚损，五劳羸瘦，止渴，腹痛泄痢，益气，利阴气。" }] },
-  { id: 2, name: "当归", pinyin: "Dang Gui", alias: "干归、秦归", category: "补血药", visual: "🟤", color: "herb-color-4", effect: "补血活血，调经止痛，润肠通便", nature: "温", taste: "甘、辛", meridian: "肝、心、脾", keyIdentification: { smell: "有浓郁香气", texture: "质柔韧，断面黄白色或淡黄棕色", crossSection: "皮部厚，有棕色油点，木部色较淡，形成层环黄棕色", outerSkin: "表面黄棕色至棕褐色，具纵皱纹和横长皮孔样突起", other: "味甘、辛、微苦" }, dosage: "6-12g", caution: "湿盛中满、大便溏泄者忌服", classics: [{ book: "《神农本草经》", content: "当归，味甘温。主咳逆上气，温疟寒热洗洗在皮肤中，妇人漏下绝子，诸恶疮疡金疮，煮饮之。" }] },
-  { id: 3, name: "枸杞", pinyin: "Gou Qi Zi", alias: "杞子、红耳坠", category: "补阴药", visual: "🔴", color: "herb-color-2", effect: "滋补肝肾，益精明目", nature: "平", taste: "甘", meridian: "肝、肾", keyIdentification: { smell: "气微", texture: "质柔软而滋润", crossSection: "果肉柔软，种子类肾形", outerSkin: "表面鲜红色或暗红色，基部有白色果梗痕", other: "味甘" }, dosage: "6-12g", caution: "外邪实热、脾虚泄泻者慎服", classics: [{ book: "《神农本草经》", content: "枸杞，味苦寒。主五内邪气，热中消渴，周痹风湿。久服坚筋骨，轻身不老，耐寒暑。" }] },
-  { id: 4, name: "人参", pinyin: "Ren Shen", alias: "棒槌、地精", category: "补气药", visual: "🧅", color: "herb-color-5", effect: "大补元气，复脉固脱，补脾益肺，生津养血，安神益智", nature: "微温", taste: "甘、微苦", meridian: "脾、肺、心", keyIdentification: { smell: "气微香而特异", texture: "质较硬，断面淡黄白色，显粉性", crossSection: "形成层环纹棕黄色，皮部有黄棕色点状树脂道", outerSkin: "表面灰黄色，上部或全体有疏浅断续的粗横纹及明显的纵皱", other: "味微苦、甘" }, dosage: "3-9g", caution: "实证、热证而正气不虚者忌服。反藜芦，畏五灵脂", classics: [{ book: "《神农本草经》", content: "人参，味甘微寒。主补五脏，安精神，定魂魄，止惊悸，除邪气，明目，开心益智。久服轻身延年。" }] },
-  { id: 5, name: "白术", pinyin: "Bai Zhu", alias: "于术、冬术", category: "补气药", visual: "🟨", color: "herb-color-6", effect: "健脾益气，燥湿利水，止汗，安胎", nature: "温", taste: "甘、苦", meridian: "脾、胃", keyIdentification: { smell: "气清香", texture: "质坚硬，不易折断", crossSection: "断面不平坦，黄白色至淡棕色，有棕黄色的油点散在", outerSkin: "表面灰黄色或灰棕色，有瘤状突起及断续的纵皱和沟纹", other: "味甘、微辛，嚼之略带黏性" }, dosage: "6-12g", caution: "阴虚燥渴、气滞胀闷者忌服", classics: [{ book: "《神农本草经》", content: "白术，味苦温。主风寒湿痹，死肌，痉，疸，止汗，除热，消食。" }] },
-  { id: 6, name: "茯苓", pinyin: "Fu Ling", alias: "云苓、松苓", category: "利水渗湿药", visual: "⚪", color: "herb-color-1", effect: "利水渗湿，健脾，宁心", nature: "平", taste: "甘、淡", meridian: "心、肺、脾、肾", keyIdentification: { smell: "气微", texture: "体重，质坚实，断面颗粒性", crossSection: "断面不平坦，有的具裂隙，外层淡棕色，内部白色", outerSkin: "表面棕褐色至黑褐色，有皱缩纹理", other: "味淡，嚼之粘牙" }, dosage: "10-15g", caution: "阴虚而无湿热、虚寒滑精、气虚下陷者慎服", classics: [{ book: "《神农本草经》", content: "茯苓，味甘平。主胸胁逆气，忧恚惊邪恐悸，心下结痛，寒热烦满，咳逆，口焦舌干，利小便。久服安魂养神。" }] },
-  { id: 7, name: "甘草", pinyin: "Gan Cao", alias: "国老、甜草根", category: "补气药", visual: "🟫", color: "herb-color-4", effect: "补脾益气，清热解毒，祛痰止咳，缓急止痛，调和诸药", nature: "平", taste: "甘", meridian: "心、肺、脾、胃", keyIdentification: { smell: "气微，味甜而特殊", texture: "质坚实，断面略显纤维性，黄白色，粉性", crossSection: "形成层环明显，射线放射状，有的有裂隙", outerSkin: "表面红棕色或灰棕色，具显著的纵皱纹、沟纹及皮孔", other: "味甜而特殊" }, dosage: "2-10g", caution: "不宜与海藻、京大戟、红大戟、甘遂、芫花同用。湿盛胀满、水肿者不宜用", classics: [{ book: "《神农本草经》", content: "甘草，味甘平。主五脏六腑寒热邪气，坚筋骨，长肌肉，倍力，金疮肿，解毒。" }] },
-  { id: 8, name: "丹参", pinyin: "Dan Shen", alias: "赤参、紫丹参", category: "活血化瘀药", visual: "🟥", color: "herb-color-2", effect: "活血祛瘀，通经止痛，清心除烦，凉血消痈", nature: "微寒", taste: "苦", meridian: "心、肝", keyIdentification: { smell: "气微", texture: "质硬而脆，易折断", crossSection: "断面疏松，有裂隙或略平整而致密，皮部棕红色，木部灰黄色或紫褐色", outerSkin: "表面棕红色或暗棕红色，粗糙，具纵皱纹", other: "味微苦涩" }, dosage: "10-15g", caution: "不宜与藜芦同用。月经过多者及无瘀血者慎服", classics: [{ book: "《神农本草经》", content: "丹参，味苦微寒。主心腹邪气，肠鸣幽幽如走水，寒热积聚，破癥除瘕，止烦满，益气。" }] },
-  { id: 9, name: "生姜", pinyin: "Sheng Jiang", alias: "姜根、鲜姜", category: "解表药", visual: "🫚", color: "herb-color-3", effect: "解表散寒，温中止呕，化痰止咳，解鱼蟹毒", nature: "微温", taste: "辛", meridian: "肺、脾、胃", keyIdentification: { smell: "气香特异", texture: "质脆，易折断", crossSection: "断面浅黄色，内皮层环纹明显，维管束散在", outerSkin: "表面黄褐色或灰棕色，有环节，分枝顶端有茎痕或芽", other: "味辛辣" }, dosage: "3-10g", caution: "阴虚内热及实热证禁服", classics: [{ book: "《神农本草经》", content: "干姜，味辛温。主胸满咳逆上气，温中止血，出汗，逐风湿痹，肠澼下利。" }] }
+  { id: 1, name: "黄芪", pinyin: "Huang Qi", alias: "黄耆、绵芪", category: "补气药", visual: "🟡", color: "herb-color-6", effect: "补气固表，利尿托毒，排脓，敛疮生肌", nature: "微温", taste: "甘", meridian: "肺、脾", isFoodMedicine: true, keyIdentification: { smell: "有豆腥味", texture: "质硬而韧，不易折断", crossSection: "皮部黄白色，木部淡黄色，有放射状纹理及裂隙", outerSkin: "表面灰黄色或淡棕褐色，有不规则纵皱纹", other: "味微甜，嚼之有豆腥味" }, dosage: "9-30g", caution: "表实邪盛、气滞湿阻、食积停滞、阴虚阳亢、疮疡初起或溃后热毒尚盛等实证，均禁服", classics: [{ book: "《神农本草经》", content: "黄芪，味甘微温。主痈疽久败疮，排脓止痛，大风癞疾，五痔鼠瘘，补虚，小儿百病。" },{ book: "《名医别录》", content: "逐五脏间恶血，补丈夫虚损，五劳羸瘦，止渴，腹痛泄痢，益气，利阴气。" }] },
+  { id: 2, name: "当归", pinyin: "Dang Gui", alias: "干归、秦归", category: "补血药", visual: "🟤", color: "herb-color-4", effect: "补血活血，调经止痛，润肠通便", nature: "温", taste: "甘、辛", meridian: "肝、心、脾", isFoodMedicine: true, keyIdentification: { smell: "有浓郁香气", texture: "质柔韧，断面黄白色或淡黄棕色", crossSection: "皮部厚，有棕色油点，木部色较淡，形成层环黄棕色", outerSkin: "表面黄棕色至棕褐色，具纵皱纹和横长皮孔样突起", other: "味甘、辛、微苦" }, dosage: "6-12g", caution: "湿盛中满、大便溏泄者忌服", classics: [{ book: "《神农本草经》", content: "当归，味甘温。主咳逆上气，温疟寒热洗洗在皮肤中，妇人漏下绝子，诸恶疮疡金疮，煮饮之。" }] },
+  { id: 3, name: "枸杞", pinyin: "Gou Qi Zi", alias: "杞子、红耳坠", category: "补阴药", visual: "🔴", color: "herb-color-2", effect: "滋补肝肾，益精明目", nature: "平", taste: "甘", meridian: "肝、肾", isFoodMedicine: true, keyIdentification: { smell: "气微", texture: "质柔软而滋润", crossSection: "果肉柔软，种子类肾形", outerSkin: "表面鲜红色或暗红色，基部有白色果梗痕", other: "味甘" }, dosage: "6-12g", caution: "外邪实热、脾虚泄泻者慎服", classics: [{ book: "《神农本草经》", content: "枸杞，味苦寒。主五内邪气，热中消渴，周痹风湿。久服坚筋骨，轻身不老，耐寒暑。" }] },
+  { id: 4, name: "人参", pinyin: "Ren Shen", alias: "棒槌、地精", category: "补气药", visual: "🧅", color: "herb-color-5", effect: "大补元气，复脉固脱，补脾益肺，生津养血，安神益智", nature: "微温", taste: "甘、微苦", meridian: "脾、肺、心", isFoodMedicine: true, keyIdentification: { smell: "气微香而特异", texture: "质较硬，断面淡黄白色，显粉性", crossSection: "形成层环纹棕黄色，皮部有黄棕色点状树脂道", outerSkin: "表面灰黄色，上部或全体有疏浅断续的粗横纹及明显的纵皱", other: "味微苦、甘" }, dosage: "3-9g", caution: "实证、热证而正气不虚者忌服。反藜芦，畏五灵脂", classics: [{ book: "《神农本草经》", content: "人参，味甘微寒。主补五脏，安精神，定魂魄，止惊悸，除邪气，明目，开心益智。久服轻身延年。" }] },
+  { id: 5, name: "白术", pinyin: "Bai Zhu", alias: "于术、冬术", category: "补气药", visual: "🟨", color: "herb-color-6", effect: "健脾益气，燥湿利水，止汗，安胎", nature: "温", taste: "甘、苦", meridian: "脾、胃", isFoodMedicine: false, keyIdentification: { smell: "气清香", texture: "质坚硬，不易折断", crossSection: "断面不平坦，黄白色至淡棕色，有棕黄色的油点散在", outerSkin: "表面灰黄色或灰棕色，有瘤状突起及断续的纵皱和沟纹", other: "味甘、微辛，嚼之略带黏性" }, dosage: "6-12g", caution: "阴虚燥渴、气滞胀闷者忌服", classics: [{ book: "《神农本草经》", content: "白术，味苦温。主风寒湿痹，死肌，痉，疸，止汗，除热，消食。" }] },
+  { id: 6, name: "茯苓", pinyin: "Fu Ling", alias: "云苓、松苓", category: "利水渗湿药", visual: "⚪", color: "herb-color-1", effect: "利水渗湿，健脾，宁心", nature: "平", taste: "甘、淡", meridian: "心、肺、脾、肾", isFoodMedicine: true, keyIdentification: { smell: "气微", texture: "体重，质坚实，断面颗粒性", crossSection: "断面不平坦，有的具裂隙，外层淡棕色，内部白色", outerSkin: "表面棕褐色至黑褐色，有皱缩纹理", other: "味淡，嚼之粘牙" }, dosage: "10-15g", caution: "阴虚而无湿热、虚寒滑精、气虚下陷者慎服", classics: [{ book: "《神农本草经》", content: "茯苓，味甘平。主胸胁逆气，忧恚惊邪恐悸，心下结痛，寒热烦满，咳逆，口焦舌干，利小便。久服安魂养神。" }] },
+  { id: 7, name: "甘草", pinyin: "Gan Cao", alias: "国老、甜草根", category: "补气药", visual: "🟫", color: "herb-color-4", effect: "补脾益气，清热解毒，祛痰止咳，缓急止痛，调和诸药", nature: "平", taste: "甘", meridian: "心、肺、脾、胃", isFoodMedicine: true, keyIdentification: { smell: "气微，味甜而特殊", texture: "质坚实，断面略显纤维性，黄白色，粉性", crossSection: "形成层环明显，射线放射状，有的有裂隙", outerSkin: "表面红棕色或灰棕色，具显著的纵皱纹、沟纹及皮孔", other: "味甜而特殊" }, dosage: "2-10g", caution: "不宜与海藻、京大戟、红大戟、甘遂、芫花同用。湿盛胀满、水肿者不宜用", classics: [{ book: "《神农本草经》", content: "甘草，味甘平。主五脏六腑寒热邪气，坚筋骨，长肌肉，倍力，金疮肿，解毒。" }] },
+  { id: 8, name: "丹参", pinyin: "Dan Shen", alias: "赤参、紫丹参", category: "活血化瘀药", visual: "🟥", color: "herb-color-2", effect: "活血祛瘀，通经止痛，清心除烦，凉血消痈", nature: "微寒", taste: "苦", meridian: "心、肝", isFoodMedicine: false, keyIdentification: { smell: "气微", texture: "质硬而脆，易折断", crossSection: "断面疏松，有裂隙或略平整而致密，皮部棕红色，木部灰黄色或紫褐色", outerSkin: "表面棕红色或暗棕红色，粗糙，具纵皱纹", other: "味微苦涩" }, dosage: "10-15g", caution: "不宜与藜芦同用。月经过多者及无瘀血者慎服", classics: [{ book: "《神农本草经》", content: "丹参，味苦微寒。主心腹邪气，肠鸣幽幽如走水，寒热积聚，破癥除瘕，止烦满，益气。" }] },
+  { id: 9, name: "生姜", pinyin: "Sheng Jiang", alias: "姜根、鲜姜", category: "解表药", visual: "🫚", color: "herb-color-3", effect: "解表散寒，温中止呕，化痰止咳，解鱼蟹毒", nature: "微温", taste: "辛", meridian: "肺、脾、胃", isFoodMedicine: true, keyIdentification: { smell: "气香特异", texture: "质脆，易折断", crossSection: "断面浅黄色，内皮层环纹明显，维管束散在", outerSkin: "表面黄褐色或灰棕色，有环节，分枝顶端有茎痕或芽", other: "味辛辣" }, dosage: "3-10g", caution: "阴虚内热及实热证禁服", classics: [{ book: "《神农本草经》", content: "干姜，味辛温。主胸满咳逆上气，温中止血，出汗，逐风湿痹，肠澼下利。" }] }
 ];
 
 const QUIZ_DATA = [
@@ -1817,16 +1824,21 @@ function clearMatchSearch() {
   document.getElementById('match-herb-section').style.display = 'block';
   document.getElementById('match-search-result').style.display = 'none';
 }
-var CATEGORIES = ['全部', '补气药', '补血药', '补阴药', '活血化瘀药', '利水渗湿药', '解表药'];
+var CATEGORIES = ['全部', '🌿 药食同源', '补气药', '补血药', '补阴药', '活血化瘀药', '利水渗湿药', '解表药'];
 var currentCategory = '全部';
 function renderHerbList() {
   var tabsEl = document.getElementById('category-tabs');
   if (tabsEl && tabsEl.children.length === 0) {
     tabsEl.innerHTML = CATEGORIES.map(function(c, i){ return '<div class="category-tab '+(i===0?'active':'')+'" onclick="filterCategory(\''+c+'\')">'+c+'</div>'; }).join('');
   }
-  var herbs = currentCategory === '全部' ? HERB_DATA : HERB_DATA.filter(function(h){ return h.category === currentCategory; });
+  var herbs = HERB_DATA;
+  if (currentCategory === '🌿 药食同源') {
+    herbs = herbs.filter(function(h){ return h.isFoodMedicine === true; });
+  } else if (currentCategory !== '全部') {
+    herbs = herbs.filter(function(h){ return h.category === currentCategory; });
+  }
   var contentEl = document.getElementById('herb-list-content');
-  contentEl.innerHTML = herbs.map(function(h){ return '<div class="herb-list-card" onclick="showHerbDetail('+h.id+')"><div class="herb-visual '+h.color+'"><div style="font-size:48px;">'+h.visual+'</div></div><div class="herb-info"><div class="name">'+h.name+'</div><div class="effect">'+h.effect+'</div></div></div>'; }).join('');
+  contentEl.innerHTML = herbs.map(function(h){ var foodTag = h.isFoodMedicine ? '<span class="herb-food-tag">🌿 药食同源</span>' : ''; return '<div class="herb-list-card" onclick="showHerbDetail('+h.id+')"><div class="herb-visual '+h.color+'"><div style="font-size:48px;">'+h.visual+'</div></div><div class="herb-info"><div class="name">'+h.name+foodTag+'</div><div class="effect">'+h.effect+'</div></div></div>'; }).join('');
 }
 function filterCategory(cat) {
   currentCategory = cat;

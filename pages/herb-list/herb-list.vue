@@ -70,6 +70,11 @@
           >全部</view>
           <view 
             class="tab-item" 
+            :class="{ active: showFoodMedicine }"
+            @click="toggleFoodMedicine"
+          >🌿 药食同源</view>
+          <view 
+            class="tab-item" 
             :class="{ active: currentCategory === item }"
             v-for="item in categories" 
             :key="item"
@@ -81,7 +86,7 @@
 
     <view class="herb-list" v-if="herbList.length > 0">
       <view class="herb-card" v-for="item in herbList" :key="item.id" @click="goToDetail(item.id)">
-        <image class="herb-img" :src="item.image" mode="aspectFill"></image>
+        <image class="herb-img" :src="item.image" mode="aspectFill" @click.stop="previewImage(item.image)"></image>
         <view class="herb-content">
           <view class="herb-header">
             <view class="herb-name">{{ item.name }}</view>
@@ -96,6 +101,7 @@
           </view>
           <view class="herb-pinyin">{{ item.pinyin }}</view>
           <view class="herb-category-tag">{{ item.category }}</view>
+          <view class="food-medicine-tag" v-if="item.is_food_medicine === 1">🌿 药食同源</view>
           <view class="herb-effect">{{ item.effect }}</view>
         </view>
       </view>
@@ -146,7 +152,8 @@ export default {
     return {
       searchKeyword: '',
       currentCategory: '',
-      categories: ['补虚药', '清热药', '利水渗湿药', '解表药', '化痰止咳平喘药', '理气药'],
+      showFoodMedicine: false,
+      categories: ['解表药', '清热药', '泻下药', '祛风湿药', '利水渗湿药', '温里药', '理气药', '消食药', '驱虫药', '止血药', '活血化瘀药', '化痰止咳平喘药', '安神药', '平肝息风药', '开窍药', '补虚药', '收涩药', '涌吐药'],
       herbList: [],
       loading: false,
       page: 1,
@@ -239,6 +246,15 @@ export default {
     },
     switchCategory(category) {
       this.currentCategory = category
+      this.showFoodMedicine = false
+      this.page = 1
+      this.hasMore = true
+      this.herbList = []
+      this.loadList()
+    },
+    toggleFoodMedicine() {
+      this.showFoodMedicine = !this.showFoodMedicine
+      this.currentCategory = ''
       this.page = 1
       this.hasMore = true
       this.herbList = []
@@ -253,7 +269,8 @@ export default {
           page: this.page,
           pageSize: this.pageSize,
           keyword: this.searchKeyword,
-          category: this.currentCategory
+          category: this.currentCategory,
+          foodMedicine: this.showFoodMedicine ? '1' : ''
         })
         
         if (this.page === 1) {
@@ -274,6 +291,13 @@ export default {
         this.page++
         this.loadList()
       }
+    },
+    previewImage(url) {
+      if (!url) return
+      uni.previewImage({
+        urls: [url],
+        current: url
+      })
     },
     goToDetail(id) {
       uni.navigateTo({
@@ -737,6 +761,18 @@ export default {
   font-size: $font-size-xs;
   margin-top: $spacing-sm;
   align-self: flex-start;
+}
+
+.food-medicine-tag {
+  display: inline-block;
+  padding: 6rpx 16rpx;
+  background: rgba(#22c55e, 0.1);
+  color: #22c55e;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  margin-top: $spacing-xs;
+  align-self: flex-start;
+  font-weight: $font-weight-medium;
 }
 
 .herb-effect {

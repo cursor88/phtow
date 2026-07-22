@@ -1,10 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const path = require('path')
-const quizzes = require('../data/quizzes')
+const fs = require('fs')
+const mysqlService = require('../services/mysqlService')
 const paths = require('../config/paths')
 
-// 将字母答案（A/B/C/D）转换为数字索引（0/1/2/3）
 const toAnswerIndex = (answer) => {
   if (typeof answer === 'number') return answer
   if (typeof answer === 'string' && /^[A-Da-d]$/.test(answer)) {
@@ -13,15 +13,27 @@ const toAnswerIndex = (answer) => {
   return 0
 }
 
-const getDailyQuestion = () => {
+const getDailyQuestion = async () => {
   const today = new Date().toDateString()
   const hash = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  const index = hash % quizzes.length
-  return quizzes[index]
+  
+  const { list, total } = await mysqlService.getQuizzes(1, 100)
+  if (total === 0) return null
+  
+  const index = hash % total
+  return list[index] || list[0]
 }
 
-router.get('/daily', (req, res) => {
-  const question = getDailyQuestion()
+router.get('/daily', async (req, res) => {
+  const question = await getDailyQuestion()
+
+  if (!question) {
+    return res.json({
+      code: 404,
+      message: '暂无题目',
+      data: null
+    })
+  }
 
   res.json({
     code: 0,
@@ -34,14 +46,24 @@ router.get('/daily', (req, res) => {
       explanation: question.explanation,
       difficulty: question.difficulty,
       category: question.category,
-      herbId: question.herbId
+      herbId: question.herb_id
     }
   })
 })
 
-router.get('/random', (req, res) => {
-  const index = Math.floor(Math.random() * quizzes.length)
-  const question = quizzes[index]
+router.get('/random', async (req, res) => {
+  const { list, total } = await mysqlService.getQuizzes(1, 100)
+  
+  if (total === 0) {
+    return res.json({
+      code: 404,
+      message: '暂无题目',
+      data: null
+    })
+  }
+  
+  const index = Math.floor(Math.random() * total)
+  const question = list[index] || list[0]
 
   res.json({
     code: 0,
@@ -54,14 +76,14 @@ router.get('/random', (req, res) => {
       explanation: question.explanation,
       difficulty: question.difficulty,
       category: question.category,
-      herbId: question.herbId
+      herbId: question.herb_id
     }
   })
 })
 
-router.post('/submit', (req, res) => {
+router.post('/submit', async (req, res) => {
   const { questionId, answer } = req.body
-  const question = quizzes.find(q => q.id === questionId)
+  const question = await mysqlService.getQuizById(questionId)
 
   if (!question) {
     return res.json({
@@ -87,21 +109,12 @@ router.post('/submit', (req, res) => {
   })
 })
 
-router.get('/list', (req, res) => {
-  const { page = 1, pageSize = 10, category = '', difficulty = '' } = req.query
-  let filtered = quizzes
-  
-  if (category) {
-    filtered = filtered.filter(q => q.category === category)
-  }
-  
-  if (difficulty) {
-    filtered = filtered.filter(q => q.difficulty === difficulty)
-  }
-  
-  const start = (page - 1) * pageSize
-  const end = start + parseInt(pageSize)
-  const list = filtered.slice(start, end).map(q => ({
+router.get('/list', async (req, res) => {
+  const { page = 1, pageSize = 10, category = '', difficulty = '', keyword = '' } = req.query
+
+  const { list, total } = await mysqlService.getQuizzes(page, pageSize, category, null, keyword)
+
+  const result = list.map(q => ({
     id: q.id,
     question: q.question,
     options: q.options,
@@ -109,24 +122,24 @@ router.get('/list', (req, res) => {
     explanation: q.explanation,
     difficulty: q.difficulty,
     category: q.category,
-    herbId: q.herbId
+    herbId: q.herb_id
   }))
-  
+
   res.json({
     code: 0,
     message: '成功',
     data: {
-      list,
-      total: filtered.length,
+      list: result,
+      total,
       page: parseInt(page),
       pageSize: parseInt(pageSize)
     }
   })
 })
 
-router.get('/detail/:id', (req, res) => {
+router.get('/detail/:id', async (req, res) => {
   const { id } = req.params
-  const question = quizzes.find(q => q.id === parseInt(id))
+  const question = await mysqlService.getQuizById(parseInt(id))
   
   if (!question) {
     return res.json({
@@ -147,13 +160,12 @@ router.get('/detail/:id', (req, res) => {
       explanation: question.explanation,
       difficulty: question.difficulty,
       category: question.category,
-      herbId: question.herbId
+      herbId: question.herb_id
     }
   })
 })
 
 const quizStateFile = paths.QUIZ_STATE
-const fs = require('fs')
 
 function loadQuizState() {
   try {
@@ -187,7 +199,7 @@ router.get('/stats', (req, res) => {
   })
 })
 
-router.post('/answer', (req, res) => {
+router.post('/answer', async (req, res) => {
   const { qid, answer, correct } = req.body
   const state = loadQuizState()
   state.total = (state.total || 0) + 1
@@ -197,6 +209,21 @@ router.post('/answer', (req, res) => {
     if (qid && !state.wrongIds) state.wrongIds = []
     if (qid && state.wrongIds && !state.wrongIds.includes(qid)) {
       state.wrongIds.push(qid)
+    }
+    // 同步写入错题本
+    try {
+      const wrongFile = paths.WRONG_QUESTIONS
+      let wrongList = []
+      try { wrongList = JSON.parse(fs.readFileSync(wrongFile, 'utf8')) } catch (e) { wrongList = [] }
+      const existing = wrongList.find(w => w.questionId === qid)
+      if (existing) {
+        existing.count = (existing.count || 1) + 1
+      } else {
+        wrongList.push({ questionId: qid, count: 1 })
+      }
+      fs.writeFileSync(wrongFile, JSON.stringify(wrongList, null, 2))
+    } catch (e) {
+      console.error('[Quiz] 写入错题本失败:', e.message)
     }
   }
   saveQuizState(state)

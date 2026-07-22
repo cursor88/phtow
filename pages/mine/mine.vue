@@ -217,6 +217,11 @@
             <view class="menu-text">典籍溯源</view>
             <view class="menu-arrow">→</view>
           </view>
+          <view class="menu-item logout-item" @click="handleLogout">
+            <view class="menu-icon">🚪</view>
+            <view class="menu-text">退出登录</view>
+            <view class="menu-arrow">→</view>
+          </view>
         </view>
       </view>
     </view>
@@ -501,6 +506,28 @@ export default {
     goToClassics() {
       uni.navigateTo({
         url: '/pages/classics/classics'
+      })
+    },
+    handleLogout() {
+      uni.showModal({
+        title: '确认退出',
+        content: '确定要退出登录吗？',
+        success: (res) => {
+          if (res.confirm) {
+            uni.removeStorageSync('userToken')
+            uni.removeStorageSync('userId')
+            uni.removeStorageSync('userInfo')
+            uni.showToast({
+              title: '已退出登录',
+              icon: 'success'
+            })
+            setTimeout(() => {
+              uni.reLaunch({
+                url: '/pages/index/index'
+              })
+            }, 1500)
+          }
+        }
       })
     }
   }
@@ -982,6 +1009,12 @@ export default {
 .menu-arrow {
   font-size: $font-size-lg;
   color: $text-disabled;
+}
+
+.logout-item {
+  .menu-text {
+    color: $error-color;
+  }
 }
 
 .day-detail-modal, .achievement-modal {

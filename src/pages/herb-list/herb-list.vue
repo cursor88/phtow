@@ -23,6 +23,11 @@
           >全部</view>
           <view 
             class="tab-item" 
+            :class="{ active: showFoodMedicine }"
+            @click="toggleFoodMedicine"
+          >🌿 药食同源</view>
+          <view 
+            class="tab-item" 
             :class="{ active: currentCategory === item }"
             v-for="item in categories" 
             :key="item"
@@ -44,6 +49,7 @@
           </view>
           <view class="herb-pinyin">{{ item.pinyin }}</view>
           <view class="herb-category-tag">{{ item.category }}</view>
+          <view class="food-medicine-tag" v-if="item.is_food_medicine === 1">🌿 药食同源</view>
           <view class="herb-effect">{{ item.effect }}</view>
         </view>
       </view>
@@ -73,6 +79,7 @@ export default {
     return {
       searchKeyword: '',
       currentCategory: '',
+      showFoodMedicine: false,
       categories: ['补虚药', '清热药', '利水渗湿药', '解表药', '化痰止咳平喘药', '理气药'],
       herbList: [],
       loading: false,
@@ -119,6 +126,15 @@ export default {
     },
     switchCategory(category) {
       this.currentCategory = category
+      this.showFoodMedicine = false
+      this.page = 1
+      this.hasMore = true
+      this.herbList = []
+      this.loadList()
+    },
+    toggleFoodMedicine() {
+      this.showFoodMedicine = !this.showFoodMedicine
+      this.currentCategory = ''
       this.page = 1
       this.hasMore = true
       this.herbList = []
@@ -133,7 +149,8 @@ export default {
           page: this.page,
           pageSize: this.pageSize,
           keyword: this.searchKeyword,
-          category: this.currentCategory
+          category: this.currentCategory,
+          foodMedicine: this.showFoodMedicine ? '1' : ''
         })
         
         if (this.page === 1) {
@@ -308,6 +325,18 @@ export default {
   font-size: 22rpx;
   margin-top: 12rpx;
   align-self: flex-start;
+}
+
+.food-medicine-tag {
+  display: inline-block;
+  padding: 6rpx 16rpx;
+  background: rgba(#22c55e, 0.1);
+  color: #22c55e;
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  margin-top: 8rpx;
+  align-self: flex-start;
+  font-weight: 500;
 }
 
 .herb-effect {

@@ -3,9 +3,9 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 8081;
+const PORT = 3000;
 const API_HOST = 'localhost';
-const API_PORT = 3000;
+const API_PORT = 8080;
 
 const MIME_TYPES = {
   '.html': 'text/html',
@@ -56,7 +56,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (req.url.startsWith('/api')) {
+  if (req.url.startsWith('/api') || req.url.startsWith('/uploads')) {
     proxyRequest(req, res);
     return;
   }

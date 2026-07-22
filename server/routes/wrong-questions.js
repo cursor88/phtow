@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../config/db');
 const { authRequired } = require('../middleware/auth');
-const quizzes = require('../data/quizzes');
+const mysqlService = require('../services/mysqlService');
 const fs = require('fs');
 const path = require('path');
 const paths = require('../config/paths');
@@ -24,14 +24,14 @@ function saveWrongQuestions(data) {
 router.post('/add', authRequired, (req, res) => {
   try {
     const { questionId, userAnswer, correctAnswer, question, options, explanation, category, difficulty } = req.body;
-    
+
     if (!questionId || !userAnswer || !correctAnswer || !question || !options) {
       return res.json({ code: 400, message: '参数错误', data: null });
     }
 
     try {
       db.prepare(`
-        INSERT OR IGNORE INTO wrong_questions 
+        INSERT OR IGNORE INTO wrong_questions
         (user_id, question_id, question, options, correct_answer, user_answer, explanation, category, difficulty)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
@@ -56,22 +56,30 @@ router.post('/add', authRequired, (req, res) => {
   }
 });
 
-router.get('/list', (req, res) => {
+router.get('/list', async (req, res) => {
   try {
     const wrongList = loadWrongQuestions();
-    const list = wrongList.map(w => {
-      const q = quizzes.find(qz => qz.id === w.questionId);
-      return q ? {
-        id: w.questionId,
-        question: q.question,
-        options: q.options,
-        answer: q.answer,
-        explanation: q.explanation,
-        category: q.category,
-        difficulty: q.difficulty,
-        wrong_count: w.count || 1
-      } : null;
-    }).filter(Boolean);
+    const toAnswerIndex = (answer) => {
+      if (typeof answer === 'number') return answer;
+      if (typeof answer === 'string' && /^[A-Da-d]$/.test(answer)) return answer.toUpperCase().charCodeAt(0) - 65;
+      return 0;
+    };
+    const list = [];
+    for (const w of wrongList) {
+      const q = await mysqlService.getQuizById(w.questionId);
+      if (q) {
+        list.push({
+          id: q.id,
+          question: q.question,
+          options: q.options,
+          answer: toAnswerIndex(q.answer),
+          explanation: q.explanation,
+          category: q.category,
+          difficulty: q.difficulty,
+          wrong_count: w.count || 1
+        });
+      }
+    }
     res.json({ code: 0, message: 'ok', data: list });
   } catch (e) {
     console.error('Get wrong questions error:', e);

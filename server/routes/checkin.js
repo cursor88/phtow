@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const path = require('path')
 const fs = require('fs')
-const herbs = require('../data/herbs')
+const mysqlService = require('../services/mysqlService')
 const paths = require('../config/paths')
 
 const DAILY_HERBS_FILE = paths.DAILY_HERBS
@@ -13,7 +13,7 @@ const getTodayStr = () => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 }
 
-router.get('/daily-herb', (req, res) => {
+router.get('/daily-herb', async (req, res) => {
   const today = getTodayStr()
   let dailyHerbs = []
   try {
@@ -26,14 +26,16 @@ router.get('/daily-herb', (req, res) => {
   let todayHerb = dailyHerbs.find(h => h.date === today)
   
   if (!todayHerb) {
-    const availableHerbs = herbs.filter(h => {
+    const allHerbs = await mysqlService.getAllHerbs()
+    
+    const availableHerbs = allHerbs.filter(h => {
       return !dailyHerbs.some(dh => dh.herbId === h.id && dh.date !== today)
     })
     
     if (availableHerbs.length === 0) {
       todayHerb = {
         date: today,
-        herbId: herbs[Math.floor(Math.random() * herbs.length)].id,
+        herbId: allHerbs[Math.floor(Math.random() * allHerbs.length)].id,
         available: true
       }
     } else {
@@ -49,7 +51,7 @@ router.get('/daily-herb', (req, res) => {
     saveJsonFile(DAILY_HERBS_FILE, dailyHerbs)
   }
   
-  const herb = herbs.find(h => h.id === todayHerb.herbId)
+  const herb = await mysqlService.getHerbById(todayHerb.herbId)
   res.json({
     code: 0,
     message: '成功',
@@ -60,7 +62,7 @@ router.get('/daily-herb', (req, res) => {
   })
 })
 
-router.get('/records', (req, res) => {
+router.get('/records', async (req, res) => {
   let records = []
   try {
     const data = require('../data/checkinRecords.json')
@@ -69,13 +71,14 @@ router.get('/records', (req, res) => {
     records = []
   }
   
-  const detailedRecords = records.map(r => {
-    const herb = herbs.find(h => h.id === r.herbId)
-    return {
+  const detailedRecords = []
+  for (const r of records) {
+    const herb = await mysqlService.getHerbById(r.herbId)
+    detailedRecords.push({
       ...r,
       herb: herb
-    }
-  })
+    })
+  }
   
   res.json({
     code: 0,
@@ -87,7 +90,7 @@ router.get('/records', (req, res) => {
   })
 })
 
-router.post('/checkin', (req, res) => {
+router.post('/checkin', async (req, res) => {
   const { herbId } = req.body
   
   if (!herbId) {
@@ -119,7 +122,7 @@ router.post('/checkin', (req, res) => {
 
   saveJsonFile(CHECKIN_RECORDS_FILE, records)
   
-  const herb = herbs.find(h => h.id === newRecord.herbId)
+  const herb = await mysqlService.getHerbById(newRecord.herbId)
   res.json({
     code: 0,
     message: '打卡成功',
@@ -129,7 +132,7 @@ router.post('/checkin', (req, res) => {
   })
 })
 
-router.get('/calendar', (req, res) => {
+router.get('/calendar', async (req, res) => {
   const { year, month } = req.query
   const now = new Date()
   const targetYear = parseInt(year) || now.getFullYear()
@@ -148,15 +151,16 @@ router.get('/calendar', (req, res) => {
     return d.getFullYear() === targetYear && d.getMonth() + 1 === targetMonth
   })
   
-  const calendarData = monthRecords.map(r => {
-    const herb = herbs.find(h => h.id === r.herbId)
-    return {
+  const calendarData = []
+  for (const r of monthRecords) {
+    const herb = await mysqlService.getHerbBrief(r.herbId)
+    calendarData.push({
       date: r.date,
       herbId: r.herbId,
       herbName: herb ? herb.name : '',
-      herbImage: herb ? herb.image : ''
-    }
-  })
+      herbImage: herb ? (herb.cover_image_url || '') : ''
+    })
+  }
   
   res.json({
     code: 0,

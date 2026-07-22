@@ -115,6 +115,9 @@
     .herb-info { padding: 6px; text-align: center; }
     .herb-info .name { font-size: 14px; font-weight: 500; }
     .herb-info .cat { font-size: 11px; color: #999; }
+    .herb-item .herb-visual { overflow: hidden; }
+    .herb-item-img { width: 100%; height: 100%; object-fit: cover; }
+    .herb-visual-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 36px; }
 
     .preview-area {
       margin: 16px; height: 300px; background: #000;
@@ -250,6 +253,45 @@
     }
     .modal-body { padding: 20px; max-height: calc(85vh - 200px); overflow-y: auto; }
     .modal-body .title { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+    /* 图片轮播 */
+    .image-carousel {
+      position: relative; width: 100%; height: 280px;
+      overflow: hidden; background: #f5f5f5;
+    }
+    .carousel-track {
+      display: flex; height: 100%;
+      transition: transform 0.3s ease;
+      will-change: transform;
+    }
+    .carousel-slide {
+      flex: 0 0 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .carousel-slide img {
+      width: 100%; height: 100%; object-fit: cover;
+      user-select: none; -webkit-user-drag: none;
+    }
+    .carousel-dots {
+      position: absolute; bottom: 12px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 6px;
+      z-index: 2;
+    }
+    .carousel-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      transition: all 0.3s;
+    }
+    .carousel-dot.active {
+      width: 16px; border-radius: 3px;
+      background: rgba(255,255,255,0.95);
+    }
+    .carousel-counter {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(0,0,0,0.4); color: #fff;
+      font-size: 12px; padding: 2px 10px;
+      border-radius: 12px; z-index: 2;
+    }
+
     .detail-section { margin-bottom: 16px; }
     .detail-section .label {
       font-size: 14px; font-weight: 600; color: #2d8b5e;
@@ -386,7 +428,7 @@
     .search-result-header .title { font-size: 15px; font-weight: 600; color: #333; }
     .search-result-header .count { font-size: 12px; color: #999; }
     .search-result-item {
-      display: flex; align-items: center; background: #fff;
+      display: flex; align-items: flex-start; background: #fff;
       border-radius: 12px; padding: 14px; margin: 0 12px 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       cursor: pointer;
@@ -416,6 +458,13 @@
     }
     .category-tab.active { background: rgba(45, 139, 94, 0.08); color: #2d8b5e; border-color: #2d8b5e; }
 
+    .herb-food-tag {
+      display: inline-block; padding: 2px 8px; margin-left: 6px;
+      background: rgba(34, 197, 94, 0.1); color: #22c55e;
+      border-radius: 12px; font-size: 10px; font-weight: 500;
+      vertical-align: middle;
+    }
+
     .herb-list-card {
       display: flex; align-items: center; background: #fff;
       border-radius: 12px; padding: 14px; margin: 0 12px 12px;
@@ -425,11 +474,107 @@
     .herb-list-card .herb-visual {
       width: 70px; height: 70px; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 32px; margin-right: 14px; flex-shrink: 0;
+      font-size: 32px; margin-right: 14px; flex-shrink: 0; overflow: hidden;
+    }
+    .herb-list-card .herb-list-img {
+      width: 100%; height: 100%; object-fit: cover;
     }
     .herb-list-card .herb-info { flex: 1; min-width: 0; }
     .herb-list-card .herb-info .name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
     .herb-list-card .herb-info .effect { font-size: 12px; color: #666; line-height: 1.4; }
+
+    .checkin-calendar {
+      margin: 0 16px 16px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .cal-nav-btn {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: #2d8b5e;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cal-nav-btn:hover { background: rgba(45,139,94,0.1); }
+    .cal-nav-btn:active { background: rgba(45,139,94,0.15); }
+    .cal-title {
+      font-size: 15px; font-weight: 600; color: #333;
+    }
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-bottom: 8px;
+    }
+    .weekday {
+      text-align: center;
+      font-size: 12px;
+      color: #999;
+      padding: 6px 0;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      position: relative;
+      cursor: default;
+    }
+    .cal-day.cal-empty { visibility: hidden; }
+    .cal-date {
+      font-size: 13px;
+      color: #333;
+      margin-bottom: 2px;
+    }
+    .cal-day.cal-today .cal-date {
+      color: #2d8b5e;
+      font-weight: 600;
+    }
+    .cal-day.cal-checked {
+      background: rgba(45,139,94,0.1);
+      cursor: pointer;
+    }
+    .cal-day.cal-checked:hover { background: rgba(45,139,94,0.15); }
+    .cal-day.cal-checked:active { background: rgba(45,139,94,0.2); }
+    .cal-herb-img {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 2px;
+    }
+    .cal-herb-name {
+      font-size: 10px;
+      color: #2d8b5e;
+      text-align: center;
+      line-height: 1.2;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cal-loading {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 30px;
+      color: #999;
+      font-size: 13px;
+    }
 
     .empty-state {
       display: flex; flex-direction: column; align-items: center;
@@ -438,6 +583,26 @@
     .empty-state .empty-icon { font-size: 64px; margin-bottom: 16px; }
     .empty-state .empty-title { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
     .empty-state .empty-desc { font-size: 13px; text-align: center; }
+
+    .pagination {
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px 0; gap: 8px;
+    }
+    .pagination-btn {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      background: #fff; border: 1px solid #e5e7eb;
+      font-size: 14px; color: #666; cursor: pointer;
+    }
+    .pagination-btn.active {
+      background: #2d8b5e; color: #fff; border-color: #2d8b5e;
+    }
+    .pagination-btn.disabled {
+      opacity: 0.4; cursor: not-allowed;
+    }
+    .pagination-dot {
+      color: #999; font-size: 14px; padding: 0 4px;
+    }
 
     .profile-header {
       background: linear-gradient(135deg, #2d8b5e, #3da878);
@@ -767,11 +932,79 @@
       flex-shrink: 0;
     }
     .llm-step-text { flex: 1; font-size: 13px; color: #333; line-height: 1.6; }
+
+    /* 图片预览 */
+    .image-preview-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+    }
+    .image-preview-overlay.active { display: flex; }
+    .image-preview-overlay img {
+      max-width: 95%;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    .image-preview-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10001;
+    }
+    .image-preview-hint {
+      position: absolute;
+      bottom: 24px;
+      left: 0; right: 0;
+      text-align: center;
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
 
-<div class="page active page-with-tab" id="page-home">
+<div class="page" id="page-login">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;">
+    <div style="font-size:60px;margin-bottom:20px;">🌿</div>
+    <div style="font-size:28px;font-weight:700;color:#2d8b5e;margin-bottom:8px;">草木有方</div>
+    <div style="font-size:14px;color:#999;margin-bottom:40px;">AI经方中医问诊与中药学习平台</div>
+    
+    <div style="width:100%;max-width:320px;">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">用户名</div>
+        <input type="text" id="login-username" placeholder="请输入用户名" style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none;transition:border-color 0.3s;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">密码</div>
+        <input type="password" id="login-password" placeholder="请输入密码" style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none;transition:border-color 0.3s;">
+      </div>
+      <button onclick="handleLogin()" style="width:100%;padding:14px;background:#2d8b5e;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;">登录</button>
+      <div style="display:flex;justify-content:center;gap:24px;font-size:13px;color:#666;">
+        <span onclick="showRegister()" style="cursor:pointer;color:#2d8b5e;">注册账号</span>
+        <span>|</span>
+        <span onclick="showGuestMode()" style="cursor:pointer;color:#2d8b5e;">访客模式</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page page-with-tab" id="page-home">
   <div class="banner">
     <div class="banner-title">草木有方</div>
     <div class="banner-subtitle">AI经方中医问诊与中药学习平台</div>
@@ -864,7 +1097,7 @@
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;">
       <button style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border:none;border-radius:8px;font-size:12px;color:#F59E0B;cursor:pointer;" onclick="event.stopPropagation();openConstitutionTest('standard')">标准测评 (60题)</button>
-      <button style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border:none;border-radius:8px;font-size:12px;color:#F59E0B;cursor:pointer;" onclick="event.stopPropagation();openConstitutionTest('quick')">快速测评(9题)</button>
+      <button style="flex:1;padding:8px;background:rgba(255,255,255,0.7);border:none;border-radius:8px;font-size:12px;color:#F59E0B;cursor:pointer;" onclick="event.stopPropagation();openConstitutionTest('quick')">快速测评(18题)</button>
     </div>
   </div>
 
@@ -966,8 +1199,13 @@
     </div>
   </div>
   <div class="card" id="match-herb-section">
-    <div style="font-size:15px;font-weight:600;margin-bottom:12px;">选择药材查看搭配</div>
-    <div class="herb-chips" id="match-herb-chips"></div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:12px;">搜索药材查看搭配</div>
+    <div class="match-search-bar">
+      <span class="search-icon">🌿</span>
+      <input type="text" placeholder="输入药材名称，如：人参、枸杞" id="match-herb-search-input" oninput="filterMatchByHerbName(this.value)">
+      <span class="search-clear" onclick="clearHerbSearch()" id="match-herb-search-clear" style="display:none;">×</span>
+    </div>
+    <div class="herb-chips" id="match-herb-chips" style="margin-top:8px;display:none;"></div>
   </div>
   <div id="match-list"></div>
   <div id="match-search-result" style="display:none;"></div>
@@ -1136,9 +1374,35 @@
   </div>
   <div class="favorite-section">
     <div class="section-header">
+      <span class="title">📊 打卡统计</span>
+    </div>
+    <div id="checkin-stats-list" style="margin:0 16px 12px;">
+      <div class="card" style="padding:14px;display:flex;justify-content:space-around;">
+        <div style="text-align:center;"><div id="checkin-stat-total" style="font-size:24px;font-weight:700;color:#2d8b5e;">0</div><div style="font-size:12px;color:#999;">累计打卡</div></div>
+        <div style="width:1px;background:#f0f9f4;"></div>
+        <div style="text-align:center;"><div id="checkin-stat-consecutive" style="font-size:24px;font-weight:700;color:#2d8b5e;">0</div><div style="font-size:12px;color:#999;">连续天数</div></div>
+        <div style="width:1px;background:#f0f9f4;"></div>
+        <div style="text-align:center;"><div id="checkin-stat-month" style="font-size:24px;font-weight:700;color:#2d8b5e;">0</div><div style="font-size:12px;color:#999;">本月打卡</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="favorite-section">
+    <div class="section-header">
       <span class="title">📅 打卡记录</span>
     </div>
-    <div id="checkin-records-list"></div>
+    <div class="checkin-calendar">
+      <div class="calendar-header">
+        <div class="cal-nav-btn" onclick="prevMonth()">‹</div>
+        <div class="cal-title" id="calendar-title"></div>
+        <div class="cal-nav-btn" onclick="nextMonth()">›</div>
+      </div>
+      <div class="calendar-weekdays">
+        <div class="weekday">日</div><div class="weekday">一</div><div class="weekday">二</div>
+        <div class="weekday">三</div><div class="weekday">四</div><div class="weekday">五</div>
+        <div class="weekday">六</div>
+      </div>
+      <div id="calendar-grid" class="calendar-grid"></div>
+    </div>
   </div>
   <div class="favorite-section">
     <div class="section-header">
@@ -1159,19 +1423,42 @@
     </div>
     <div id="constitution-records-list"></div>
   </div>
-  <div class="favorite-section">
-    <div class="section-header">
-      <span class="title">📊 打卡统计</span>
+  <div class="favorite-section" style="margin-bottom:80px;">
+    <div class="section-header" style="cursor:pointer;" onclick="goToReviewPage()">
+      <span class="title">🔧 识别纠错审核</span>
+      <span class="more" id="review-pending-count" style="display:none;background:#dc2626;color:#fff;padding:2px 8px;border-radius:10px;font-size:12px;">0</span>
     </div>
-    <div id="checkin-stats-list" style="margin:0 16px 12px;">
-      <div class="card" style="padding:14px;display:flex;justify-content:space-around;">
-        <div style="text-align:center;"><div id="checkin-stat-total" style="font-size:24px;font-weight:700;color:#2d8b5e;">0</div><div style="font-size:12px;color:#999;">累计打卡</div></div>
-        <div style="width:1px;background:#f0f9f4;"></div>
-        <div style="text-align:center;"><div id="checkin-stat-consecutive" style="font-size:24px;font-weight:700;color:#2d8b5e;">0</div><div style="font-size:12px;color:#999;">连续天数</div></div>
-        <div style="width:1px;background:#f0f9f4;"></div>
-        <div style="text-align:center;"><div id="checkin-stat-month" style="font-size:24px;font-weight:700;color:#2d8b5e;">0</div><div style="font-size:12px;color:#999;">本月打卡</div></div>
+  </div>
+  <div class="favorite-section" style="margin-bottom:80px;">
+    <div class="section-header" style="cursor:pointer;color:#dc2626;" onclick="handleLogout()">
+      <span class="title">🚪 退出登录</span>
+      <span class="more">→</span>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-review">
+  <div class="nav-bar">
+    <span class="back" onclick="showPage('page-profile')">←</span>
+    <span class="title">识别纠错审核</span>
+    <span class="spacer"></span>
+  </div>
+  <div class="page-content" style="padding-top:56px;">
+    <div style="margin:0 16px 12px;display:flex;gap:8px;">
+      <div class="card" style="flex:1;padding:12px;text-align:center;cursor:pointer;" onclick="loadReviewList('pending')">
+        <div style="font-size:20px;font-weight:700;color:#F59E0B;" id="review-stat-pending">0</div>
+        <div style="font-size:12px;color:#999;">待审核</div>
+      </div>
+      <div class="card" style="flex:1;padding:12px;text-align:center;cursor:pointer;" onclick="loadReviewList('approved')">
+        <div style="font-size:20px;font-weight:700;color:#2d8b5e;" id="review-stat-approved">0</div>
+        <div style="font-size:12px;color:#999;">已通过</div>
+      </div>
+      <div class="card" style="flex:1;padding:12px;text-align:center;cursor:pointer;" onclick="loadReviewList('rejected')">
+        <div style="font-size:20px;font-weight:700;color:#dc2626;" id="review-stat-rejected">0</div>
+        <div style="font-size:12px;color:#999;">已拒绝</div>
       </div>
     </div>
+    <div id="review-list"></div>
   </div>
 </div>
 
@@ -1211,6 +1498,41 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="feedback-modal" style="display:none;">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header" style="background:linear-gradient(135deg, #2d8b5e, #3da878);height:140px;">
+      <div class="modal-close" onclick="closeFeedbackModal()">×</div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#fff;">
+        <div style="font-size:36px;margin-bottom:8px;">📝</div>
+        <div style="font-size:18px;font-weight:600;">帮助改进识别</div>
+        <div style="font-size:12px;opacity:0.9;">您的反馈将帮助我们提升识别准确率</div>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:16px 20px 20px;">
+      <div style="margin-bottom:12px;font-size:13px;color:#666;">
+        AI识别结果：<strong id="feedback-original-result" style="color:#333;">-</strong>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">请选择或输入正确的药材</div>
+        <div style="display:flex;align-items:center;background:#f8fafc;border-radius:25px;padding:8px 14px;border:1px solid #e5e7eb;margin-bottom:10px;">
+          <span style="color:#999;font-size:14px;margin-right:8px;">🔍</span>
+          <input type="text" id="feedback-herb-search" placeholder="输入药材名称搜索或直接输入" oninput="filterFeedbackHerbs(this.value)" style="flex:1;border:none;outline:none;font-size:14px;background:transparent;">
+        </div>
+        <div id="feedback-herb-list" style="max-height:180px;overflow-y:auto;display:flex;flex-wrap:wrap;gap:8px;"></div>
+        <div id="feedback-custom-input" style="margin-top:12px;display:none;">
+          <div style="font-size:13px;color:#666;margin-bottom:6px;">自定义药材名称</div>
+          <input type="text" id="feedback-custom-name" placeholder="请输入药材名称" style="width:100%;padding:10px;border:1px solid #2d8b5e;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">补充说明（选填）</div>
+        <textarea id="feedback-note" placeholder="如：这是野生/栽培品、不同产地等" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;resize:none;height:60px;box-sizing:border-box;"></textarea>
+      </div>
+      <button onclick="submitFeedback()" style="width:100%;padding:12px;background:#2d8b5e;color:#fff;border:none;border-radius:10px;font-size:15px;cursor:pointer;font-weight:600;">提交反馈</button>
+    </div>
+  </div>
+</div>
+
 <div class="tab-bar">
   <div class="tab-item active" onclick="showPage('page-home')">
     <div class="icon">🏠</div>
@@ -1236,10 +1558,37 @@
 
 <script>
 const API_BASE = window.location.origin + '/api';
+
+function previewImage(url) {
+  if (!url) return;
+  var overlay = document.getElementById('imagePreviewOverlay');
+  var img = document.getElementById('imagePreviewImg');
+  img.src = url;
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePreview() {
+  var overlay = document.getElementById('imagePreviewOverlay');
+  var img = document.getElementById('imagePreviewImg');
+  overlay.classList.remove('active');
+  img.src = '';
+  document.body.style.overflow = '';
+}
 let herbsData = [];
+let homeHerbsData = [];
+let herbsTotal = 0;
+let herbsCurrentPage = 1;
+let herbsPageSize = 10;
+let herbsCurrentCategory = '';
+let herbsFoodMedicineOnly = false;
 let matchData = [];
-let currentPage = 'page-home';
-let pageHistory = ['page-home'];
+let matchTotal = 0;
+let matchCurrentPage = 1;
+let matchPageSize = 10;
+let matchCurrentHerbId = null;
+let currentPage = localStorage.getItem('userToken') ? 'page-home' : 'page-login';
+let pageHistory = [currentPage];
 let dailyHerbData = null;
 let selectedImage = null;
 
@@ -1263,7 +1612,6 @@ async function api(url) {
     if (data.code !== 0) { console.warn('API returned code:', data.code, data.message); return null; }
     if (data.data === undefined || data.data === null) return null;
     if (Array.isArray(data.data)) return data.data;
-    if (data.data.list !== undefined) return data.data.list;
     return data.data;
   } catch(e) { console.error('API Error:', url, e); return null; }
 }
@@ -1272,8 +1620,8 @@ async function apiPost(url, body) {
   try {
     var res = await fetch(API_BASE + url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     var data = await res.json();
-    return data.code === 0 ? data.data : (showToast(data.message || '操作失败'), null);
-  } catch(e) { console.error('API Error:', e); showToast('网络错误'); return null; }
+    return data;
+  } catch(e) { console.error('API Error:', e); showToast('网络错误'); return { code: -1, message: '网络错误' }; }
 }
 
 async function apiDelete(url) {
@@ -1288,6 +1636,7 @@ async function initHome() {
   await loadDailyQuiz();
   await loadDailyHerb();
   await loadHomeHerbList();
+  loadCheckinStats();
 }
 
 async function loadDailyQuiz() {
@@ -1320,8 +1669,8 @@ async function loadDailyHerb() {
   if (data) {
     dailyHerbData = data;
     var herb = data.herb || null;
-    if (!herb && herbsData.length > 0) { herb = herbsData.find(function(h) { return h.id === data.herbId; }); }
-    if (!herb && herbsData.length === 0) { var herbs = await api('/herb/list'); if (herbs) herbsData = herbs; herb = herbsData.find(function(h) { return h.id === data.herbId; }); }
+    if (!herb && homeHerbsData.length > 0) { herb = homeHerbsData.find(function(h) { return h.id === data.herbId; }); }
+    if (!herb) { var herbs = await api('/herb/list?page=1&pageSize=100'); if (herbs && herbs.list) herb = herbs.list.find(function(h) { return h.id === data.herbId; }); }
     document.getElementById('daily-herb-name').textContent = herb ? herb.name : '今日药材';
     document.getElementById('daily-herb-effect').textContent = herb ? (herb.effect || '').substring(0, 30) : '';
     var visual = document.getElementById('daily-herb-visual');
@@ -1334,8 +1683,33 @@ function goToDailyHerbDetail() {
 }
 
 async function handleDailyCheckin() {
+  var btn = document.getElementById('daily-checkin-btn');
   var data = await apiPost('/checkin/checkin', { herbId: dailyHerbData ? dailyHerbData.herbId : 1 });
-  if (data) { showToast('打卡成功！'); loadCheckinStats(); }
+  if (data) {
+    if (data.alreadyChecked) {
+      showToast('今日已打卡');
+    } else {
+      showToast('打卡成功！');
+    }
+    updateCheckinBtnState(true);
+    loadCheckinStats();
+  }
+}
+
+function updateCheckinBtnState(checked) {
+  var btn = document.getElementById('daily-checkin-btn');
+  if (!btn) return;
+  if (checked) {
+    btn.textContent = '已打卡 ✓';
+    btn.style.background = '#cccccc';
+    btn.style.cursor = 'not-allowed';
+    btn.disabled = true;
+  } else {
+    btn.textContent = '立即打卡';
+    btn.style.background = 'linear-gradient(135deg, #2d8b5e, #3da878)';
+    btn.style.cursor = 'pointer';
+    btn.disabled = false;
+  }
 }
 
 function goToDailyQuiz() {
@@ -1343,35 +1717,49 @@ function goToDailyQuiz() {
 }
 
 async function loadHomeHerbList() {
-  if (herbsData.length === 0) { await loadHerbList(); }
   var list = document.getElementById('herb-list');
-  if (list && herbsData.length > 0) {
-    list.innerHTML = herbsData.slice(0, 6).map(function(h) {
-      return '<div class="herb-item" onclick="showHerbDetail(' + h.id + ')"><div class="herb-visual herb-color-' + ((h.id % 6) + 1) + '">🌿</div><div class="herb-info"><div class="name">' + h.name + '</div><div class="cat">' + (h.category || '') + '</div></div></div>';
+  if (!list) return;
+  if (homeHerbsData.length === 0) {
+    var data = await api('/herb/list?page=1&pageSize=6');
+    if (data && data.list) { homeHerbsData = data.list; }
+  }
+  if (homeHerbsData.length > 0) {
+    list.innerHTML = homeHerbsData.map(function(h) {
+      var visualHtml = h.cover_image_url 
+        ? '<img src="' + h.cover_image_url + '" alt="' + h.name + '" class="herb-item-img">' 
+        : '<div class="herb-visual-inner herb-color-' + ((h.id % 6) + 1) + '">🌿</div>';
+      return '<div class="herb-item" onclick="showHerbDetail(' + h.id + ')"><div class="herb-visual">' + visualHtml + '</div><div class="herb-info"><div class="name">' + h.name + '</div><div class="cat">' + (h.category || '') + '</div></div></div>';
     }).join('');
   }
 }
 
-async function loadHerbList() {
+async function loadHerbList(page) {
   var content = document.getElementById('herb-list-content');
   if (content) content.innerHTML = '<div class="loading"><div class="spinner" style="border-color:rgba(45,139,94,0.3);border-top-color:#2d8b5e;"></div>加载中...</div>';
-  var data = await api('/herb/list');
-  if (data && data.length) {
-    herbsData = data;
-    renderHerbList(data);
-    renderCategoryTabs(data);
-    loadHomeHerbList();
+  var pageNum = page || herbsCurrentPage;
+  var url = '/herb/list?page=' + pageNum + '&pageSize=' + herbsPageSize;
+  if (herbsCurrentCategory) url += '&category=' + encodeURIComponent(herbsCurrentCategory);
+  if (herbsFoodMedicineOnly) url += '&foodMedicine=1';
+  var data = await api(url);
+  if (data && data.list) {
+    herbsData = data.list;
+    herbsTotal = data.total;
+    herbsCurrentPage = data.page;
+    renderHerbList(data.list, data);
+    var tabsEl = document.getElementById('category-tabs');
+    if (tabsEl && tabsEl.children.length === 0) {
+      renderCategoryTabs(data.list);
+    }
   } else if (content) {
     content.innerHTML = '<div class="empty-state"><div class="empty-icon">🌿</div><div class="empty-title">暂无药材</div></div>';
   }
 }
 
 function renderCategoryTabs(data) {
-  var categories = ['全部'];
-  data.forEach(function(h) { if (h.category && categories.indexOf(h.category) === -1) categories.push(h.category); });
+  var fullCategories = ['全部', '🌿 药食同源', '解表药', '清热药', '泻下药', '祛风湿药', '利水渗湿药', '温里药', '理气药', '消食药', '驱虫药', '止血药', '活血化瘀药', '化痰止咳平喘药', '安神药', '平肝息风药', '开窍药', '补虚药', '收涩药', '涌吐药'];
   var tabs = document.getElementById('category-tabs');
   if (tabs) {
-    tabs.innerHTML = categories.map(function(c, i) {
+    tabs.innerHTML = fullCategories.map(function(c, i) {
       return '<div class="category-tab' + (i === 0 ? ' active' : '') + '" onclick="filterByCategory(\'' + c + '\', this)">' + c + '</div>';
     }).join('');
   }
@@ -1380,17 +1768,50 @@ function renderCategoryTabs(data) {
 function filterByCategory(cat, el) {
   document.querySelectorAll('.category-tab').forEach(function(t) { t.classList.remove('active'); });
   el.classList.add('active');
-  var filtered = cat === '全部' ? herbsData : herbsData.filter(function(h) { return h.category === cat; });
-  renderHerbList(filtered);
+  if (cat === '🌿 药食同源') {
+    herbsFoodMedicineOnly = true;
+    herbsCurrentCategory = '';
+  } else {
+    herbsFoodMedicineOnly = false;
+    herbsCurrentCategory = cat === '全部' ? '' : cat;
+  }
+  herbsCurrentPage = 1;
+  loadHerbList(1);
 }
 
-function renderHerbList(data) {
+function renderHerbList(data, pagination) {
   var content = document.getElementById('herb-list-content');
   if (!content) return;
   if (data.length === 0) { content.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">未找到药材</div></div>'; return; }
-  content.innerHTML = data.map(function(h) {
-    return '<div class="herb-list-card" onclick="showHerbDetail(' + h.id + ')"><div class="herb-visual herb-color-' + ((h.id % 6) + 1) + '">🌿</div><div class="herb-info"><div class="name">' + h.name + '</div><div class="effect">' + (h.effect || '').substring(0, 30) + '</div></div></div>';
+  
+  var cardsHtml = data.map(function(h) {
+    var visualHtml = h.cover_image_url 
+      ? '<img src="' + h.cover_image_url + '" alt="' + h.name + '" class="herb-list-img" onclick="previewImage(this.src); event.stopPropagation();">' 
+      : '<div class="herb-visual-inner herb-color-' + ((h.id % 6) + 1) + '">🌿</div>';
+    var foodTag = h.is_food_medicine === 1 ? '<span class="herb-food-tag">🌿 药食同源</span>' : '';
+    return '<div class="herb-list-card" onclick="showHerbDetail(' + h.id + ')"><div class="herb-visual">' + visualHtml + '</div><div class="herb-info"><div class="name">' + h.name + foodTag + '</div><div class="effect">' + (h.effect || '').substring(0, 30) + '</div></div></div>';
   }).join('');
+  
+  var paginationHtml = '';
+  if (pagination && pagination.total > pagination.pageSize) {
+    var totalPages = Math.ceil(pagination.total / pagination.pageSize);
+    var currentPage = pagination.page;
+    var pages = [];
+    for (var i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+        pages.push(i);
+      } else if (pages.length > 0 && pages[pages.length - 1] !== -1) {
+        pages.push(-1);
+      }
+    }
+    
+    paginationHtml = '<div class="pagination"><div class="pagination-btn' + (currentPage <= 1 ? ' disabled' : '') + '" onclick="loadHerbList(' + (currentPage - 1) + ')">←</div>' + pages.map(function(p) {
+      if (p === -1) return '<div class="pagination-dot">...</div>';
+      return '<div class="pagination-btn' + (p === currentPage ? ' active' : '') + '" onclick="loadHerbList(' + p + ')">' + p + '</div>';
+    }).join('') + '<div class="pagination-btn' + (currentPage >= totalPages ? ' disabled' : '') + '" onclick="loadHerbList(' + (currentPage + 1) + ')">→</div></div>';
+  }
+  
+  content.innerHTML = cardsHtml + paginationHtml;
 }
 
 function handleHerbSearch() {
@@ -1428,12 +1849,48 @@ async function showHerbDetail(id) {
   }
 
   var alternativeHtml = (data.alternatives && data.alternatives.length > 0) ? '<div class="card"><div class="section-title">其他可能结果</div><div>' + data.alternatives.map(function(a) {
-    return '<div class="search-result-item" onclick="showHerbDetail(' + (a.herbId || 0) + ')"><div class="result-visual herb-color-' + ((a.rank % 6) + 1) + '">🌿</div><div class="result-info"><div class="result-name">' + a.name + '</div><div class="result-effect">' + (a.effect || '') + '</div></div><div style="color:#F59E0B;font-size:14px;font-weight:600;">' + (a.probability * 100).toFixed(0) + '%</div></div>';
+    var altKi = '';
+    if (a.key_identification) {
+      var ak = a.key_identification;
+      if (typeof ak === 'string') {
+        altKi = '<div style="font-size:12px;color:#666;margin-top:6px;line-height:1.5;">' + ak + '</div>';
+      } else {
+        var kiRows = [];
+        if (ak.smell) kiRows.push('<div style="display:flex;padding:3px 0;"><span style="color:#2d8b5e;font-weight:500;font-size:11px;width:36px;flex-shrink:0;">气味</span><span style="font-size:11px;color:#666;flex:1;">' + ak.smell + '</span></div>');
+        if (ak.texture) kiRows.push('<div style="display:flex;padding:3px 0;"><span style="color:#2d8b5e;font-weight:500;font-size:11px;width:36px;flex-shrink:0;">质地</span><span style="font-size:11px;color:#666;flex:1;">' + ak.texture + '</span></div>');
+        if (ak.cross_section) kiRows.push('<div style="display:flex;padding:3px 0;"><span style="color:#2d8b5e;font-weight:500;font-size:11px;width:36px;flex-shrink:0;">截面</span><span style="font-size:11px;color:#666;flex:1;">' + ak.cross_section + '</span></div>');
+        if (ak.outer_skin) kiRows.push('<div style="display:flex;padding:3px 0;"><span style="color:#2d8b5e;font-weight:500;font-size:11px;width:36px;flex-shrink:0;">外皮</span><span style="font-size:11px;color:#666;flex:1;">' + ak.outer_skin + '</span></div>');
+        if (ak.other) kiRows.push('<div style="display:flex;padding:3px 0;"><span style="color:#2d8b5e;font-weight:500;font-size:11px;width:36px;flex-shrink:0;">其他</span><span style="font-size:11px;color:#666;flex:1;">' + ak.other + '</span></div>');
+        if (kiRows.length > 0) {
+          altKi = '<div style="margin-top:6px;border-top:1px dashed #e2e8f0;padding-top:6px;">' + kiRows.join('') + '</div>';
+        }
+      }
+    }
+    return '<div class="search-result-item" onclick="showHerbDetail(' + (a.herbId || 0) + ')"><div class="result-visual herb-color-' + ((a.rank % 6) + 1) + '">🌿</div><div class="result-info"><div class="result-name">' + a.name + '</div>' + altKi + '</div><div style="color:#F59E0B;font-size:14px;font-weight:600;">' + (a.probability * 100).toFixed(0) + '%</div></div>';
   }).join('') + '</div></div>' : '';
 
   var isFavorited = isHerbFavorited(data.id);
-  
-  content.innerHTML = '<div class="herb-hero"><div class="hero-bg herb-color-' + ((data.id % 6) + 1) + '"><div style="font-size:120px;">🌿</div></div><div class="herb-overlay"></div><div class="herb-title-area"><div class="name">' + data.name + '</div><div class="pinyin">' + (data.pinyin || '') + '</div><div class="alias">' + (data.alias && data.alias.length ? data.alias.join('、') : '') + '</div></div></div>' +
+
+  // 图片轮播 HTML
+  var heroHtml = '';
+  var hasImages = data.images && data.images.length > 0;
+  if (hasImages) {
+    var slidesHtml = data.images.map(function(img, idx) {
+      return '<div class="carousel-slide"><img src="' + img.url + '" alt="' + (img.description || data.name) + '" loading="lazy" onclick="previewImage(this.src); event.stopPropagation();" style="cursor:pointer;"></div>';
+    }).join('');
+    var dotsHtml = data.images.map(function(_, idx) {
+      return '<div class="carousel-dot' + (idx === 0 ? ' active' : '') + '"></div>';
+    }).join('');
+    heroHtml = '<div class="image-carousel" id="herb-carousel" data-count="' + data.images.length + '">' +
+      '<div class="carousel-track">' + slidesHtml + '</div>' +
+      '<div class="carousel-counter">1 / ' + data.images.length + '</div>' +
+      '<div class="carousel-dots">' + dotsHtml + '</div>' +
+      '</div>';
+  } else {
+    heroHtml = '<div class="herb-hero"><div class="hero-bg herb-color-' + ((data.id % 6) + 1) + '"><div style="font-size:120px;">🌿</div></div><div class="herb-overlay"></div><div class="herb-title-area"><div class="name">' + data.name + '</div><div class="pinyin">' + (data.pinyin || '') + '</div><div class="alias">' + (data.alias && data.alias.length ? data.alias.join('、') : '') + '</div></div></div>';
+  }
+
+  content.innerHTML = heroHtml +
     '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="info-row" style="flex:1;"><div class="info-item"><div class="label">分类</div><div class="value">' + (data.category || '-') + '</div></div><div class="info-item"><div class="label">性味</div><div class="value">' + (data.nature || '-') + ' · ' + (data.taste || '-') + '</div></div></div><button id="herb-fav-btn" onclick="toggleHerbFavorite(' + data.id + ')" style="padding:10px 20px;border-radius:25px;font-size:14px;border:none;cursor:pointer;' + (isFavorited ? 'background:#ef4444;color:#fff;' : 'background:#f0f9f4;color:#2d8b5e;') + '">' + (isFavorited ? '❤️ 已收藏' : '🤍 收藏') + '</button></div><div class="info-row"><div class="info-item"><div class="label">归经</div><div class="value">' + (data.meridian || '-') + '</div></div><div class="info-item"><div class="label">剂量</div><div class="value">' + (data.dosage || '-') + '</div></div></div></div>' +
     '<div class="card"><div class="section-title">功效主治</div><div class="section-content">' + (data.effect || '') + '</div></div>' +
     ((data.indication || '') ? '<div class="card"><div class="section-title">适应症</div><div class="section-content">' + data.indication + '</div></div>' : '') +
@@ -1443,6 +1900,11 @@ async function showHerbDetail(id) {
     foodMatchHtml +
     alternativeHtml +
     ((data.taboo || '') ? '<div class="card caution-card"><div class="section-title caution-title">注意事项</div><div class="section-content">' + data.taboo + '</div></div>' : '');
+
+  // 初始化图片轮播触摸滑动
+  if (hasImages) {
+    initImageCarousel('herb-carousel');
+  }
 }
 
 function isHerbFavorited(id) {
@@ -1459,16 +1921,18 @@ function toggleHerbFavorite(id) {
     var favs = JSON.parse(localStorage.getItem('favorites') || '{}');
     if (!favs.herbs) favs.herbs = [];
     var idx = favs.herbs.indexOf(id);
-    if (idx === -1) {
+    var isFav = idx === -1;
+    if (isFav) {
       favs.herbs.push(id);
       showToast('收藏成功');
+      apiPost('/favorite/add', { type: 'herb', id: id });
     } else {
       favs.herbs.splice(idx, 1);
       showToast('已取消收藏');
+      apiPost('/favorite/remove', { type: 'herb', id: id });
     }
     localStorage.setItem('favorites', JSON.stringify(favs));
-    apiPost('/favorite/add', { type: 'herb', id: id });
-    updateHerbFavBtn(id, idx === -1);
+    updateHerbFavBtn(id, isFav);
   } catch (e) {
     showToast('操作失败');
   }
@@ -1481,6 +1945,95 @@ function updateHerbFavBtn(id, isFavorited) {
     btn.style.background = isFavorited ? '#ef4444' : '#f0f9f4';
     btn.style.color = isFavorited ? '#fff' : '#2d8b5e';
   }
+}
+
+function initImageCarousel(carouselId) {
+  var carousel = document.getElementById(carouselId);
+  if (!carousel) return;
+  var track = carousel.querySelector('.carousel-track');
+  var dots = carousel.querySelectorAll('.carousel-dot');
+  var counter = carousel.querySelector('.carousel-counter');
+  var count = parseInt(carousel.dataset.count) || 1;
+  var current = 0;
+  var startX = 0, startY = 0, currentX = 0;
+  var isDragging = false;
+
+  function goTo(index) {
+    if (index < 0) index = 0;
+    if (index >= count) index = count - 1;
+    current = index;
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+    if (counter) counter.textContent = (current + 1) + ' / ' + count;
+  }
+
+  carousel.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isDragging = true;
+    track.style.transition = 'none';
+  }, { passive: true });
+
+  carousel.addEventListener('touchmove', function(e) {
+    if (!isDragging) return;
+    currentX = e.touches[0].clientX;
+    var diffX = currentX - startX;
+    var diffY = e.touches[0].clientY - startY;
+    if (Math.abs(diffY) > Math.abs(diffX)) return; // 垂直滚动，不处理
+    var offset = -(current * 100) + (diffX / carousel.offsetWidth * 100);
+    track.style.transform = 'translateX(' + offset + '%)';
+  }, { passive: true });
+
+  carousel.addEventListener('touchend', function(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    track.style.transition = 'transform 0.3s ease';
+    var diffX = currentX - startX;
+    if (diffX < -50) {
+      goTo(current + 1);
+    } else if (diffX > 50) {
+      goTo(current - 1);
+    } else {
+      goTo(current);
+    }
+  });
+
+  // 鼠标支持（桌面端）
+  carousel.addEventListener('mousedown', function(e) {
+    startX = e.clientX;
+    isDragging = true;
+    track.style.transition = 'none';
+    e.preventDefault();
+  });
+
+  carousel.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    currentX = e.clientX;
+    var diffX = currentX - startX;
+    var offset = -(current * 100) + (diffX / carousel.offsetWidth * 100);
+    track.style.transform = 'translateX(' + offset + '%)';
+  });
+
+  carousel.addEventListener('mouseup', function(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    track.style.transition = 'transform 0.3s ease';
+    var diffX = currentX - startX;
+    if (diffX < -50) {
+      goTo(current + 1);
+    } else if (diffX > 50) {
+      goTo(current - 1);
+    } else {
+      goTo(current);
+    }
+  });
+
+  carousel.addEventListener('mouseleave', function() {
+    if (!isDragging) return;
+    isDragging = false;
+    track.style.transition = 'transform 0.3s ease';
+    goTo(current);
+  });
 }
 
 function takePhoto() {
@@ -1537,48 +2090,237 @@ async function identifyImage() {
 function renderIdentifyResult(data) {
   var resultDiv = document.getElementById('identify-result');
   
+  var kiHtml = '';
+  if (data.key_identification) {
+    var ki = data.key_identification;
+    if (typeof ki === 'string') {
+      kiHtml = '<div style="margin-top:12px;padding-top:12px;border-top:1px solid #f0f9f4;"><div style="font-size:13px;font-weight:600;color:#2d8b5e;margin-bottom:8px;">关键鉴别点</div><div style="font-size:13px;color:#666;">' + ki + '</div></div>';
+    } else {
+      var labels = { smell: '气味', texture: '质地', cross_section: '截面', outer_skin: '外皮', other: '其他' };
+      var items = Object.keys(ki).filter(function(k) { return ki[k]; }).map(function(k) {
+        return '<div style="display:flex;padding:6px 0;"><div style="width:50px;font-size:12px;color:#2d8b5e;font-weight:500;flex-shrink:0;">' + (labels[k] || k) + '</div><div style="font-size:12px;color:#666;flex:1;">' + ki[k] + '</div></div>';
+      }).join('');
+      if (items) {
+        kiHtml = '<div style="margin-top:12px;padding-top:12px;border-top:1px solid #f0f9f4;"><div style="font-size:13px;font-weight:600;color:#2d8b5e;margin-bottom:8px;">关键鉴别点</div><div>' + items + '</div></div>';
+      }
+    }
+  }
+  
   var alternativesHtml = (data.alternatives && data.alternatives.length > 0) ? '<div style="margin-top:16px;"><div style="font-size:14px;font-weight:600;color:#333;margin-bottom:12px;">其他可能结果</div>' + data.alternatives.map(function(a) {
-    return '<div class="search-result-item" onclick="showHerbDetail(' + (a.herbId || 0) + ')"><div class="result-visual herb-color-' + ((a.rank % 6) + 1) + '">🌿</div><div class="result-info"><div class="result-name">' + a.name + '</div><div class="result-effect">' + (a.effect || '') + '</div></div><div style="color:#F59E0B;font-size:14px;font-weight:600;">' + (a.probability * 100).toFixed(0) + '%</div></div>';
+    var altKi = '';
+    if (a.key_identification) {
+      var ak = a.key_identification;
+      if (typeof ak === 'string') {
+        altKi = '<div style="font-size:12px;color:#666;margin-top:6px;line-height:1.5;">' + ak + '</div>';
+      } else {
+        var kiRows = [];
+        if (ak.smell) kiRows.push('<div style="display:flex;padding:3px 0;"><span style="color:#2d8b5e;font-weight:500;font-size:11px;width:36px;flex-shrink:0;">气味</span><span style="font-size:11px;color:#666;flex:1;">' + ak.smell + '</span></div>');
+        if (ak.texture) kiRows.push('<div style="display:flex;padding:3px 0;"><span style="color:#2d8b5e;font-weight:500;font-size:11px;width:36px;flex-shrink:0;">质地</span><span style="font-size:11px;color:#666;flex:1;">' + ak.texture + '</span></div>');
+        if (ak.cross_section) kiRows.push('<div style="display:flex;padding:3px 0;"><span style="color:#2d8b5e;font-weight:500;font-size:11px;width:36px;flex-shrink:0;">截面</span><span style="font-size:11px;color:#666;flex:1;">' + ak.cross_section + '</span></div>');
+        if (ak.outer_skin) kiRows.push('<div style="display:flex;padding:3px 0;"><span style="color:#2d8b5e;font-weight:500;font-size:11px;width:36px;flex-shrink:0;">外皮</span><span style="font-size:11px;color:#666;flex:1;">' + ak.outer_skin + '</span></div>');
+        if (ak.other) kiRows.push('<div style="display:flex;padding:3px 0;"><span style="color:#2d8b5e;font-weight:500;font-size:11px;width:36px;flex-shrink:0;">其他</span><span style="font-size:11px;color:#666;flex:1;">' + ak.other + '</span></div>');
+        if (kiRows.length > 0) {
+          altKi = '<div style="margin-top:6px;border-top:1px dashed #e2e8f0;padding-top:6px;">' + kiRows.join('') + '</div>';
+        }
+      }
+    }
+    return '<div class="search-result-item" onclick="showHerbDetail(' + (a.herbId || 0) + ')"><div class="result-visual herb-color-' + ((a.rank % 6) + 1) + '">🌿</div><div class="result-info"><div class="result-name">' + a.name + '</div>' + altKi + '</div><div style="color:#F59E0B;font-size:14px;font-weight:600;">' + (a.probability * 100).toFixed(0) + '%</div></div>';
   }).join('') + '</div>' : '';
   
-  resultDiv.innerHTML = '<div class="recognition-result" onclick="showHerbDetail(' + data.id + ')"><div class="result-header"><div class="result-name">' + data.name + '</div><div class="result-accuracy">' + (data.accuracy * 100).toFixed(0) + '%</div></div><div class="result-pinyin">' + (data.pinyin || '') + '</div><div class="result-effect">' + (data.effect || '') + '</div><div style="margin-top:12px;font-size:12px;color:#999;">来源: ' + (data.source === 'ai' ? 'AI模型识别' : (data.source === 'image-search' ? '图像检索' : '本地识别')) + '</div></div>' + alternativesHtml;
+  window._lastIdentifyResult = data;
+
+  var feedbackBtn = '<div style="margin-top:16px;text-align:center;"><button onclick="openFeedbackModal()" style="background:none;border:none;color:#2d8b5e;font-size:13px;cursor:pointer;text-decoration:underline;">📝 识别有误？帮助改进</button></div>';
+
+  resultDiv.innerHTML = '<div class="recognition-result" onclick="showHerbDetail(' + data.id + ')"><div class="result-header"><div class="result-name">' + data.name + '</div><div class="result-accuracy">' + (data.accuracy * 100).toFixed(0) + '%</div></div><div class="result-pinyin">' + (data.pinyin || '') + '</div><div style="margin-top:12px;font-size:12px;color:#999;">来源: ' + (data.source === 'ai' ? 'AI模型识别' : (data.source === 'image-search' ? '图像检索' : '本地识别')) + '</div>' + kiHtml + '</div>' + alternativesHtml + feedbackBtn;
 }
 
-async function initMatchPage() {
-  if (matchData.length === 0) {
-    var data = await api('/match/list');
-    if (data) matchData = data;
+var _feedbackSelectedHerb = null;
+
+function openFeedbackModal() {
+  var modal = document.getElementById('feedback-modal');
+  if (!modal) return;
+  var result = window._lastIdentifyResult;
+  document.getElementById('feedback-original-result').textContent = result ? result.name : '-';
+  document.getElementById('feedback-herb-search').value = '';
+  document.getElementById('feedback-note').value = '';
+  _feedbackSelectedHerb = null;
+  renderFeedbackHerbList(homeHerbsData);
+  modal.style.display = 'flex';
+  setTimeout(function() { modal.classList.add('active'); }, 10);
+}
+
+function closeFeedbackModal() {
+  var modal = document.getElementById('feedback-modal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  setTimeout(function() { modal.style.display = 'none'; }, 300);
+}
+
+function renderFeedbackHerbList(herbs) {
+  var list = document.getElementById('feedback-herb-list');
+  if (!list) return;
+  if (!herbs || herbs.length === 0) {
+    list.innerHTML = '<div style="width:100%;text-align:center;color:#999;padding:20px;">未找到药材</div>';
+    return;
   }
-  renderMatchHerbChips();
-  renderMatchList();
-}
-
-function renderMatchHerbChips() {
-  var chips = document.getElementById('match-herb-chips');
-  if (!chips) return;
-  var herbIds = [...new Set(matchData.map(function(m) { return m.herbId; }))].slice(0, 10);
-  chips.innerHTML = '<div class="herb-chip active" onclick="filterMatchByHerb(null, this)">全部</div>' + herbIds.map(function(hid) {
-    var herb = herbsData.find(function(h) { return h.id === hid; });
-    var name = herb ? herb.name : '药材' + hid;
-    return '<div class="herb-chip" onclick="filterMatchByHerb(' + hid + ', this)">' + name + '</div>';
+  list.innerHTML = herbs.map(function(h) {
+    var selected = _feedbackSelectedHerb && _feedbackSelectedHerb.id === h.id;
+    return '<div onclick="selectFeedbackHerb(' + h.id + ')" style="cursor:pointer;padding:8px 12px;border-radius:8px;border:2px solid ' + (selected ? '#2d8b5e' : '#e5e7eb') + ';background:' + (selected ? '#f0fdf4' : '#fff') + ';font-size:13px;' + (selected ? 'color:#2d8b5e;font-weight:600;' : 'color:#333;') + '">' + h.name + '</div>';
   }).join('');
 }
 
-function filterMatchByHerb(herbId, el) {
-  document.querySelectorAll('.herb-chip').forEach(function(c) { c.classList.remove('active'); });
-  el.classList.add('active');
-  var filtered = herbId ? matchData.filter(function(m) { return m.herbId === herbId; }) : matchData;
-  renderMatchList(filtered);
+function selectFeedbackHerb(id) {
+  var herb = homeHerbsData.find(function(h) { return h.id === id; });
+  if (!herb) return;
+  _feedbackSelectedHerb = herb;
+  var searchVal = document.getElementById('feedback-herb-search').value.trim();
+  var filtered = searchVal ? homeHerbsData.filter(function(h) { return h.name.indexOf(searchVal) >= 0; }) : homeHerbsData;
+  renderFeedbackHerbList(filtered);
 }
 
-function renderMatchList(data) {
+function filterFeedbackHerbs(keyword) {
+  var kw = keyword.trim();
+  var filtered = kw ? homeHerbsData.filter(function(h) { return h.name.indexOf(kw) >= 0; }) : homeHerbsData;
+  var customInput = document.getElementById('feedback-custom-input');
+  
+  if (kw && filtered.length === 0) {
+    customInput.style.display = 'block';
+    document.getElementById('feedback-custom-name').value = kw;
+    _feedbackSelectedHerb = null;
+  } else {
+    customInput.style.display = 'none';
+  }
+  renderFeedbackHerbList(filtered);
+}
+
+async function submitFeedback() {
+  var customName = document.getElementById('feedback-custom-name').value.trim();
+  
+  if (!_feedbackSelectedHerb && !customName) {
+    showToast('请选择或输入正确的药材');
+    return;
+  }
+  if (!selectedImage) {
+    showToast('图片数据丢失，请重新上传');
+    return;
+  }
+
+  var formData = new FormData();
+  formData.append('image', selectedImage);
+  formData.append('herbId', _feedbackSelectedHerb ? _feedbackSelectedHerb.id : 0);
+  formData.append('herbName', _feedbackSelectedHerb ? _feedbackSelectedHerb.name : customName);
+  formData.append('originalResult', window._lastIdentifyResult ? window._lastIdentifyResult.name : '');
+  formData.append('note', document.getElementById('feedback-note').value);
+
+  try {
+    var res = await fetch(API_BASE + '/feedback/identify-correction', { method: 'POST', body: formData });
+    var data = await res.json();
+    if (data.code === 0) {
+      showToast('感谢您的反馈！审核通过后将入库');
+      closeFeedbackModal();
+    } else {
+      showToast(data.message || '提交失败');
+    }
+  } catch (e) {
+    showToast('网络错误');
+  }
+}
+
+async function initMatchPage() {
+  if (homeHerbsData.length === 0) {
+    var herbs = await api('/herb/list?page=1&pageSize=100');
+    if (herbs && herbs.list) homeHerbsData = herbs.list;
+  }
+  matchCurrentHerbId = null;
+  matchCurrentPage = 1;
+  loadMatchList(1);
+}
+
+async function loadMatchList(page) {
+  var pageNum = page || matchCurrentPage;
+  var url = '/match/list?page=' + pageNum + '&pageSize=' + matchPageSize;
+  if (matchCurrentHerbId) url += '&herbId=' + matchCurrentHerbId;
+  var data = await api(url);
+  if (data && data.list) {
+    matchData = data.list;
+    matchTotal = data.total;
+    matchCurrentPage = data.page;
+    renderMatchList(data.list, data);
+  } else {
+    var list = document.getElementById('match-list');
+    if (list) list.innerHTML = '<div class="empty-state"><div class="empty-icon">🍲</div><div class="empty-title">暂无搭配</div></div>';
+  }
+}
+
+async function filterMatchByHerbName(keyword) {
+  var clearBtn = document.getElementById('match-herb-search-clear');
+  if (clearBtn) clearBtn.style.display = keyword ? 'block' : 'none';
+  
+  if (!keyword.trim()) {
+    matchCurrentHerbId = null;
+    matchCurrentPage = 1;
+    loadMatchList(1);
+    return;
+  }
+  
+  var kw = keyword.toLowerCase();
+  var matchedHerbs = homeHerbsData.filter(function(h) {
+    var nameMatch = h.name && h.name.toLowerCase().indexOf(kw) >= 0;
+    var aliasMatch = h.alias && Array.isArray(h.alias) && h.alias.some(function(a) { return a.toLowerCase().indexOf(kw) >= 0; });
+    return nameMatch || aliasMatch;
+  });
+  
+  if (matchedHerbs.length === 0) {
+    var list = document.getElementById('match-list');
+    if (list) list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">未找到相关药材</div></div>';
+    return;
+  }
+  
+  matchCurrentHerbId = matchedHerbs[0].id;
+  matchCurrentPage = 1;
+  loadMatchList(1);
+}
+
+function clearHerbSearch() {
+  var input = document.getElementById('match-herb-search-input');
+  if (input) input.value = '';
+  filterMatchByHerbName('');
+}
+
+function renderMatchList(data, pagination) {
   var list = document.getElementById('match-list');
   if (!list) return;
   data = data || matchData;
   if (data.length === 0) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">🍲</div><div class="empty-title">暂无搭配</div></div>'; return; }
-  list.innerHTML = data.map(function(m) {
-    return '<div class="card" onclick="showMatchDetail(' + m.id + ')"><div style="display:flex;align-items:center;margin-bottom:12px;"><div class="food-visual herb-color-' + ((m.id % 6) + 1) + '" style="width:70px;height:70px;border-radius:10px;margin-right:14px;">🍲</div><div style="flex:1;"><div style="font-size:16px;font-weight:600;">' + m.name + '</div><div style="font-size:12px;color:#2d8b5e;margin-top:4px;">' + (m.effect || '') + '</div></div></div><div style="display:flex;flex-wrap:wrap;gap:4px;">' + m.ingredients.map(function(i) { return '<span class="tag">' + i + '</span>'; }).join('') + '</div></div>';
+  
+  var cardsHtml = data.map(function(m) {
+    var herb = homeHerbsData.find(function(h) { return h.id === m.herb_id; });
+    var visualHtml = herb && herb.cover_image_url 
+      ? '<img src="' + herb.cover_image_url + '" style="width:70px;height:70px;border-radius:10px;margin-right:14px;object-fit:cover;">'
+      : '<div class="food-visual herb-color-' + ((m.id % 6) + 1) + '" style="width:70px;height:70px;border-radius:10px;margin-right:14px;">🍲</div>';
+    return '<div class="card" onclick="showMatchDetail(' + m.id + ')"><div style="display:flex;align-items:center;margin-bottom:12px;">' + visualHtml + '<div style="flex:1;"><div style="font-size:16px;font-weight:600;">' + m.name + '</div><div style="font-size:12px;color:#2d8b5e;margin-top:4px;">' + (m.effect || '') + '</div></div></div><div style="display:flex;flex-wrap:wrap;gap:4px;">' + m.ingredients.map(function(i) { return '<span class="tag">' + i + '</span>'; }).join('') + '</div></div>';
   }).join('');
+
+  var paginationHtml = '';
+  if (pagination && pagination.total > pagination.pageSize) {
+    var totalPages = Math.ceil(pagination.total / pagination.pageSize);
+    var currentPage = pagination.page;
+    var pages = [];
+    for (var i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+        pages.push(i);
+      } else if (pages.length > 0 && pages[pages.length - 1] !== -1) {
+        pages.push(-1);
+      }
+    }
+    
+    paginationHtml = '<div class="pagination"><div class="pagination-btn' + (currentPage <= 1 ? ' disabled' : '') + '" onclick="loadMatchList(' + (currentPage - 1) + ')">←</div>' + pages.map(function(p) {
+      if (p === -1) return '<div class="pagination-dot">...</div>';
+      return '<div class="pagination-btn' + (p === currentPage ? ' active' : '') + '" onclick="loadMatchList(' + p + ')">' + p + '</div>';
+    }).join('') + '<div class="pagination-btn' + (currentPage >= totalPages ? ' disabled' : '') + '" onclick="loadMatchList(' + (currentPage + 1) + ')">→</div></div>';
+  }
+
+  list.innerHTML = cardsHtml + paginationHtml;
 }
 
 function handleMatchSearchKey(e) {
@@ -1595,7 +2337,9 @@ function clearMatchSearch() {
   document.getElementById('match-search-clear').style.display = 'none';
   document.getElementById('match-search-result').style.display = 'none';
   document.getElementById('match-herb-section').style.display = 'block';
-  renderMatchList();
+  matchCurrentHerbId = null;
+  matchCurrentPage = 1;
+  loadMatchList(1);
 }
 
 function searchMatch() {
@@ -1607,22 +2351,33 @@ function searchMatch() {
     return m.name.includes(keyword) || m.effect.includes(keyword) || (m.suitable && m.suitable.includes(keyword)) || m.ingredients.some(function(i) { return i.includes(keyword); });
   });
   
-  document.getElementById('match-herb-section').style.display = 'none';
-  document.getElementById('match-search-result').style.display = 'block';
-  var resultDiv = document.getElementById('match-search-result');
+  document.getElementById('match-herb-section').style.display = 'block';
+  document.getElementById('match-search-result').style.display = 'none';
+  
+  var listEl = document.getElementById('match-list');
+  if (!listEl) return;
   
   if (results.length === 0) {
-    resultDiv.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">未找到相关搭配</div></div>';
+    listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">未找到相关搭配</div></div>';
   } else {
-    resultDiv.innerHTML = '<div class="search-result-header"><div class="title">搜索结果</div><div class="count">' + results.length + '个结果</div></div>' + results.map(function(m) {
-      return '<div class="search-result-item" onclick="showMatchDetail(' + m.id + ')"><div class="result-visual herb-color-' + ((m.id % 6) + 1) + '">🍲</div><div class="result-info"><div class="result-name">' + m.name + '</div><div class="result-effect">' + (m.effect || '') + '</div></div></div>';
+    var cardsHtml = results.map(function(m) {
+      var herb = homeHerbsData.find(function(h) { return h.id === m.herb_id; });
+      var visualHtml = herb && herb.cover_image_url 
+        ? '<img src="' + herb.cover_image_url + '" style="width:70px;height:70px;border-radius:10px;margin-right:14px;object-fit:cover;">'
+        : '<div class="food-visual herb-color-' + ((m.id % 6) + 1) + '" style="width:70px;height:70px;border-radius:10px;margin-right:14px;">🍲</div>';
+      return '<div class="card" onclick="showMatchDetail(' + m.id + ')"><div style="display:flex;align-items:center;margin-bottom:12px;">' + visualHtml + '<div style="flex:1;"><div style="font-size:16px;font-weight:600;">' + m.name + '</div><div style="font-size:12px;color:#2d8b5e;margin-top:4px;">' + (m.effect || '') + '</div></div></div><div style="display:flex;flex-wrap:wrap;gap:4px;">' + m.ingredients.map(function(i) { return '<span class="tag">' + i + '</span>'; }).join('') + '</div></div>';
     }).join('');
+    listEl.innerHTML = cardsHtml;
   }
 }
 
 async function showMatchDetail(id) {
   var data = matchData.find(function(m) { return m.id === id; });
-  if (!data) return;
+  if (!data) {
+    data = await api('/match/detail/' + id);
+    if (!data) { showToast('搭配不存在'); return; }
+    if (!data.ingredients) data.ingredients = [];
+  }
   
   var isFavorited = isMatchFavorited(id);
   
@@ -1657,16 +2412,18 @@ function toggleMatchFavorite(id) {
     var favs = JSON.parse(localStorage.getItem('favorites') || '{}');
     if (!favs.matches) favs.matches = [];
     var idx = favs.matches.indexOf(id);
-    if (idx === -1) {
+    var isFav = idx === -1;
+    if (isFav) {
       favs.matches.push(id);
       showToast('收藏成功');
+      apiPost('/favorite/add', { type: 'match', id: id });
     } else {
       favs.matches.splice(idx, 1);
       showToast('已取消收藏');
+      apiPost('/favorite/remove', { type: 'match', id: id });
     }
     localStorage.setItem('favorites', JSON.stringify(favs));
-    apiPost('/favorite/add', { type: 'match', id: id });
-    updateMatchFavBtn(id, idx === -1);
+    updateMatchFavBtn(id, isFav);
   } catch (e) {
     showToast('操作失败');
   }
@@ -1692,6 +2449,7 @@ async function initQuizPage() {
     document.getElementById('stat-total').textContent = stats.total || 0;
     document.getElementById('stat-accuracy').textContent = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) + '%' : '0%';
   }
+  if (window._quizListMode === 'list' || window._quizListMode === 'wrong') return;
   var daily = await api('/quiz/daily');
   if (daily) {
     daily.options = cleanOptions(daily.options);
@@ -1711,10 +2469,11 @@ function renderQuiz(quiz) {
     return '<div class="option-item" onclick="selectQuizOption(' + i + ', this)"><div class="opt-letter">' + String.fromCharCode(65 + i) + '</div><div class="opt-text">' + opt + '</div><div class="opt-check"></div></div>';
   }).join('');
 
-  content.innerHTML = '<div class="card" id="quiz-card"><div class="quiz-header"><div class="quiz-tag">' + (quiz.difficulty || '中等') + '</div><div style="font-size:12px;color:#999;">' + (quiz.category || '') + '</div></div><div class="quiz-question">' + quiz.question + '</div>' + optionsHtml + '<div class="quiz-footer"><span style="color:#999;font-size:12px;">点击选项作答</span><span class="quiz-go" id="quiz-next-btn" style="display:none;cursor:pointer;" onclick="loadNextQuiz()">下一题 →</span></div></div>';
+  content.innerHTML = '<div class="card" id="quiz-card"><div class="quiz-header"><div class="quiz-tag">' + (quiz.difficulty || '中等') + '</div><div style="font-size:12px;color:#999;">' + (quiz.category || '') + '</div></div><div class="quiz-question">' + quiz.question + '</div>' + optionsHtml + '</div><div style="display:flex;gap:12px;margin:0 16px 16px;"><button style="flex:1;padding:12px;border:1px solid #2d8b5e;background:#fff;color:#2d8b5e;border-radius:10px;font-size:14px;cursor:pointer;" onclick="loadPrevQuiz()">← 上一题</button><button style="flex:1;padding:12px;border:none;background:#2d8b5e;color:#fff;border-radius:10px;font-size:14px;cursor:pointer;" onclick="loadNextQuiz()">下一题 →</button></div>';
 
   window.currentQuiz = quiz;
   window.quizAnswered = false;
+  if (!window.quizHistory) window.quizHistory = [];
 }
 
 function selectQuizOption(idx, el) {
@@ -1742,9 +2501,6 @@ function selectQuizOption(idx, el) {
     document.getElementById('quiz-card').innerHTML += '<div class="explanation"><div class="title">解析</div><div class="text">' + window.currentQuiz.explanation + '</div></div>';
   }
 
-  var nextBtn = document.getElementById('quiz-next-btn');
-  if (nextBtn) nextBtn.style.display = 'inline-block';
-
   api('/quiz/stats').then(function(stats) {
     if (stats) {
       var el1 = document.getElementById('stat-correct');
@@ -1758,36 +2514,124 @@ function selectQuizOption(idx, el) {
 }
 
 function loadNextQuiz() {
+  if (!window.quizHistory) window.quizHistory = [];
+  if (window.currentQuiz) {
+    window.quizHistory.push(window.currentQuiz.id);
+    if (window.quizHistory.length > 50) window.quizHistory.shift();
+  }
   api('/quiz/random').then(function(data) {
     if (data) renderQuiz(data);
   });
 }
 
+function loadPrevQuiz() {
+  if (!window.quizHistory || window.quizHistory.length === 0) {
+    showToast('没有上一题了');
+    return;
+  }
+  var prevId = window.quizHistory.pop();
+  api('/quiz/detail/' + prevId).then(function(data) {
+    if (data) renderQuiz(data);
+  });
+}
+
 function goToQuizList() {
-  showPage('page-quiz', false);
   window._quizListMode = 'list';
-  api('/quiz/list').then(function(data) {
+  window._quizCurrentPage = 1;
+  window._quizPageSize = 10;
+  window._quizKeyword = '';
+  showPage('page-quiz', false);
+  loadQuizList(1);
+}
+
+function loadQuizList(page) {
+  var pageNum = page || window._quizCurrentPage || 1;
+  window._quizCurrentPage = pageNum;
+  var keyword = window._quizKeyword || '';
+  var url = '/quiz/list?page=' + pageNum + '&pageSize=' + (window._quizPageSize || 10);
+  if (keyword) url += '&keyword=' + encodeURIComponent(keyword);
+
+  api(url).then(function(data) {
     var content = document.getElementById('quiz-content');
     if (!content) return;
-    var list = Array.isArray(data) ? data : (data && data.list ? data.list : []);
-    if (!list || list.length === 0) { content.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">暂无题目</div></div>'; return; }
+    var list = (data && data.list) ? data.list : [];
+    var total = (data && data.total) ? data.total : 0;
+
+    var searchHtml = '<div class="card" style="margin:0 16px 12px;padding:10px 14px;">' +
+      '<div style="display:flex;align-items:center;background:#f8fafc;border-radius:25px;padding:8px 14px;border:1px solid #e5e7eb;">' +
+      '<span style="color:#999;font-size:14px;margin-right:8px;">🔍</span>' +
+      '<input type="text" id="quiz-search-input" placeholder="输入药材名称搜索题目" value="' + (keyword || '') + '" onkeypress="handleQuizSearchKey(event)" style="flex:1;border:none;outline:none;font-size:14px;background:transparent;">' +
+      '<span id="quiz-search-clear" style="color:#999;cursor:pointer;display:' + (keyword ? 'block' : 'none') + ';" onclick="clearQuizSearch()">×</span>' +
+      '</div></div>';
+
+    if (!list || list.length === 0) {
+      content.innerHTML = searchHtml + '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">暂无题目</div></div>';
+      return;
+    }
+
     window._quizListCache = list;
-    content.innerHTML = '<div style="margin:0 16px 12px;font-size:13px;color:#999;">共 ' + list.length + ' 道题，点击卡片开始作答</div>' + list.map(function(q, idx) {
+    var cardsHtml = '<div style="margin:0 16px 12px;font-size:13px;color:#999;">共 ' + total + ' 道题，点击卡片开始作答</div>' + list.map(function(q, idx) {
       q.options = cleanOptions(q.options);
       q.answer = q.answer || 0;
       return '<div class="card" onclick="openQuizFromList(' + idx + ')"><div class="quiz-header"><div class="quiz-tag">' + (q.difficulty || '中等') + '</div><div style="font-size:12px;color:#999;">' + (q.category || '') + '</div></div><div class="quiz-question">' + q.question + '</div><div class="quiz-footer"><span style="color:#999;font-size:12px;">点击作答</span></div></div>';
     }).join('');
+
+    var paginationHtml = '';
+    var pageSize = window._quizPageSize || 10;
+    if (total > pageSize) {
+      var totalPages = Math.ceil(total / pageSize);
+      var pages = [];
+      for (var i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= pageNum - 1 && i <= pageNum + 1)) {
+          pages.push(i);
+        } else if (pages.length > 0 && pages[pages.length - 1] !== -1) {
+          pages.push(-1);
+        }
+      }
+      paginationHtml = '<div class="pagination" style="margin:0 16px 16px;"><div class="pagination-btn' + (pageNum <= 1 ? ' disabled' : '') + '" onclick="loadQuizList(' + (pageNum - 1) + ')">←</div>' + pages.map(function(p) {
+        if (p === -1) return '<div class="pagination-dot">...</div>';
+        return '<div class="pagination-btn' + (p === pageNum ? ' active' : '') + '" onclick="loadQuizList(' + p + ')">' + p + '</div>';
+      }).join('') + '<div class="pagination-btn' + (pageNum >= totalPages ? ' disabled' : '') + '" onclick="loadQuizList(' + (pageNum + 1) + ')">→</div></div>';
+    }
+
+    content.innerHTML = searchHtml + cardsHtml + paginationHtml;
   });
+}
+
+function handleQuizSearchKey(e) {
+  if (e.key === 'Enter') { searchQuiz(); }
+}
+
+function searchQuiz() {
+  var input = document.getElementById('quiz-search-input');
+  if (!input) return;
+  var keyword = input.value.trim();
+  window._quizKeyword = keyword;
+  var clearBtn = document.getElementById('quiz-search-clear');
+  if (clearBtn) clearBtn.style.display = keyword ? 'block' : 'none';
+  window._quizCurrentPage = 1;
+  loadQuizList(1);
+}
+
+function clearQuizSearch() {
+  var input = document.getElementById('quiz-search-input');
+  if (input) input.value = '';
+  window._quizKeyword = '';
+  var clearBtn = document.getElementById('quiz-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  window._quizCurrentPage = 1;
+  loadQuizList(1);
 }
 
 function openQuizFromList(idx) {
   if (!window._quizListCache || !window._quizListCache[idx]) return;
+  window._quizListMode = null;
   renderQuiz(window._quizListCache[idx]);
 }
 
 function goToWrongQuestions() {
-  showPage('page-quiz', false);
   window._quizListMode = 'wrong';
+  showPage('page-quiz', false);
   api('/wrong-questions/list').then(function(data) {
     var content = document.getElementById('quiz-content');
     if (!content) return;
@@ -1814,42 +2658,300 @@ async function initProfile() {
   loadIdentifyRecords();
   loadConstitutionRecords();
   loadCheckinStats();
+  loadReviewBadge();
+}
+
+async function loadReviewBadge() {
+  var data = await api('/admin/dashboard-stats?t=' + Date.now());
+  if (data && data.pending > 0) {
+    var badge = document.getElementById('review-pending-count');
+    if (badge) { badge.textContent = data.pending; badge.style.display = 'inline-block'; }
+  }
+}
+
+function isLoggedIn() {
+  return localStorage.getItem('userToken') !== null;
+}
+
+function goToReviewPage() {
+  showPage('page-review');
+}
+
+function checkLoginStatus() {
+  if (!isLoggedIn()) {
+    showPage('page-login', false);
+    return false;
+  }
+  return true;
+}
+
+async function handleLogin() {
+  var username = document.getElementById('login-username').value.trim();
+  var password = document.getElementById('login-password').value.trim();
+  
+  if (!username || !password) {
+    showToast('请输入用户名和密码');
+    return;
+  }
+  
+  var data = await apiPost('/auth/login', { username, password });
+  if (data && data.code === 0 && data.data) {
+    localStorage.setItem('userToken', data.data.token);
+    localStorage.setItem('userId', data.data.user.id);
+    localStorage.setItem('userInfo', JSON.stringify(data.data.user));
+    showToast('登录成功');
+    showPage('page-home');
+  } else {
+    showToast(data.message || '登录失败');
+  }
+}
+
+function showRegister() {
+  var username = document.getElementById('login-username').value || '';
+  var modal = document.getElementById('match-modal');
+  var modalBody = document.getElementById('modal-body');
+  var modalBg = document.getElementById('modal-bg');
+  if (modalBg) modalBg.style.cssText = 'background:linear-gradient(135deg, #2d8b5e, #3da878);height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;';
+  if (modalBg) modalBg.innerHTML = '<div style="font-size:36px;margin-bottom:8px;">📝</div><div style="font-size:18px;font-weight:600;">注册账号</div>';
+  if (modalBody) modalBody.innerHTML = `
+    <div style="padding:4px 0;">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">用户名</div>
+        <input type="text" id="reg-username" value="${username}" placeholder="3-20位，支持中英文、数字、下划线" style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">密码</div>
+        <input type="password" id="reg-password" placeholder="6-32位" style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:20px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">昵称（选填）</div>
+        <input type="text" id="reg-nickname" placeholder="显示名称" style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none;box-sizing:border-box;">
+      </div>
+      <button onclick="handleRegister()" style="width:100%;padding:14px;background:#2d8b5e;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;">注册</button>
+    </div>
+  `;
+  if (modal) modal.classList.add('active');
+}
+
+async function handleRegister() {
+  var username = document.getElementById('reg-username').value.trim();
+  var password = document.getElementById('reg-password').value.trim();
+  var nickname = document.getElementById('reg-nickname').value.trim();
+  
+  if (!username || !password) {
+    showToast('请输入用户名和密码');
+    return;
+  }
+  
+  var data = await apiPost('/auth/register', { username, password, nickname });
+  if (data && data.code === 0 && data.data) {
+    localStorage.setItem('userToken', data.data.token);
+    localStorage.setItem('userId', data.data.user.id);
+    localStorage.setItem('userInfo', JSON.stringify(data.data.user));
+    closeMatchModal();
+    showToast('注册成功');
+    showPage('page-home');
+  } else {
+    showToast(data.message || '注册失败');
+  }
+}
+
+function showGuestMode() {
+  localStorage.setItem('userToken', 'guest');
+  localStorage.setItem('userId', '0');
+  localStorage.setItem('userInfo', JSON.stringify({ id: 0, username: 'guest', nickname: '访客' }));
+  showToast('已进入访客模式');
+  showPage('page-home');
+}
+
+function handleLogout() {
+  if (confirm('确定要退出登录吗？')) {
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userInfo');
+    pageHistory = ['page-login'];
+    currentPage = 'page-login';
+    showToast('已退出登录');
+    showPage('page-login', false);
+  }
+}
+
+async function loadReviewStats() {
+  var data = await api('/admin/dashboard-stats?t=' + Date.now());
+  if (data) {
+    document.getElementById('review-stat-pending').textContent = data.pending || 0;
+    document.getElementById('review-stat-approved').textContent = data.approved || 0;
+    document.getElementById('review-stat-rejected').textContent = data.rejected || 0;
+  }
+}
+
+var _reviewCurrentStatus = 'pending';
+
+async function loadReviewList(status) {
+  _reviewCurrentStatus = status || 'pending';
+  var data = await api('/admin/pending-images?status=' + _reviewCurrentStatus + '&t=' + Date.now());
+  var list = document.getElementById('review-list');
+  if (!list) return;
+
+  if (!data || !data.list || data.list.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">暂无' + (status === 'pending' ? '待审核' : (status === 'approved' ? '已通过' : '已拒绝')) + '记录</div></div>';
+    return;
+  }
+
+  list.innerHTML = data.list.map(function(item) {
+    var imgUrl = item.image_path ? '/feedback-images/' + item.image_path.replace(/.*feedback-images[/\\]/, '') : '';
+    var actionButtons = '';
+    if (status === 'pending') {
+      actionButtons = '<div style="display:flex;gap:8px;margin-top:10px;"><button onclick="approveImage(' + item.id + ')" style="flex:1;padding:8px;background:#2d8b5e;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✓ 通过并入库</button><button onclick="rejectImage(' + item.id + ')" style="flex:1;padding:8px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:8px;font-size:13px;cursor:pointer;">✗ 拒绝</button></div>';
+    } else {
+      actionButtons = '<div style="margin-top:10px;font-size:12px;color:#999;">审核时间: ' + (item.reviewed_at ? item.reviewed_at.substring(0, 16).replace('T', ' ') : '-') + '</div>';
+    }
+    return '<div class="card" style="margin:0 16px 12px;padding:14px;"><div style="display:flex;gap:12px;"><div style="flex-shrink:0;"><img src="' + imgUrl + '" style="width:80px;height:80px;border-radius:8px;object-fit:cover;background:#f0f0f0;"></div><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:#333;margin-bottom:4px;">用户认为: ' + (item.correct_name || item.herb_name) + '</div><div style="font-size:12px;color:#999;margin-bottom:4px;">AI识别: ' + (item.original_result || '未知') + '</div><div style="font-size:12px;color:#666;">提交时间: ' + item.created_at.substring(0, 16).replace('T', ' ') + '</div>' + actionButtons + '</div></div></div>';
+  }).join('');
+}
+
+async function approveImage(id) {
+  if (!confirm('确定通过并加入参考库吗？')) return;
+  var data = await apiPost('/admin/approve-image/' + id);
+  if (data && data.code === 0) {
+    showToast('已通过并入库');
+    loadReviewStats();
+    loadReviewList(_reviewCurrentStatus);
+  } else {
+    showToast(data.message || '操作失败');
+  }
+}
+
+async function rejectImage(id) {
+  if (!confirm('确定拒绝这条反馈吗？')) return;
+  var data = await apiPost('/admin/reject-image/' + id);
+  if (data && data.code === 0) {
+    showToast('已拒绝');
+    loadReviewStats();
+    loadReviewList(_reviewCurrentStatus);
+  } else {
+    showToast(data.message || '操作失败');
+  }
+}
+
+async function syncFavoritesFromServer() {
+  try {
+    var [herbs, matches] = await Promise.all([
+      api('/favorite/herbs'),
+      api('/favorite/matches')
+    ]);
+    var favs = { herbs: [], matches: [] };
+    if (herbs && Array.isArray(herbs)) favs.herbs = herbs.map(function(h) { return h.id; });
+    if (matches && Array.isArray(matches)) favs.matches = matches.map(function(m) { return m.id; });
+    localStorage.setItem('favorites', JSON.stringify(favs));
+  } catch (e) {
+    console.error('同步收藏失败:', e);
+  }
 }
 
 async function loadFavHerbs() {
   var data = await api('/favorite/herbs');
   var list = document.getElementById('fav-herbs-list');
   if (!list) return;
-  if (!data || data.length === 0) { list.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">❤️</div><div>暂无收藏药材</div></div>'; return; }
+  if (!data || data.length === 0) { list.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">❤️</div><div>暂无收藏药材</div></div>'; document.getElementById('stat-fav-herbs').textContent = 0; return; }
   list.innerHTML = data.slice(0, 3).map(function(h) {
-    return '<div class="herb-list-card" style="margin:0 16px 12px;" onclick="showHerbDetail(' + h.id + ')"><div class="herb-visual herb-color-' + ((h.id % 6) + 1) + '">🌿</div><div class="herb-info"><div class="name">' + h.name + '</div><div class="effect">' + (h.effect || '').substring(0, 20) + '</div></div></div>';
+    var visualHtml = h.cover_image_url 
+      ? '<img src="' + h.cover_image_url + '" style="width:60px;height:60px;border-radius:10px;object-fit:cover;">'
+      : '<div class="herb-visual herb-color-' + ((h.id % 6) + 1) + '">🌿</div>';
+    return '<div class="herb-list-card" style="margin:0 16px 12px;" onclick="showHerbDetail(' + h.id + ')">' + visualHtml + '<div class="herb-info"><div class="name">' + h.name + '</div><div class="effect">' + (h.effect || '').substring(0, 20) + '</div></div></div>';
   }).join('');
   document.getElementById('stat-fav-herbs').textContent = data.length;
+  syncFavoritesFromServer();
 }
 
 async function loadFavMatches() {
   var data = await api('/favorite/matches');
   var list = document.getElementById('fav-matches-list');
   if (!list) return;
-  if (!data || data.length === 0) { list.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">🍲</div><div>暂无收藏搭配</div></div>'; return; }
+  if (!data || data.length === 0) { list.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">🍲</div><div>暂无收藏搭配</div></div>'; document.getElementById('stat-fav-matches').textContent = 0; return; }
   list.innerHTML = data.slice(0, 3).map(function(m) {
     return '<div class="card" style="padding:14px;margin:0 16px 12px;" onclick="showMatchDetail(' + m.id + ')"><div style="font-size:15px;font-weight:600;margin-bottom:6px;">' + m.name + '</div><div style="font-size:12px;color:#2d8b5e;">' + (m.effect || '') + '</div></div>';
   }).join('');
   document.getElementById('stat-fav-matches').textContent = data.length;
+  syncFavoritesFromServer();
+}
+
+var calYear, calMonth;
+var calRecordsMap = {};
+
+function initCalendar() {
+  var now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth() + 1;
+  loadCalendarData();
+}
+
+function prevMonth() {
+  calMonth--;
+  if (calMonth < 1) { calMonth = 12; calYear--; }
+  loadCalendarData();
+}
+
+function nextMonth() {
+  calMonth++;
+  if (calMonth > 12) { calMonth = 1; calYear++; }
+  loadCalendarData();
+}
+
+async function loadCalendarData() {
+  var titleEl = document.getElementById('calendar-title');
+  var gridEl = document.getElementById('calendar-grid');
+  if (titleEl) titleEl.textContent = calYear + '年' + calMonth + '月';
+  if (gridEl) gridEl.innerHTML = '<div class="cal-loading">加载中...</div>';
+  var data = await api('/checkin/calendar?year=' + calYear + '&month=' + calMonth);
+  calRecordsMap = {};
+  if (data && data.records) {
+    data.records.forEach(function(r) {
+      if (!calRecordsMap[r.date]) {
+        calRecordsMap[r.date] = { items: [] };
+      }
+      calRecordsMap[r.date].items.push(r);
+    });
+  }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  var gridEl = document.getElementById('calendar-grid');
+  if (!gridEl) return;
+  var firstDay = new Date(calYear, calMonth - 1, 1);
+  var daysInMonth = new Date(calYear, calMonth, 0).getDate();
+  var startWeekday = firstDay.getDay();
+  var today = new Date();
+  var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  var html = '';
+  for (var i = 0; i < startWeekday; i++) {
+    html += '<div class="cal-day cal-empty"></div>';
+  }
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateStr = calYear + '-' + String(calMonth).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    var dayData = calRecordsMap[dateStr];
+    var isToday = dateStr === todayStr;
+    var classes = 'cal-day';
+    if (isToday) classes += ' cal-today';
+    if (dayData) classes += ' cal-checked';
+    var firstItem = dayData && dayData.items && dayData.items.length > 0 ? dayData.items[0] : null;
+    var count = dayData && dayData.items ? dayData.items.length : 0;
+    html += '<div class="' + classes + '" onclick="' + (firstItem ? 'showHerbDetail(' + firstItem.herbId + ')' : '') + '">';
+    html += '<div class="cal-date">' + d + '</div>';
+    if (dayData && firstItem) {
+      html += '<div class="cal-herb-name">';
+      html += firstItem.herbName || '';
+      if (count > 1) html += ' +' + (count - 1);
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  gridEl.innerHTML = html;
 }
 
 async function loadCheckinRecords() {
-  var data = await api('/checkin/records');
-  var list = document.getElementById('checkin-records-list');
-  if (!list) return;
-  var records = [];
-  if (Array.isArray(data)) { records = data; }
-  else if (data && data.list) { records = data.list; }
-  if (records.length === 0) { list.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">📅</div><div>暂无打卡记录</div></div>'; return; }
-  list.innerHTML = records.slice(0, 5).map(function(r) {
-    var herbName = r.herbName || (r.herb && r.herb.name) || '-';
-    return '<div class="card" style="padding:12px;margin:0 16px 8px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:500;">' + r.date + '</div><div style="font-size:11px;color:#999;">药材: ' + herbName + '</div></div><div style="color:#2d8b5e;font-size:16px;">✓</div></div>';
-  }).join('');
+  initCalendar();
 }
 
 async function loadIdentifyRecords() {
@@ -1874,6 +2976,7 @@ async function loadCheckinStats() {
     document.getElementById('checkin-stat-total').textContent = data.totalCount || data.total || 0;
     document.getElementById('checkin-stat-consecutive').textContent = data.consecutiveDays || data.consecutive || 0;
     document.getElementById('checkin-stat-month').textContent = (data.monthStats && data.monthStats.checkedDays) || data.month || 0;
+    updateCheckinBtnState(!!data.todayChecked);
   }
 }
 
@@ -2059,7 +3162,7 @@ function goToHerbDetail(herbName) {
   showPage('page-herb-list', false);
   loadHerbList();
   setTimeout(function() {
-    var herb = herbsData.find(function(h) {
+    var herb = homeHerbsData.find(function(h) {
       return h.name === herbName || (h.alias && h.alias.indexOf(herbName) >= 0);
     });
     if (herb) {
@@ -2109,6 +3212,12 @@ function showPage(pageId, updateHistory) {
   var page = document.getElementById(pageId);
   if (page) { page.classList.add('active'); currentPage = pageId; }
   window.scrollTo(0, 0);
+  var tabBar = document.querySelector('.tab-bar');
+  if (pageId === 'page-login') {
+    if (tabBar) tabBar.style.display = 'none';
+    return;
+  }
+  if (tabBar) tabBar.style.display = 'flex';
   document.querySelectorAll('.tab-item').forEach(function(t) { t.classList.remove('active'); });
   var tabMap = { 'page-home': 0, 'page-identify': 1, 'page-herb-list': 2, 'page-match': 3, 'page-profile': 4 };
   var tabIdx = tabMap[pageId];
@@ -2116,10 +3225,11 @@ function showPage(pageId, updateHistory) {
   if (pageId === 'page-home') { initHome(); }
   else if (pageId === 'page-herb-list') { loadHerbList(); }
   else if (pageId === 'page-match') { initMatchPage(); }
-  else if (pageId === 'page-quiz') { initQuizPage(); }
+  else if (pageId === 'page-quiz') { if (updateHistory) { window._quizListMode = null; initQuizPage(); } }
   else if (pageId === 'page-profile') { initProfile(); loadChatHistory(); }
   else if (pageId === 'page-consult') { initChat(); }
   else if (pageId === 'page-chat-history') { renderChatHistoryPage(); }
+  else if (pageId === 'page-review') { loadReviewStats(); loadReviewList('pending'); }
 }
 
 async function initChat() {
@@ -2311,7 +3421,7 @@ function renderChatHistoryList(history) {
   if (!container) return;
   
   if (!history || history.length === 0) {
-    container.innerHTML = '<div style="padding:12px 16px;color:#999;font-size:13px;">暂无问诊记录</div>';
+    container.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">🏥</div><div>暂无问诊记录</div></div>';
     return;
   }
   
@@ -2414,7 +3524,7 @@ function renderChatHistoryPage() {
         });
         container.innerHTML = html;
       } else {
-        container.innerHTML = '<div style="text-align:center;padding:60px;color:#999;"><div style="font-size:40px;margin-bottom:12px;">🏥</div><div>暂无问诊记录</div><div style="font-size:13px;margin-top:8px;">点击首页"经方问诊"开始第一次问诊</div></div>';
+        container.innerHTML = '<div class="card" style="text-align:center;color:#666;padding:20px;margin:0 16px 12px;"><div style="font-size:32px;margin-bottom:8px;">🏥</div><div>暂无问诊记录</div><div style="font-size:13px;margin-top:8px;">点击首页"经方问诊"开始第一次问诊</div></div>';
       }
     })
     .catch(function(e) {
@@ -2781,8 +3891,23 @@ function goToLLMConfig() {
   loadActiveProviders();
 }
 
-initHome();
-checkLLMStatus();
+function initApp() {
+  if (isLoggedIn()) {
+    showPage('page-home');
+  } else {
+    showPage('page-login', false);
+  }
+  checkLLMStatus();
+}
+
+initApp();
 </script>
+
+<!-- 图片预览遮罩层 -->
+<div class="image-preview-overlay" id="imagePreviewOverlay" onclick="closePreview()">
+  <div class="image-preview-close" onclick="event.stopPropagation(); closePreview()">&times;</div>
+  <img src="" alt="预览" id="imagePreviewImg">
+  <div class="image-preview-hint">点击任意处关闭</div>
+</div>
 </body>
 </html>

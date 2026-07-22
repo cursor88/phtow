@@ -1,10 +1,9 @@
 const express = require('express')
 const router = express.Router()
-const herbs = require('../data/herbs')
-const foodMatches = require('../data/foodMatches')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
+const mysqlService = require('../services/mysqlService')
 const { callModel, callModelWithCandidates, activeModels } = require('../services/modelService')
 const { searchByImage, hasReferenceImages, addReferenceImage } = require('../services/imageSearchService')
 const { extractFeatures } = require('../services/imageFeatureService')
@@ -101,26 +100,29 @@ const HERB_TYPE_COLOR_MAP = {
   fungus: ['white', 'dark', 'mixed']
 }
 
-function analyzeImage(filename, fileBuffer) {
+async function analyzeImage(filename, fileBuffer) {
   const nameLower = filename.toLowerCase()
   const colorPalette = fileBuffer ? analyzeColorPalette(extractColorFeatures(fileBuffer)) : 'mixed'
-  
-  let scores = herbs.map(herb => {
+
+  const allHerbs = await mysqlService.getAllHerbs()
+
+  let scores = allHerbs.map(herb => {
     let score = 0
-    const keywords = herb.keywords.map(k => k.toLowerCase())
-    
+    const keywords = herb.keywords ? herb.keywords.map(k => k.toLowerCase()) : []
+
     for (const kw of keywords) {
       if (nameLower.includes(kw)) {
         score += 15
       }
     }
-    
-    for (const alias of herb.alias) {
+
+    const aliasList = herb.alias ? herb.alias : []
+    for (const alias of aliasList) {
       if (nameLower.includes(alias.toLowerCase())) {
         score += 12
       }
     }
-    
+
     if (herb.imageType === 'fruit' && (nameLower.includes('红') || nameLower.includes('red') || nameLower.includes('果') || nameLower.includes('fruit'))) {
       score += 10
     }
@@ -133,17 +135,17 @@ function analyzeImage(filename, fileBuffer) {
     if (herb.imageType === 'fungus' && (nameLower.includes('菌') || nameLower.includes('fungus') || nameLower.includes('mushroom'))) {
       score += 10
     }
-    
+
     const herbExpectedColor = HERB_COLOR_MAP[herb.name]
     if (herbExpectedColor && colorPalette === herbExpectedColor) {
       score += 25
     }
-    
+
     const typeColors = HERB_TYPE_COLOR_MAP[herb.imageType] || []
     if (typeColors.includes(colorPalette)) {
       score += 10
     }
-    
+
     const categoryKeywords = {
       '补虚药': ['补', '虚', '养', '元气'],
       '清热药': ['清热', '解毒', '凉', '寒'],
@@ -155,18 +157,18 @@ function analyzeImage(filename, fileBuffer) {
         score += 5
       }
     }
-    
+
     score += Math.random() * 3
-    
+
     return { herb, score }
   })
-  
+
   scores.sort((a, b) => b.score - a.score)
-  
+
   const topScore = scores[0].score
   const secondScore = scores[1]?.score || 0
   const scoreDiff = topScore - secondScore
-  
+
   let accuracy
   if (topScore >= 30) {
     accuracy = Math.min(0.98, 0.85 + topScore / 200)
@@ -177,12 +179,12 @@ function analyzeImage(filename, fileBuffer) {
   } else {
     accuracy = 0.45 + Math.random() * 0.15
   }
-  
+
   const selectedHerb = scores[0].herb
   const isHighConfidence = topScore >= 25
-  
-  return { 
-    herb: selectedHerb, 
+
+  return {
+    herb: selectedHerb,
     accuracy: parseFloat(accuracy.toFixed(2)),
     isHighConfidence,
     colorPalette,
@@ -195,36 +197,47 @@ function analyzeImage(filename, fileBuffer) {
 }
 
 // 构建Top-3候选结果（含关键鉴别点）
-function buildAlternatives(candidates, primaryHerbId = null) {
+async function buildAlternatives(candidates, primaryHerbId = null) {
   if (!candidates || candidates.length === 0) return []
-  
-  const top3 = candidates.slice(0, 3)
-  return top3.map((c, i) => {
-    const herbData = herbs.find(h => h.id === c.herbId || h.name === c.herbName)
-    return {
+
+  const minScore = 0.65
+  const minMatchCount = 2
+  const validCandidates = candidates.filter(c =>
+    c.bestScore >= minScore &&
+    c.matchCount >= minMatchCount &&
+    (!primaryHerbId || c.herbId !== primaryHerbId)
+  )
+
+  if (validCandidates.length === 0) return []
+
+  const top3 = validCandidates.slice(0, 3)
+  const results = []
+  for (let i = 0; i < top3.length; i++) {
+    const c = top3[i]
+    const herbData = await mysqlService.getHerbById(c.herbId) || await mysqlService.getHerbByName(c.herbName)
+    const probability = Math.min(parseFloat(c.bestScore.toFixed(3)), 0.75)
+    results.push({
       rank: i + 1,
       herbId: c.herbId,
       name: c.herbName,
-      probability: parseFloat(c.bestScore.toFixed(3)),
-      isPrimary: primaryHerbId ? c.herbId === primaryHerbId : i === 0,
+      probability: probability,
+      isPrimary: false,
       key_identification: herbData?.key_identification || null,
       effect: herbData?.effect || '',
       category: herbData?.category || ''
-    }
-  })
+    })
+  }
+  return results
 }
 
-function buildAlternativesFromAI(top3AI, primaryName = null) {
+async function buildAlternativesFromAI(top3AI, primaryName = null) {
   if (!top3AI || top3AI.length === 0) return []
-  
-  return top3AI.map((item, i) => {
-    const herbData = herbs.find(h => 
-      h.name === item.name || 
-      h.alias.some(a => a === item.name) ||
-      h.name.includes(item.name) ||
-      item.name.includes(h.name)
-    )
-    return {
+
+  const results = []
+  for (let i = 0; i < top3AI.length; i++) {
+    const item = top3AI[i]
+    const herbData = await mysqlService.getHerbByName(item.name)
+    results.push({
       rank: i + 1,
       herbId: herbData?.id || null,
       name: item.name,
@@ -234,8 +247,9 @@ function buildAlternativesFromAI(top3AI, primaryName = null) {
       effect: herbData?.effect || '',
       category: herbData?.category || item.category || '',
       reason: item.reason || ''
-    }
-  })
+    })
+  }
+  return results
 }
 
 router.post('/identify', upload.single('image'), async (req, res) => {
@@ -293,18 +307,70 @@ router.post('/identify', upload.single('image'), async (req, res) => {
              data.name.includes('non-herb') || 
              data.name.includes('not a herb'))
           
+          const retrievalTop = retrievalCandidates.length > 0 ? retrievalCandidates[0] : null
+          const retrievalSecond = retrievalCandidates.length > 1 ? retrievalCandidates[1] : null
+          const aiMatchesRetrieval = retrievalTop && data.name && (
+            retrievalTop.herbName === data.name ||
+            (retrievalTop.herbName.includes(data.name) || data.name.includes(retrievalTop.herbName))
+          )
+          const retrievalHighConfidence = retrievalTop && retrievalTop.bestScore >= 0.85
+          const retrievalGap = retrievalTop && retrievalSecond ? (retrievalTop.bestScore - retrievalSecond.bestScore) : 1
+          const avgGap = retrievalTop && retrievalSecond ? (retrievalTop.avgScore - retrievalSecond.avgScore) : 1
+          const hasMultipleMatches = retrievalTop && (retrievalTop.matchCount >= 3 || (retrievalTop.matchRatio >= 0.6 && retrievalTop.totalRefCount >= 4))
+          const retrievalDecisive = retrievalTop && retrievalTop.bestScore >= 0.92 && retrievalGap >= 0.1 && hasMultipleMatches
+          
           if (!isNonHerb && (data.confidence || 0) >= 0.6) {
+            if (retrievalDecisive && !aiMatchesRetrieval) {
+              console.log(`检索结果(${retrievalTop.herbName}, 相似度${(retrievalTop.bestScore*100).toFixed(1)}%, 匹配${retrievalTop.matchCount}/${retrievalTop.totalRefCount}张参考图)具有决定性优势，AI结果(${data.name})不一致，使用检索结果`)
+              const herbData = await mysqlService.getHerbById(retrievalTop.herbId)
+              if (herbData) {
+                const result = {
+                  id: herbData.id,
+                  name: herbData.name,
+                  pinyin: herbData.pinyin,
+                  category: herbData.category,
+                  nature: herbData.nature,
+                  taste: herbData.taste,
+                  meridian: herbData.meridian,
+                  effect: herbData.effect,
+                  indication: herbData.indication,
+                  dosage: herbData.dosage,
+                  taboo: herbData.taboo,
+                  identify_points: herbData.identify_points,
+                  key_identification: herbData.key_identification,
+                  alias: herbData.alias,
+                  classics: herbData.classics,
+                  food_match: [],
+                  accuracy: retrievalTop.bestScore,
+                  confidenceLevel: retrievalTop.bestScore > 0.8 ? '高' : '中',
+                  source: 'image-search',
+                  model: 'retrieval-v1',
+                  isFallback: false,
+                  alternatives: await buildAlternatives(retrievalCandidates, herbData.id),
+                  _searchInfo: {
+                    reason: '检索高置信度覆盖AI结果',
+                    aiResult: data.name,
+                    aiConfidence: data.confidence
+                  }
+                }
+                try {
+                  await addReferenceImage(herbData.id, herbData.name, fileBuffer, `user-${Date.now()}`)
+                  console.log(`[参考库] 已自动加入(检索覆盖): ${herbData.name}`)
+                } catch (e) {
+                  console.warn('[参考库] 加入失败:', e.message)
+                }
+                res.json({ code: 0, message: '图像检索识别成功', data: result })
+                return
+              }
+            } else if (retrievalHighConfidence && !aiMatchesRetrieval) {
+              console.log(`AI结果(${data.name})与高置信度检索结果(${retrievalTop.herbName}, 相似度${(retrievalTop.bestScore*100).toFixed(1)}%)不一致，进入阶段2精判`)
+            } else {
             // 在本地数据库中查找对应的药材详情
-            const herbData = herbs.find(h => 
-              h.name === data.name || 
-              h.alias.some(a => a === data.name) ||
-              h.name.includes(data.name) ||
-              data.name.includes(h.name)
-            )
-            
+            const herbData = await mysqlService.getHerbByName(data.name)
+
             // 优先使用 AI 返回的 Top-3 作为备选
-            const aiAlternatives = buildAlternativesFromAI(data.top3, data.name)
-            
+            const aiAlternatives = await buildAlternativesFromAI(data.top3, data.name)
+
             const result = herbData ? {
               id: herbData.id,
               name: herbData.name,
@@ -327,7 +393,7 @@ router.post('/identify', upload.single('image'), async (req, res) => {
               source: 'ai',
               model: 'qwen-vl-max',
               isFallback: false,
-              alternatives: aiAlternatives.length > 0 ? aiAlternatives : buildAlternatives(retrievalCandidates, herbData?.id),
+              alternatives: aiAlternatives.length > 0 ? aiAlternatives : await buildAlternatives(retrievalCandidates, herbData?.id),
               _rawModelResults: [{
                 model: 'qwen',
                 modelName: '通义千问',
@@ -360,7 +426,7 @@ router.post('/identify', upload.single('image'), async (req, res) => {
               source: 'ai',
               model: 'qwen-vl-max',
               isFallback: false,
-              alternatives: aiAlternatives.length > 0 ? aiAlternatives : buildAlternatives(retrievalCandidates, null),
+              alternatives: aiAlternatives.length > 0 ? aiAlternatives : await buildAlternatives(retrievalCandidates, null),
               _rawModelResults: [{
                 model: 'qwen',
                 modelName: '通义千问',
@@ -389,6 +455,7 @@ router.post('/identify', upload.single('image'), async (req, res) => {
               data: result
             })
             return
+            }
           } else {
             console.log(`置信度较低(${data.confidence})或非中药材，继续阶段2检索+精判`)
           }
@@ -410,13 +477,8 @@ router.post('/identify', upload.single('image'), async (req, res) => {
         
         if (!modelResult.fallback && modelResult.data) {
           const data = modelResult.data
-          const herbData = herbs.find(h => 
-            h.name === data.name || 
-            h.alias.some(a => a === data.name) ||
-            h.name.includes(data.name) ||
-            data.name.includes(h.name)
-          )
-          
+          const herbData = await mysqlService.getHerbByName(data.name)
+
           const result = herbData ? {
             id: herbData.id,
             name: herbData.name,
@@ -439,7 +501,7 @@ router.post('/identify', upload.single('image'), async (req, res) => {
             source: 'ai-search-hybrid',
             model: 'retrieval+llm',
             isFallback: false,
-            alternatives: buildAlternatives(retrievalCandidates, herbData?.id),
+            alternatives: await buildAlternatives(retrievalCandidates, herbData?.id),
             _searchInfo: {
               llmSelected: data.name
             }
@@ -465,7 +527,7 @@ router.post('/identify', upload.single('image'), async (req, res) => {
             source: 'ai-search-hybrid',
             model: 'retrieval+llm',
             isFallback: false,
-            alternatives: buildAlternatives(retrievalCandidates, null),
+            alternatives: await buildAlternatives(retrievalCandidates, null),
             _searchInfo: {}
           }
           
@@ -493,8 +555,8 @@ router.post('/identify', upload.single('image'), async (req, res) => {
     // ========== 阶段3: 图像检索直接返回（无模型或LLM失败时）==========
     if (retrievalCandidates.length > 0) {
       const topResult = retrievalCandidates[0]
-      const herbData = herbs.find(h => h.id === topResult.herbId)
-      
+      const herbData = await mysqlService.getHerbById(topResult.herbId)
+
       if (herbData) {
         const result = {
           id: herbData.id,
@@ -518,9 +580,9 @@ router.post('/identify', upload.single('image'), async (req, res) => {
           source: 'image-search',
           model: 'retrieval-v1',
           isFallback: false,
-          alternatives: buildAlternatives(retrievalCandidates, herbData.id)
+          alternatives: await buildAlternatives(retrievalCandidates, herbData.id)
         }
-        
+
         res.json({
           code: 0,
           message: '图像检索识别成功',
@@ -529,10 +591,10 @@ router.post('/identify', upload.single('image'), async (req, res) => {
         return
       }
     }
-    
+
     // ========== 阶段4: 本地识别回退 ==========
-    const analysis = analyzeImage(filename, fileBuffer)
-    
+    const analysis = await analyzeImage(filename, fileBuffer)
+
     const result = {
       id: analysis.herb.id,
       name: analysis.herb.name,
@@ -548,7 +610,7 @@ router.post('/identify', upload.single('image'), async (req, res) => {
       source: 'local',
       model: null,
       isFallback: true,
-      alternatives: buildAlternatives(retrievalCandidates, analysis.herb.id),
+      alternatives: await buildAlternatives(retrievalCandidates, analysis.herb.id),
       _rawModelResults: [],
       _voteInfo: null
     }
@@ -568,21 +630,18 @@ router.post('/identify', upload.single('image'), async (req, res) => {
   }
 })
 
-router.get('/detail/:id', (req, res) => {
+router.get('/detail/:id', async (req, res) => {
   const param = req.params.id
   let herb = null
+  const mysqlService = require('../services/mysqlService')
   
   const id = parseInt(param)
   if (!isNaN(id)) {
-    herb = herbs.find(h => h.id === id)
+    herb = await mysqlService.getHerbById(id)
   }
   
   if (!herb) {
-    herb = herbs.find(h => 
-      h.name === param || 
-      h.alias.some(a => a === param) ||
-      h.name.includes(param)
-    )
+    herb = await mysqlService.getHerbByName(param)
   }
   
   if (!herb) {
@@ -592,7 +651,16 @@ router.get('/detail/:id', (req, res) => {
       data: null
     })
   }
-  
+
+  // 查询药材图片
+  const images = await mysqlService.getHerbImages(herb.id)
+  herb.images = images.map(img => ({
+    id: img.id,
+    url: img.image_url,
+    description: img.description,
+    isCover: img.is_cover === 1
+  }))
+
   res.json({
     code: 0,
     message: '成功',
@@ -600,40 +668,51 @@ router.get('/detail/:id', (req, res) => {
   })
 })
 
-router.get('/list', (req, res) => {
-  const { page = 1, pageSize = 10, keyword = '', category = '' } = req.query
-  let filtered = herbs
+router.get('/list', async (req, res) => {
+  const { page = 1, pageSize = 10, keyword = '', category = '', foodMedicine = '' } = req.query
+  const mysqlService = require('../services/mysqlService')
   
-  if (keyword) {
-    filtered = filtered.filter(h => 
-      h.name.includes(keyword) || 
-      h.alias.some(a => a.includes(keyword))
-    )
+  const result = await mysqlService.searchHerbs(keyword, category, page, pageSize, foodMedicine)
+  
+  res.json({
+    code: 0,
+    message: '成功',
+    data: result
+  })
+})
+
+router.get('/classics/:id', async (req, res) => {
+  const id = parseInt(req.params.id)
+  const mysqlService = require('../services/mysqlService')
+  
+  const classics = await mysqlService.getHerbClassics(id)
+  
+  if (!classics) {
+    return res.json({
+      code: 404,
+      message: '药材不存在',
+      data: null
+    })
   }
   
-  if (category) {
-    filtered = filtered.filter(h => h.category === category)
-  }
-  
-  const start = (page - 1) * pageSize
-  const end = start + parseInt(pageSize)
-  const list = filtered.slice(start, end)
+  const herb = await mysqlService.getHerbById(id)
   
   res.json({
     code: 0,
     message: '成功',
     data: {
-      list,
-      total: filtered.length,
-      page: parseInt(page),
-      pageSize: parseInt(pageSize)
+      herbId: id,
+      herbName: herb ? herb.name : '',
+      classics
     }
   })
 })
 
-router.get('/classics/:id', (req, res) => {
+router.get('/food-match/:id', async (req, res) => {
   const id = parseInt(req.params.id)
-  const herb = herbs.find(h => h.id === id)
+  const mysqlService = require('../services/mysqlService')
+  
+  const herb = await mysqlService.getHerbById(id)
   
   if (!herb) {
     return res.json({
@@ -643,30 +722,7 @@ router.get('/classics/:id', (req, res) => {
     })
   }
   
-  res.json({
-    code: 0,
-    message: '成功',
-    data: {
-      herbId: herb.id,
-      herbName: herb.name,
-      classics: herb.classics
-    }
-  })
-})
-
-router.get('/food-match/:id', (req, res) => {
-  const id = parseInt(req.params.id)
-  const herb = herbs.find(h => h.id === id)
-  
-  if (!herb) {
-    return res.json({
-      code: 404,
-      message: '药材不存在',
-      data: null
-    })
-  }
-  
-  const matches = foodMatches.filter(m => herb.food_match.includes(m.id))
+  const matches = await mysqlService.getHerbFoodMatches(id)
   
   res.json({
     code: 0,

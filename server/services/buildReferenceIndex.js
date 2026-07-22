@@ -1,8 +1,10 @@
+require('dotenv').config()
 const fs = require('fs')
 const path = require('path')
 const { createCanvas } = require('canvas')
 const { extractFeatures } = require('./imageFeatureService')
-const herbs = require('../data/herbs')
+const mysqlService = require('./mysqlService')
+const { pool } = require('../config/mysql')
 const paths = require('../config/paths')
 
 const REF_DIR = paths.REF_IMAGES_DIR
@@ -35,7 +37,7 @@ const HERB_COLORS = {
 function generateSyntheticImage(colors, size = 256, variation = 0) {
   const canvas = createCanvas(size, size)
   const ctx = canvas.getContext('2d')
-  
+
   const gradient = ctx.createRadialGradient(
     size / 2 + variation * 10, size / 2 - variation * 10, 20,
     size / 2, size / 2, size / 2
@@ -43,10 +45,10 @@ function generateSyntheticImage(colors, size = 256, variation = 0) {
   gradient.addColorStop(0, colors.accent)
   gradient.addColorStop(0.5, colors.primary)
   gradient.addColorStop(1, colors.secondary)
-  
+
   ctx.fillStyle = gradient
   ctx.fillRect(0, 0, size, size)
-  
+
   const noiseCount = 500 + variation * 200
   for (let i = 0; i < noiseCount; i++) {
     const x = Math.random() * size
@@ -57,7 +59,7 @@ function generateSyntheticImage(colors, size = 256, variation = 0) {
     ctx.arc(x, y, r, 0, Math.PI * 2)
     ctx.fill()
   }
-  
+
   const lineCount = 8 + variation * 3
   ctx.strokeStyle = `rgba(0,0,0,${0.05 + variation * 0.02})`
   ctx.lineWidth = 1
@@ -72,35 +74,49 @@ function generateSyntheticImage(colors, size = 256, variation = 0) {
     )
     ctx.stroke()
   }
-  
+
   return canvas.toBuffer('image/jpeg', { quality: 0.85 })
 }
 
 async function buildReferenceIndex() {
   ensureDir(REF_DIR)
-  
-  const results = []
+
+  // 从MySQL获取药材列表
+  const [herbs] = await pool.query('SELECT id, name FROM herbs ORDER BY id')
+
+  if (herbs.length === 0) {
+    console.log('[参考库] 数据库中没有药材数据，请先导入药材数据')
+    return { total: 0, herbs: 0 }
+  }
+
+  console.log(`[参考库] 从数据库加载 ${herbs.length} 种药材，开始构建合成参考图...`)
+
+  // 清空旧数据
+  await mysqlService.clearReferenceImages()
+  console.log('[参考库] 已清空旧参考图数据')
+
   let count = 0
-  
+
   for (const herb of herbs) {
     const colors = HERB_COLORS[herb.name] || { primary: '#8B7355', secondary: '#A0522D', accent: '#DEB887' }
-    
+
     const variations = 3
     for (let v = 0; v < variations; v++) {
       try {
         const imageBuffer = generateSyntheticImage(colors, 256, v)
         const features = await extractFeatures(imageBuffer)
-        
-        results.push({
+
+        const item = {
           id: `${herb.id}-synth-${v}`,
           herbId: herb.id,
           herbName: herb.name,
           imageName: `synthetic-${v}`,
           synthetic: true,
-          addedAt: new Date().toISOString(),
           features
-        })
-        
+        }
+
+        await mysqlService.saveReferenceImage(item)
+
         count++
         console.log(`  [√] ${herb.name} #${v + 1}`)
       } catch (e) {
@@ -108,25 +124,20 @@ async function buildReferenceIndex() {
       }
     }
   }
-  
-  const index = {
-    version: 'v1',
-    builtAt: new Date().toISOString(),
-    synthetic: true,
-    items: results
-  }
-  
-  const indexFile = path.join(REF_DIR, 'feature-index.json')
-  fs.writeFileSync(indexFile, JSON.stringify(index, null, 2))
-  
+
   console.log(`\n[完成] 参考库构建完成: ${count} 条数据, ${herbs.length} 种药材`)
-  console.log(`索引文件: ${indexFile}`)
-  
-  return index
+  console.log(`数据已保存到 MySQL reference_images 表`)
+
+  return { total: count, herbs: herbs.length }
 }
 
 if (require.main === module) {
-  buildReferenceIndex().catch(console.error)
+  buildReferenceIndex()
+    .then(() => process.exit(0))
+    .catch(err => {
+      console.error(err)
+      process.exit(1)
+    })
 }
 
 module.exports = {

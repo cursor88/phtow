@@ -2,7 +2,7 @@
   <view class="page">
     <view class="detail-container" v-if="herb">
       <view class="herb-hero">
-        <image class="herb-image" :src="userImage || herb.image" mode="aspectFill"></image>
+        <image class="herb-image" :src="userImage || herb.image" mode="aspectFill" @click="previewImage(userImage || herb.image)"></image>
         <view class="herb-overlay"></view>
         <view class="herb-title-area">
           <view class="herb-name">{{ herb.name }}</view>
@@ -132,6 +132,13 @@ export default {
     this.loadDetail()
   },
   methods: {
+    previewImage(url) {
+      if (!url) return
+      uni.previewImage({
+        urls: [url],
+        current: url
+      })
+    },
     loadFavorites() {
       const fav = uni.getStorageSync('favorites')
       this.favorites = fav ? JSON.parse(fav) : []

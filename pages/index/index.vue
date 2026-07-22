@@ -239,7 +239,7 @@ export default {
     },
     goToConstitution() {
       uni.showActionSheet({
-        itemList: ['标准测评 (60题)', '快速测评 (9题)'],
+        itemList: ['标准测评 (60题)', '快速测评 (18题)'],
         success: (res) => {
           const mode = res.tapIndex === 0 ? 'standard' : 'quick'
           uni.navigateTo({

@@ -1,8 +1,12 @@
 {
-  "correct": 2,
-  "total": 6,
+  "correct": 4,
+  "total": 21,
   "wrongIds": [
     10,
-    6
+    6,
+    1,
+    2,
+    9,
+    4
   ]
 }
