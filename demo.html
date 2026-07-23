@@ -2771,15 +2771,36 @@ function showGuestMode() {
 }
 
 function handleLogout() {
-  if (confirm('确定要退出登录吗？')) {
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userInfo');
-    pageHistory = ['page-login'];
-    currentPage = 'page-login';
-    showToast('已退出登录');
-    showPage('page-login', false);
-  }
+  showLogoutConfirm();
+}
+
+function showLogoutConfirm() {
+  var modal = document.getElementById('match-modal');
+  var modalBody = document.getElementById('modal-body');
+  var modalBg = document.getElementById('modal-bg');
+  if (modalBg) modalBg.style.cssText = 'background:linear-gradient(135deg, #ef4444, #f87171);height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;';
+  if (modalBg) modalBg.innerHTML = '<div style="font-size:36px;margin-bottom:8px;">👋</div><div style="font-size:18px;font-weight:600;">退出登录</div>';
+  if (modalBody) modalBody.innerHTML = `
+    <div style="padding:4px 0 8px;text-align:center;">
+      <div style="font-size:15px;color:#333;margin-bottom:24px;">确定要退出当前账号吗？</div>
+      <div style="display:flex;gap:12px;">
+        <button onclick="closeMatchModal()" style="flex:1;padding:12px;background:#f3f4f6;color:#374151;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;">取消</button>
+        <button onclick="doLogout()" style="flex:1;padding:12px;background:#ef4444;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">确认退出</button>
+      </div>
+    </div>
+  `;
+  if (modal) modal.classList.add('active');
+}
+
+function doLogout() {
+  closeMatchModal();
+  localStorage.removeItem('userToken');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userInfo');
+  pageHistory = ['page-login'];
+  currentPage = 'page-login';
+  showToast('已退出登录');
+  showPage('page-login', false);
 }
 
 async function loadReviewStats() {
@@ -3213,14 +3234,25 @@ let isChatLoading = false;
 
 function showPage(pageId, updateHistory) {
   if (updateHistory === undefined) updateHistory = true;
+  var previousPage = currentPage;
   if (updateHistory && pageId !== currentPage) { pageHistory.push(pageId); }
   document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
   var page = document.getElementById(pageId);
-  if (page) { page.classList.add('active'); currentPage = pageId; }
+  if (page) {
+    page.classList.add('active');
+    currentPage = pageId;
+  } else {
+    console.error('Page not found:', pageId);
+    return;
+  }
   window.scrollTo(0, 0);
   var tabBar = document.querySelector('.tab-bar');
   if (pageId === 'page-login') {
     if (tabBar) tabBar.style.display = 'none';
+    var formUser = document.getElementById('login-username');
+    var formPass = document.getElementById('login-password');
+    if (formUser) formUser.value = '';
+    if (formPass) formPass.value = '';
     return;
   }
   if (tabBar) tabBar.style.display = 'flex';
