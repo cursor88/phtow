@@ -2688,21 +2688,23 @@ function checkLoginStatus() {
 async function handleLogin() {
   var username = document.getElementById('login-username').value.trim();
   var password = document.getElementById('login-password').value.trim();
-  
+
   if (!username || !password) {
     showToast('请输入用户名和密码');
     return;
   }
-  
+
   var data = await apiPost('/auth/login', { username, password });
   if (data && data.code === 0 && data.data) {
     localStorage.setItem('userToken', data.data.token);
     localStorage.setItem('userId', data.data.user.id);
     localStorage.setItem('userInfo', JSON.stringify(data.data.user));
+    pageHistory = ['page-home'];
+    currentPage = 'page-home';
     showToast('登录成功');
-    showPage('page-home');
+    showPage('page-home', false);
   } else {
-    showToast(data.message || '登录失败');
+    showToast((data && data.message) || '登录失败');
   }
 }
 
@@ -2749,10 +2751,12 @@ async function handleRegister() {
     localStorage.setItem('userId', data.data.user.id);
     localStorage.setItem('userInfo', JSON.stringify(data.data.user));
     closeMatchModal();
+    pageHistory = ['page-home'];
+    currentPage = 'page-home';
     showToast('注册成功');
-    showPage('page-home');
+    showPage('page-home', false);
   } else {
-    showToast(data.message || '注册失败');
+    showToast((data && data.message) || '注册失败');
   }
 }
 
@@ -2760,8 +2764,10 @@ function showGuestMode() {
   localStorage.setItem('userToken', 'guest');
   localStorage.setItem('userId', '0');
   localStorage.setItem('userInfo', JSON.stringify({ id: 0, username: 'guest', nickname: '访客' }));
+  pageHistory = ['page-home'];
+  currentPage = 'page-home';
   showToast('已进入访客模式');
-  showPage('page-home');
+  showPage('page-home', false);
 }
 
 function handleLogout() {
