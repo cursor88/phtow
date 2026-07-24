@@ -661,6 +661,14 @@ router.get('/detail/:id', async (req, res) => {
     isCover: img.is_cover === 1
   }))
 
+  // 查询药食同源搭配
+  try {
+    const foodMatches = await mysqlService.getHerbFoodMatches(herb.id)
+    herb.foodMatches = foodMatches
+  } catch (e) {
+    herb.foodMatches = []
+  }
+
   res.json({
     code: 0,
     message: '成功',

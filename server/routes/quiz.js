@@ -4,6 +4,8 @@ const path = require('path')
 const fs = require('fs')
 const mysqlService = require('../services/mysqlService')
 const paths = require('../config/paths')
+const { pool } = require('../config/mysql')
+const { verifyToken } = require('../middleware/auth')
 
 const toAnswerIndex = (answer) => {
   if (typeof answer === 'number') return answer
@@ -23,6 +25,34 @@ const getDailyQuestion = async () => {
   const index = hash % total
   return list[index] || list[0]
 }
+
+router.get('/topics', async (req, res) => {
+  try {
+    const [topics] = await pool.query('SELECT * FROM quiz_topics ORDER BY sort_order')
+    
+    const result = await Promise.all(topics.map(async (topic) => {
+      const [quizCount] = await pool.query('SELECT COUNT(*) as count FROM quizzes WHERE topic_id = ?', [topic.id])
+      const [answerCount] = await pool.query('SELECT COUNT(*) as count FROM quiz_answers WHERE topic_id = ?', [topic.id])
+      return {
+        id: topic.id,
+        name: topic.name,
+        description: topic.description,
+        icon: topic.icon,
+        totalQuestions: quizCount[0].count || 0,
+        totalAnswers: answerCount[0].count || 0
+      }
+    }))
+
+    res.json({
+      code: 0,
+      message: '成功',
+      data: result
+    })
+  } catch (e) {
+    console.error('[Quiz] 获取专题列表失败:', e.message)
+    res.json({ code: 500, message: '获取失败', data: [] })
+  }
+})
 
 router.get('/daily', async (req, res) => {
   const question = await getDailyQuestion()
@@ -110,9 +140,9 @@ router.post('/submit', async (req, res) => {
 })
 
 router.get('/list', async (req, res) => {
-  const { page = 1, pageSize = 10, category = '', difficulty = '', keyword = '' } = req.query
+  const { page = 1, pageSize = 10, category = '', difficulty = '', keyword = '', topic_id = '' } = req.query
 
-  const { list, total } = await mysqlService.getQuizzes(page, pageSize, category, null, keyword)
+  const { list, total } = await mysqlService.getQuizzes(page, pageSize, category, null, keyword, topic_id)
 
   const result = list.map(q => ({
     id: q.id,
@@ -122,6 +152,7 @@ router.get('/list', async (req, res) => {
     explanation: q.explanation,
     difficulty: q.difficulty,
     category: q.category,
+    topicId: q.topic_id,
     herbId: q.herb_id
   }))
 
@@ -187,12 +218,41 @@ function saveQuizState(state) {
   }
 }
 
-router.get('/stats', (req, res) => {
+router.get('/stats', async (req, res) => {
+  const { topic_id } = req.query
   const state = loadQuizState()
+  let userStats = null
+  try {
+    const authHeader = req.headers.authorization
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null
+    const user = token ? verifyToken(token) : null
+    if (user && user.id) {
+      let totalQuery = 'SELECT COUNT(*) as total FROM quiz_answers WHERE user_id = ?'
+      let correctQuery = 'SELECT COUNT(*) as correct FROM quiz_answers WHERE user_id = ? AND is_correct = 1'
+      const params = [user.id]
+      const correctParams = [user.id]
+      
+      if (topic_id) {
+        totalQuery += ' AND topic_id = ?'
+        correctQuery += ' AND topic_id = ?'
+        params.push(topic_id)
+        correctParams.push(topic_id)
+      }
+
+      const [totalRow] = await pool.query(totalQuery, params)
+      const [correctRow] = await pool.query(correctQuery, correctParams)
+      userStats = {
+        total: totalRow[0].total || 0,
+        correct: correctRow[0].correct || 0
+      }
+    }
+  } catch (e) {
+    console.error('[Quiz] 获取用户统计失败:', e.message)
+  }
   res.json({
     code: 0,
     message: '成功',
-    data: {
+    data: userStats || {
       correct: state.correct || 0,
       total: state.total || 0
     }
@@ -210,7 +270,7 @@ router.post('/answer', async (req, res) => {
     if (qid && state.wrongIds && !state.wrongIds.includes(qid)) {
       state.wrongIds.push(qid)
     }
-    // 同步写入错题本
+    // 同步写入本地错题本
     try {
       const wrongFile = paths.WRONG_QUESTIONS
       let wrongList = []
@@ -223,11 +283,69 @@ router.post('/answer', async (req, res) => {
       }
       fs.writeFileSync(wrongFile, JSON.stringify(wrongList, null, 2))
     } catch (e) {
-      console.error('[Quiz] 写入错题本失败:', e.message)
+      console.error('[Quiz] 写入本地错题本失败:', e.message)
     }
   }
+  // 同步写入数据库（如果用户已登录）
+  let userStats = null
+  try {
+    const authHeader = req.headers.authorization
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null
+    const user = token ? verifyToken(token) : null
+    if (user && user.id && qid) {
+        const question = await mysqlService.getQuizById(qid)
+        const topic_id = question ? question.topic_id : null
+        
+        await pool.query(
+          `INSERT IGNORE INTO quiz_answers (user_id, question_id, topic_id, is_correct, first_answer)
+           VALUES (?, ?, ?, ?, ?)`,
+          [user.id, qid, topic_id, correct ? 1 : 0, answer]
+        )
+        
+        if (!correct) {
+          if (question) {
+            await pool.query(
+              `INSERT IGNORE INTO wrong_questions
+               (user_id, question_id, topic_id, question, options, correct_answer, user_answer, explanation, category, difficulty)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [
+                user.id,
+                qid,
+                topic_id,
+                question.question,
+                typeof question.options === 'string' ? question.options : JSON.stringify(question.options),
+                question.answer,
+                answer,
+                question.explanation,
+                question.category,
+                question.difficulty
+              ]
+            )
+          }
+        }
+      // 查询最新统计
+      const [totalRow] = await pool.query(
+        'SELECT COUNT(*) as total FROM quiz_answers WHERE user_id = ?',
+        [user.id]
+      )
+      const [correctRow] = await pool.query(
+        'SELECT COUNT(*) as correct FROM quiz_answers WHERE user_id = ? AND is_correct = 1',
+        [user.id]
+      )
+      userStats = {
+        total: totalRow[0].total || 0,
+        correct: correctRow[0].correct || 0
+      }
+    }
+  } catch (e) {
+    console.error('[Quiz] 写入数据库失败:', e.message)
+  }
   saveQuizState(state)
-  res.json({ code: 0, message: 'ok', data: { correct: state.correct, total: state.total } })
+  res.json({
+    code: 0,
+    message: 'ok',
+    data: userStats || { correct: state.correct, total: state.total }
+  })
 })
 
 module.exports = router

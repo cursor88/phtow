@@ -998,7 +998,49 @@
       <div style="display:flex;justify-content:center;gap:24px;font-size:13px;color:#666;">
         <span onclick="showRegister()" style="cursor:pointer;color:#2d8b5e;">注册账号</span>
         <span>|</span>
+        <span onclick="showForgotPassword()" style="cursor:pointer;color:#2d8b5e;">忘记密码</span>
+        <span>|</span>
         <span onclick="showGuestMode()" style="cursor:pointer;color:#2d8b5e;">访客模式</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-forgot-password">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;">
+    <div style="font-size:48px;margin-bottom:16px;">🔐</div>
+    <div style="font-size:22px;font-weight:700;color:#333;margin-bottom:8px;">找回密码</div>
+    <div style="font-size:13px;color:#999;margin-bottom:32px;">回答安全问题后即可重置密码</div>
+
+    <div style="width:100%;max-width:320px;" id="forgot-step1">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">用户名</div>
+        <input type="text" id="forgot-username" placeholder="请输入用户名" style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none;transition:border-color 0.3s;">
+      </div>
+      <button onclick="handleForgotStep1()" style="width:100%;padding:14px;background:#2d8b5e;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;">下一步</button>
+      <div style="text-align:center;font-size:13px;color:#666;">
+        <span onclick="showPage('page-login', false)" style="cursor:pointer;color:#2d8b5e;">返回登录</span>
+      </div>
+    </div>
+
+    <div style="width:100%;max-width:320px;display:none;" id="forgot-step2">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">安全问题</div>
+        <div id="forgot-question-display" style="padding:12px 16px;background:#f3f4f6;border-radius:10px;font-size:14px;color:#555;line-height:1.5;"></div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">答案</div>
+        <input type="text" id="forgot-answer" placeholder="请输入答案" style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none;transition:border-color 0.3s;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:8px;">新密码</div>
+        <input type="password" id="forgot-new-password" placeholder="6-32位" style="width:100%;padding:12px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none;transition:border-color 0.3s;">
+      </div>
+      <button onclick="handleForgotReset()" style="width:100%;padding:14px;background:#2d8b5e;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;">重置密码</button>
+      <div style="text-align:center;font-size:13px;color:#666;">
+        <span onclick="showForgotStep1Back()" style="cursor:pointer;color:#2d8b5e;">上一步</span>
+        <span style="margin:0 12px;">|</span>
+        <span onclick="showPage('page-login', false)" style="cursor:pointer;color:#2d8b5e;">返回登录</span>
       </div>
     </div>
   </div>
@@ -1106,13 +1148,7 @@
     <div class="herb-list" id="herb-list"></div>
   </div>
 
-  <div class="card">
-    <div class="section-title">核心功能</div>
-    <div class="feature-item"><div class="feature-icon">🔬</div><div><div class="feature-title">AI识别</div><div class="feature-desc">拍照秒识药材品类</div></div></div>
-    <div class="feature-item"><div class="feature-icon">📚</div><div><div class="feature-title">典籍溯源</div><div class="feature-desc">本草纲目等古籍记载</div></div></div>
-    <div class="feature-item"><div class="feature-icon">🍲</div><div><div class="feature-title">药食同源</div><div class="feature-desc">养生搭配推荐</div></div></div>
-    <div class="feature-item"><div class="feature-icon">🎯</div><div><div class="feature-title">趣味学习</div><div class="feature-desc">问答互动涨知识</div></div></div>
-  </div>
+
 </div>
 
 <div class="page page-with-tab" id="page-identify">
@@ -1423,7 +1459,7 @@
     </div>
     <div id="constitution-records-list"></div>
   </div>
-  <div class="favorite-section" style="margin-bottom:80px;">
+  <div class="favorite-section" id="admin-review-section" style="margin-bottom:80px;display:none;">
     <div class="section-header" style="cursor:pointer;" onclick="goToReviewPage()">
       <span class="title">🔧 识别纠错审核</span>
       <span class="more" id="review-pending-count" style="display:none;background:#dc2626;color:#fff;padding:2px 8px;border-radius:10px;font-size:12px;">0</span>
@@ -1607,7 +1643,10 @@ function showToast(msg) {
 
 async function api(url) {
   try {
-    var res = await fetch(API_BASE + url);
+    var token = localStorage.getItem('userToken');
+    var headers = { 'Content-Type': 'application/json' };
+    if (token && token !== 'guest') headers['Authorization'] = 'Bearer ' + token;
+    var res = await fetch(API_BASE + url, { headers });
     var data = await res.json();
     if (data.code !== 0) { console.warn('API returned code:', data.code, data.message); return null; }
     if (data.data === undefined || data.data === null) return null;
@@ -1618,7 +1657,10 @@ async function api(url) {
 
 async function apiPost(url, body) {
   try {
-    var res = await fetch(API_BASE + url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    var token = localStorage.getItem('userToken');
+    var headers = { 'Content-Type': 'application/json' };
+    if (token && token !== 'guest') headers['Authorization'] = 'Bearer ' + token;
+    var res = await fetch(API_BASE + url, { method: 'POST', headers, body: JSON.stringify(body) });
     var data = await res.json();
     return data;
   } catch(e) { console.error('API Error:', e); showToast('网络错误'); return { code: -1, message: '网络错误' }; }
@@ -1626,7 +1668,10 @@ async function apiPost(url, body) {
 
 async function apiDelete(url) {
   try {
-    var res = await fetch(API_BASE + url, { method: 'DELETE' });
+    var token = localStorage.getItem('userToken');
+    var headers = { 'Content-Type': 'application/json' };
+    if (token && token !== 'guest') headers['Authorization'] = 'Bearer ' + token;
+    var res = await fetch(API_BASE + url, { method: 'DELETE', headers });
     var data = await res.json();
     return data;
   } catch(e) { console.error('API Error:', e); return null; }
@@ -1814,13 +1859,24 @@ function renderHerbList(data, pagination) {
   content.innerHTML = cardsHtml + paginationHtml;
 }
 
-function handleHerbSearch() {
-  var keyword = document.getElementById('herb-search-input').value.toLowerCase().trim();
-  if (!keyword) { renderHerbList(herbsData); return; }
-  var filtered = herbsData.filter(function(h) {
-    return h.name.toLowerCase().indexOf(keyword) >= 0 || (h.alias && h.alias.some(function(a) { return a.toLowerCase().indexOf(keyword) >= 0; }));
-  });
-  renderHerbList(filtered);
+async function handleHerbSearch() {
+  var keyword = document.getElementById('herb-search-input').value.trim();
+  if (!keyword) {
+    herbsCurrentPage = 1;
+    herbsCurrentCategory = '';
+    herbsFoodMedicineOnly = false;
+    loadHerbList(1);
+    return;
+  }
+  var content = document.getElementById('herb-list-content');
+  if (content) content.innerHTML = '<div class="loading"><div class="spinner" style="border-color:rgba(45,139,94,0.3);border-top-color:#2d8b5e;"></div>搜索中...</div>';
+  var url = '/herb/list?page=1&pageSize=50&keyword=' + encodeURIComponent(keyword);
+  var data = await api(url);
+  if (data && data.list) {
+    renderHerbList(data.list, data);
+  } else if (content) {
+    content.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">未找到相关药材</div></div>';
+  }
 }
 
 async function showHerbDetail(id) {
@@ -1840,11 +1896,17 @@ async function showHerbDetail(id) {
   }).join('') : '';
 
   var foodMatchHtml = '';
-  if (data.food_match && data.food_match.length) {
-    foodMatchHtml = '<div class="card"><div class="section-title">🍲 药食同源搭配</div>' + data.food_match.map(function(f) {
+  var foodMatches = data.foodMatches || data.food_match || [];
+  if (foodMatches && foodMatches.length) {
+    foodMatchHtml = '<div class="card"><div class="section-title">🍲 药食同源搭配</div>' + foodMatches.map(function(f) {
       if (!f) return '';
       var fid = f.id || 0;
-      return '<div class="food-item" onclick="showMatchDetail(' + fid + ')"><div class="food-visual herb-color-' + ((fid % 6) + 1) + '">🍲</div><div class="food-info"><div class="name">' + (f.name || '未知搭配') + '</div><div class="effect">' + (f.effect || '') + '</div><div class="ings">' + (f.ingredients && f.ingredients.length ? f.ingredients.map(function(i) { return '<span>' + i + '</span>'; }).join('') : '') + '</div></div></div>';
+      var ings = '';
+      if (f.ingredients && f.ingredients.length) {
+        ings = '<div class="ings">' + f.ingredients.map(function(i) { return '<span>' + i + '</span>'; }).join('') + '</div>';
+      }
+      var catTag = f.category ? '<span style="font-size:10px;color:#2d8b5e;background:#f0f9f4;padding:2px 8px;border-radius:8px;margin-right:6px;">' + f.category + '</span>' : '';
+      return '<div class="food-item" onclick="showMatchDetail(' + fid + ')"><div class="food-visual herb-color-' + ((fid % 6) + 1) + '">🍲</div><div class="food-info"><div class="name">' + (f.name || '未知搭配') + '</div><div class="effect">' + catTag + (f.effect || '') + '</div>' + ings + '</div></div>';
     }).join('') + '</div>';
   }
 
@@ -2483,10 +2545,10 @@ function selectQuizOption(idx, el) {
   var options = document.querySelectorAll('.option-item');
   options.forEach(function(o) { o.classList.add('disabled'); });
 
-  if (idx === window.currentQuiz.answer) {
+  var isCorrect = idx === window.currentQuiz.answer;
+  if (isCorrect) {
     el.classList.add('correct');
     el.querySelector('.opt-check').textContent = '✓';
-    apiPost('/quiz/answer', { qid: window.currentQuiz.id, answer: idx, correct: true });
   } else {
     el.classList.add('wrong');
     el.querySelector('.opt-check').textContent = '✗';
@@ -2494,23 +2556,23 @@ function selectQuizOption(idx, el) {
       options[window.currentQuiz.answer].classList.add('correct');
       options[window.currentQuiz.answer].querySelector('.opt-check').textContent = '✓';
     }
-    apiPost('/quiz/answer', { qid: window.currentQuiz.id, answer: idx, correct: false });
   }
+
+  apiPost('/quiz/answer', { qid: window.currentQuiz.id, answer: idx, correct: isCorrect }).then(function(res) {
+    if (res && res.data) {
+      var s = res.data;
+      var el1 = document.getElementById('stat-correct');
+      var el2 = document.getElementById('stat-total');
+      var el3 = document.getElementById('stat-accuracy');
+      if (el1) el1.textContent = s.correct || 0;
+      if (el2) el2.textContent = s.total || 0;
+      if (el3) el3.textContent = s.total > 0 ? Math.round((s.correct / s.total) * 100) + '%' : '0%';
+    }
+  });
 
   if (window.currentQuiz.explanation) {
     document.getElementById('quiz-card').innerHTML += '<div class="explanation"><div class="title">解析</div><div class="text">' + window.currentQuiz.explanation + '</div></div>';
   }
-
-  api('/quiz/stats').then(function(stats) {
-    if (stats) {
-      var el1 = document.getElementById('stat-correct');
-      var el2 = document.getElementById('stat-total');
-      var el3 = document.getElementById('stat-accuracy');
-      if (el1) el1.textContent = stats.correct || 0;
-      if (el2) el2.textContent = stats.total || 0;
-      if (el3) el3.textContent = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) + '%' : '0%';
-    }
-  });
 }
 
 function loadNextQuiz() {
@@ -2538,9 +2600,58 @@ function loadPrevQuiz() {
 function goToQuizList() {
   window._quizListMode = 'list';
   window._quizCurrentPage = 1;
-  window._quizPageSize = 10;
+  window._quizPageSize = 5;
   window._quizKeyword = '';
+  window._currentQuizTopic = null;
   showPage('page-quiz', false);
+  loadTopicList();
+}
+
+async function loadTopicList(page) {
+  var pageNum = page || window._quizCurrentPage || 1;
+  window._quizCurrentPage = pageNum;
+  var topics = await api('/quiz/topics');
+  var content = document.getElementById('quiz-content');
+  if (!content) return;
+  
+  if (!topics || topics.length === 0) {
+    content.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">暂无专题</div></div>';
+    return;
+  }
+  
+  var pageSize = window._quizPageSize || 5;
+  var total = topics.length;
+  var totalPages = Math.ceil(total / pageSize);
+  var start = (pageNum - 1) * pageSize;
+  var end = start + pageSize;
+  var pageTopics = topics.slice(start, end);
+  
+  var cardsHtml = '<div style="margin:0 16px 12px;font-size:13px;color:#999;">选择专题开始学习（共 ' + total + ' 个专题）</div>' + pageTopics.map(function(t) {
+    return '<div class="card" onclick="selectQuizTopic(' + t.id + ')"><div style="display:flex;align-items:center;gap:12px;"><div style="font-size:28px;">' + t.icon + '</div><div style="flex:1;"><div style="font-size:16px;font-weight:600;">' + t.name + '</div><div style="font-size:13px;color:#999;margin-top:2px;">' + t.description + '</div></div><div style="text-align:right;"><div style="font-size:18px;font-weight:600;color:#2d8b5e;">' + t.totalQuestions + '</div><div style="font-size:12px;color:#999;">题目数</div></div></div></div>';
+  }).join('');
+  
+  var paginationHtml = '';
+  if (total > pageSize) {
+    var pages = [];
+    for (var i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= pageNum - 1 && i <= pageNum + 1)) {
+        pages.push(i);
+      } else if (pages.length > 0 && pages[pages.length - 1] !== -1) {
+        pages.push(-1);
+      }
+    }
+    paginationHtml = '<div class="pagination" style="margin:0 16px 16px;"><div class="pagination-btn' + (pageNum <= 1 ? ' disabled' : '') + '" onclick="loadTopicList(' + (pageNum - 1) + ')">←</div>' + pages.map(function(p) {
+      if (p === -1) return '<div class="pagination-dot">...</div>';
+      return '<div class="pagination-btn' + (p === pageNum ? ' active' : '') + '" onclick="loadTopicList(' + p + ')">' + p + '</div>';
+    }).join('') + '<div class="pagination-btn' + (pageNum >= totalPages ? ' disabled' : '') + '" onclick="loadTopicList(' + (pageNum + 1) + ')">→</div></div>';
+  }
+  
+  content.innerHTML = cardsHtml + paginationHtml;
+}
+
+function selectQuizTopic(topicId) {
+  window._currentQuizTopic = topicId;
+  window._quizCurrentPage = 1;
   loadQuizList(1);
 }
 
@@ -2548,14 +2659,18 @@ function loadQuizList(page) {
   var pageNum = page || window._quizCurrentPage || 1;
   window._quizCurrentPage = pageNum;
   var keyword = window._quizKeyword || '';
+  var topicId = window._currentQuizTopic;
   var url = '/quiz/list?page=' + pageNum + '&pageSize=' + (window._quizPageSize || 10);
   if (keyword) url += '&keyword=' + encodeURIComponent(keyword);
+  if (topicId) url += '&topic_id=' + topicId;
 
   api(url).then(function(data) {
     var content = document.getElementById('quiz-content');
     if (!content) return;
     var list = (data && data.list) ? data.list : [];
     var total = (data && data.total) ? data.total : 0;
+
+    var backBtn = '<div class="card" style="margin:0 16px 12px;padding:10px 14px;"><span style="color:#2d8b5e;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="goToQuizList()">← 返回专题列表</span></div>';
 
     var searchHtml = '<div class="card" style="margin:0 16px 12px;padding:10px 14px;">' +
       '<div style="display:flex;align-items:center;background:#f8fafc;border-radius:25px;padding:8px 14px;border:1px solid #e5e7eb;">' +
@@ -2565,7 +2680,7 @@ function loadQuizList(page) {
       '</div></div>';
 
     if (!list || list.length === 0) {
-      content.innerHTML = searchHtml + '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">暂无题目</div></div>';
+      content.innerHTML = backBtn + searchHtml + '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">暂无题目</div></div>';
       return;
     }
 
@@ -2594,7 +2709,7 @@ function loadQuizList(page) {
       }).join('') + '<div class="pagination-btn' + (pageNum >= totalPages ? ' disabled' : '') + '" onclick="loadQuizList(' + (pageNum + 1) + ')">→</div></div>';
     }
 
-    content.innerHTML = searchHtml + cardsHtml + paginationHtml;
+    content.innerHTML = backBtn + searchHtml + cardsHtml + paginationHtml;
   });
 }
 
@@ -2631,13 +2746,87 @@ function openQuizFromList(idx) {
 
 function goToWrongQuestions() {
   window._quizListMode = 'wrong';
+  window._currentQuizTopic = null;
   showPage('page-quiz', false);
-  api('/wrong-questions/list').then(function(data) {
+  var token = localStorage.getItem('userToken');
+  if (!token || token === 'guest') {
+    var content = document.getElementById('quiz-content');
+    if (content) content.innerHTML = '<div class="empty-state"><div class="empty-icon">🔒</div><div class="empty-title">请先登录</div><div style="font-size:13px;color:#999;margin-top:8px;">登录后即可查看错题本</div></div>';
+    return;
+  }
+  loadWrongTopicList();
+}
+
+async function loadWrongTopicList(page) {
+  var pageNum = page || window._quizCurrentPage || 1;
+  window._quizCurrentPage = pageNum;
+  var topics = await api('/quiz/topics');
+  var content = document.getElementById('quiz-content');
+  if (!content) return;
+  
+  if (!topics || topics.length === 0) {
+    content.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">暂无专题</div></div>';
+    return;
+  }
+  
+  var wrongCounts = {};
+  var allWrongList = await api('/wrong-questions/list');
+  if (allWrongList && Array.isArray(allWrongList)) {
+    allWrongList.forEach(function(w) {
+      var tid = w.topicId || 'all';
+      wrongCounts[tid] = (wrongCounts[tid] || 0) + 1;
+    });
+  }
+  
+  var pageSize = window._quizPageSize || 5;
+  var total = topics.length;
+  var totalPages = Math.ceil(total / pageSize);
+  var start = (pageNum - 1) * pageSize;
+  var end = start + pageSize;
+  var pageTopics = topics.slice(start, end);
+  
+  var cardsHtml = '<div style="margin:0 16px 12px;font-size:13px;color:#999;">选择专题查看错题（共 ' + total + ' 个专题）</div>' + pageTopics.map(function(t) {
+    var count = wrongCounts[t.id] || 0;
+    return '<div class="card" onclick="selectWrongTopic(' + t.id + ')"><div style="display:flex;align-items:center;gap:12px;"><div style="font-size:28px;">' + t.icon + '</div><div style="flex:1;"><div style="font-size:16px;font-weight:600;">' + t.name + '</div><div style="font-size:13px;color:#999;margin-top:2px;">' + t.description + '</div></div><div style="text-align:right;"><div style="font-size:18px;font-weight:600;color:#dc2626;">' + count + '</div><div style="font-size:12px;color:#999;">错题数</div></div></div></div>';
+  }).join('');
+  
+  var paginationHtml = '';
+  if (total > pageSize) {
+    var pages = [];
+    for (var i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= pageNum - 1 && i <= pageNum + 1)) {
+        pages.push(i);
+      } else if (pages.length > 0 && pages[pages.length - 1] !== -1) {
+        pages.push(-1);
+      }
+    }
+    paginationHtml = '<div class="pagination" style="margin:0 16px 16px;"><div class="pagination-btn' + (pageNum <= 1 ? ' disabled' : '') + '" onclick="loadWrongTopicList(' + (pageNum - 1) + ')">←</div>' + pages.map(function(p) {
+      if (p === -1) return '<div class="pagination-dot">...</div>';
+      return '<div class="pagination-btn' + (p === pageNum ? ' active' : '') + '" onclick="loadWrongTopicList(' + p + ')">' + p + '</div>';
+    }).join('') + '<div class="pagination-btn' + (pageNum >= totalPages ? ' disabled' : '') + '" onclick="loadWrongTopicList(' + (pageNum + 1) + ')">→</div></div>';
+  }
+  
+  content.innerHTML = cardsHtml + paginationHtml;
+}
+
+function selectWrongTopic(topicId) {
+  window._currentQuizTopic = topicId;
+  loadWrongQuestionsList(topicId);
+}
+
+function loadWrongQuestionsList(topicId) {
+  var url = '/wrong-questions/list' + (topicId ? '?topic_id=' + topicId : '');
+  api(url).then(function(data) {
     var content = document.getElementById('quiz-content');
     if (!content) return;
+    if (data === null || data === undefined) {
+      content.innerHTML = '<div class="card" style="margin:0 16px 12px;padding:10px 14px;"><span style="color:#2d8b5e;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="goToWrongQuestions()">← 返回专题列表</span></div><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">获取失败</div><div style="font-size:13px;color:#999;margin-top:8px;">请重新登录后再试</div></div>';
+      return;
+    }
     var list = Array.isArray(data) ? data : (data && data.list ? data.list : []);
-    if (!list || list.length === 0) { content.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">暂无错题</div></div>'; return; }
-    content.innerHTML = '<div style="margin:0 16px 12px;font-size:13px;color:#999;">共 ' + list.length + ' 道错题</div>' + list.map(function(q) {
+    var backBtn = '<div class="card" style="margin:0 16px 12px;padding:10px 14px;"><span style="color:#2d8b5e;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="goToWrongQuestions()">← 返回专题列表</span></div>';
+    if (!list || list.length === 0) { content.innerHTML = backBtn + '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">暂无错题</div></div>'; return; }
+    content.innerHTML = backBtn + '<div style="margin:0 16px 12px;font-size:13px;color:#999;">共 ' + list.length + ' 道错题</div>' + list.map(function(q) {
       q.options = cleanOptions(q.options);
       return '<div class="card"><div class="quiz-header"><div class="quiz-tag" style="background:rgba(239,68,68,0.1);color:#dc2626;">错题</div><div style="font-size:12px;color:#999;">' + (q.category || '') + '</div></div><div class="quiz-question">' + q.question + '</div><div class="quiz-footer"><span style="color:#dc2626;font-size:12px;">错误次数: ' + (q.wrong_count || 1) + '</span><button style="font-size:12px;color:#2d8b5e;" onclick="removeWrongQuestion(' + q.id + ')">移除</button></div></div>';
     }).join('');
@@ -2652,13 +2841,29 @@ function removeWrongQuestion(id) {
 }
 
 async function initProfile() {
+  var userInfoStr = localStorage.getItem('userInfo');
+  var userRole = 'user';
+  if (userInfoStr) {
+    try {
+      var userInfo = JSON.parse(userInfoStr);
+      userRole = userInfo.role || 'user';
+      var nameEl = document.querySelector('.profile-text .name');
+      if (nameEl) nameEl.textContent = userInfo.nickname || userInfo.username || '本草智识用户';
+    } catch(e) {}
+  }
+  var adminSection = document.getElementById('admin-review-section');
+  if (adminSection) {
+    adminSection.style.display = (userRole === 'admin') ? 'block' : 'none';
+  }
   loadFavHerbs();
   loadFavMatches();
   loadCheckinRecords();
   loadIdentifyRecords();
   loadConstitutionRecords();
   loadCheckinStats();
-  loadReviewBadge();
+  if (userRole === 'admin') {
+    loadReviewBadge();
+  }
 }
 
 async function loadReviewBadge() {
@@ -2739,12 +2944,12 @@ async function handleRegister() {
   var username = document.getElementById('reg-username').value.trim();
   var password = document.getElementById('reg-password').value.trim();
   var nickname = document.getElementById('reg-nickname').value.trim();
-  
+
   if (!username || !password) {
     showToast('请输入用户名和密码');
     return;
   }
-  
+
   var data = await apiPost('/auth/register', { username, password, nickname });
   if (data && data.code === 0 && data.data) {
     localStorage.setItem('userToken', data.data.token);
@@ -2757,6 +2962,71 @@ async function handleRegister() {
     showPage('page-home', false);
   } else {
     showToast((data && data.message) || '注册失败');
+  }
+}
+
+function showForgotPassword() {
+  document.getElementById('forgot-username').value = document.getElementById('login-username').value || '';
+  document.getElementById('forgot-step1').style.display = 'block';
+  document.getElementById('forgot-step2').style.display = 'none';
+  document.getElementById('forgot-answer').value = '';
+  document.getElementById('forgot-new-password').value = '';
+  showPage('page-forgot-password', false);
+}
+
+function showForgotStep1Back() {
+  document.getElementById('forgot-step1').style.display = 'block';
+  document.getElementById('forgot-step2').style.display = 'none';
+  document.getElementById('forgot-answer').value = '';
+  document.getElementById('forgot-new-password').value = '';
+}
+
+var forgotCurrentUsername = '';
+
+async function handleForgotStep1() {
+  var username = document.getElementById('forgot-username').value.trim();
+  if (!username) {
+    showToast('请输入用户名');
+    return;
+  }
+
+  var data = await apiPost('/auth/forgot-check', { username });
+  if (data && data.code === 0 && data.data) {
+    forgotCurrentUsername = username;
+    document.getElementById('forgot-question-display').textContent = data.data.question;
+    document.getElementById('forgot-step1').style.display = 'none';
+    document.getElementById('forgot-step2').style.display = 'block';
+  } else {
+    showToast((data && data.message) || '用户不存在');
+  }
+}
+
+async function handleForgotReset() {
+  var answer = document.getElementById('forgot-answer').value.trim();
+  var newPassword = document.getElementById('forgot-new-password').value.trim();
+
+  if (!answer || !newPassword) {
+    showToast('请填写完整信息');
+    return;
+  }
+  if (newPassword.length < 6 || newPassword.length > 32) {
+    showToast('密码长度6-32位');
+    return;
+  }
+
+  var data = await apiPost('/auth/forgot-reset', {
+    username: forgotCurrentUsername,
+    answer: answer,
+    newPassword: newPassword
+  });
+
+  if (data && data.code === 0) {
+    showToast('密码重置成功');
+    document.getElementById('login-username').value = forgotCurrentUsername;
+    document.getElementById('login-password').value = '';
+    showPage('page-login', false);
+  } else {
+    showToast((data && data.message) || '重置失败');
   }
 }
 
@@ -2801,6 +3071,34 @@ function doLogout() {
   currentPage = 'page-login';
   showToast('已退出登录');
   showPage('page-login', false);
+}
+
+var _confirmCallback = null;
+function showConfirm(title, message, onConfirm) {
+  _confirmCallback = onConfirm;
+  var modal = document.getElementById('match-modal');
+  var modalBody = document.getElementById('modal-body');
+  var modalBg = document.getElementById('modal-bg');
+  if (modalBg) modalBg.style.cssText = 'background:linear-gradient(135deg, #ef4444, #f87171);height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;';
+  if (modalBg) modalBg.innerHTML = '<div style="font-size:36px;margin-bottom:8px;">⚠️</div><div style="font-size:18px;font-weight:600;">' + title + '</div>';
+  if (modalBody) modalBody.innerHTML =
+    '<div style="padding:4px 0 8px;text-align:center;">' +
+      '<div style="font-size:15px;color:#333;margin-bottom:24px;">' + message + '</div>' +
+      '<div style="display:flex;gap:12px;">' +
+        '<button onclick="closeMatchModal()" style="flex:1;padding:12px;background:#f3f4f6;color:#374151;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;">取消</button>' +
+        '<button onclick="doConfirmAction()" style="flex:1;padding:12px;background:#ef4444;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">确认</button>' +
+      '</div>' +
+    '</div>';
+  if (modal) modal.classList.add('active');
+}
+
+function doConfirmAction() {
+  closeMatchModal();
+  if (typeof _confirmCallback === 'function') {
+    var cb = _confirmCallback;
+    _confirmCallback = null;
+    cb();
+  }
 }
 
 async function loadReviewStats() {
@@ -3216,16 +3514,17 @@ function goToHerbDetail(herbName) {
 }
 
 function deleteConstitutionRecord(id) {
-  if (!confirm('确定要删除这条测评记录吗？')) return;
-  apiDelete('/constitution/record/'+id).then(function(res) {
-    if (res && res.code === 0) {
-      showToast('删除成功');
-      loadConstitutionRecords();
-    } else {
+  showConfirm('删除测评记录', '确定要删除这条测评记录吗？', function() {
+    apiDelete('/constitution/record/'+id).then(function(res) {
+      if (res && res.code === 0) {
+        showToast('删除成功');
+        loadConstitutionRecords();
+      } else {
+        showToast('删除失败');
+      }
+    }).catch(function() {
       showToast('删除失败');
-    }
-  }).catch(function() {
-    showToast('删除失败');
+    });
   });
 }
 
@@ -3247,12 +3546,14 @@ function showPage(pageId, updateHistory) {
   }
   window.scrollTo(0, 0);
   var tabBar = document.querySelector('.tab-bar');
-  if (pageId === 'page-login') {
+  if (pageId === 'page-login' || pageId === 'page-forgot-password') {
     if (tabBar) tabBar.style.display = 'none';
-    var formUser = document.getElementById('login-username');
-    var formPass = document.getElementById('login-password');
-    if (formUser) formUser.value = '';
-    if (formPass) formPass.value = '';
+    if (pageId === 'page-login') {
+      var formUser = document.getElementById('login-username');
+      var formPass = document.getElementById('login-password');
+      if (formUser) formUser.value = '';
+      if (formPass) formPass.value = '';
+    }
     return;
   }
   if (tabBar) tabBar.style.display = 'flex';
@@ -3294,10 +3595,21 @@ function handleChatKey(e) {
   if (e.key === 'Enter') { sendMessage(); }
 }
 
+var lastSentMessage = '';
+var lastSentTime = 0;
+
 function sendMessage(text) {
   var input = document.getElementById('chat-input');
   var message = text || input.value.trim();
   if (!message || isChatLoading) return;
+  
+  // 防重复发送：相同消息500ms内只发送一次
+  var now = Date.now();
+  if (message === lastSentMessage && (now - lastSentTime) < 500) {
+    return;
+  }
+  lastSentMessage = message;
+  lastSentTime = now;
   
   input.value = '';
   
@@ -3622,43 +3934,37 @@ function renderExistingChat(data) {
 }
 
 function deleteChatHistory(sessionId) {
-  if (!confirm('确定删除这条问诊记录吗？')) return;
-  
-  fetch(API_BASE + '/chat/history/' + sessionId, { method: 'DELETE' })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.code === 0) {
+  showConfirm('删除问诊记录', '确定删除这条问诊记录吗？', function() {
+    apiDelete('/chat/history/' + sessionId).then(function(data) {
+      if (data && data.code === 0) {
         showToast('已删除');
         renderChatHistoryPage();
         loadChatHistory();
       } else {
-        showToast(data.message || '删除失败');
+        showToast((data && data.message) || '删除失败');
       }
-    })
-    .catch(function(e) {
+    }).catch(function(e) {
       console.error('删除失败:', e);
       showToast('删除失败');
     });
+  });
 }
 
 function clearAllChatHistory() {
-  if (!confirm('确定清空所有问诊记录吗？此操作不可恢复。')) return;
-  
-  fetch(API_BASE + '/chat/history', { method: 'DELETE' })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.code === 0) {
+  showConfirm('清空问诊记录', '确定清空所有问诊记录吗？此操作不可恢复。', function() {
+    apiDelete('/chat/history').then(function(data) {
+      if (data && data.code === 0) {
         showToast('已清空');
         renderChatHistoryPage();
         loadChatHistory();
       } else {
-        showToast(data.message || '清空失败');
+        showToast((data && data.message) || '清空失败');
       }
-    })
-    .catch(function(e) {
+    }).catch(function(e) {
       console.error('清空失败:', e);
       showToast('清空失败');
     });
+  });
 }
 
 let llmStatus = { enabled: false, provider: '', model: '' };

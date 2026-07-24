@@ -91,36 +91,7 @@
       </view>
 
       <view class="features card">
-        <view class="section-title">核心功能</view>
         <view class="feature-list">
-          <view class="feature-item">
-            <view class="feature-icon">🔬</view>
-            <view class="feature-text">
-              <view class="feature-title">AI识别</view>
-              <view class="feature-desc">拍照秒识药材品类</view>
-            </view>
-          </view>
-          <view class="feature-item">
-            <view class="feature-icon">📚</view>
-            <view class="feature-text">
-              <view class="feature-title">典籍溯源</view>
-              <view class="feature-desc">本草纲目等古籍记载</view>
-            </view>
-          </view>
-          <view class="feature-item">
-            <view class="feature-icon">🍲</view>
-            <view class="feature-text">
-              <view class="feature-title">药食同源</view>
-              <view class="feature-desc">养生搭配推荐</view>
-            </view>
-          </view>
-          <view class="feature-item">
-            <view class="feature-icon">🎯</view>
-            <view class="feature-text">
-              <view class="feature-title">趣味学习</view>
-              <view class="feature-desc">问答互动涨知识</view>
-            </view>
-          </view>
           <view class="feature-item" @click="goToConstitution">
             <view class="feature-icon">🧬</view>
             <view class="feature-text">

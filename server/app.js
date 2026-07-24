@@ -4,7 +4,6 @@ const cors = require('cors')
 const path = require('path')
 const fs = require('fs')
 
-const db = require('./config/db');
 const { testConnection, initTables } = require('./config/mysql')
 
 const app = express()

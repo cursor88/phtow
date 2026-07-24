@@ -8,7 +8,8 @@ function generateToken(user) {
     {
       id: user.id,
       username: user.username,
-      nickname: user.nickname
+      nickname: user.nickname,
+      role: user.role || 'user'
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
@@ -48,9 +49,23 @@ function authRequired(req, res, next) {
   next();
 }
 
+function adminRequired(req, res, next) {
+  authRequired(req, res, function() {
+    if (req.user.role !== 'admin') {
+      return res.json({
+        code: 403,
+        message: '无权限，仅超级管理员可访问',
+        data: null
+      });
+    }
+    next();
+  });
+}
+
 module.exports = {
   generateToken,
   verifyToken,
   authRequired,
+  adminRequired,
   JWT_SECRET
 };

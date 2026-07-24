@@ -95,8 +95,8 @@ class MySQLService {
     const params = []
 
     if (keyword) {
-      query += ` AND (h.name LIKE ? OR h.keywords LIKE ?)`
-      params.push(`%${keyword}%`, `%${keyword}%`)
+      query += ` AND (h.name LIKE ? OR h.keywords LIKE ? OR h.alias LIKE ?)`
+      params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`)
     }
 
     if (category) {
@@ -115,7 +115,7 @@ class MySQLService {
 
     const [countResult] = await pool.query(`
       SELECT COUNT(*) as total FROM herbs h WHERE 1=1
-      ${keyword ? 'AND (h.name LIKE ? OR h.keywords LIKE ?)' : ''}
+      ${keyword ? 'AND (h.name LIKE ? OR h.keywords LIKE ? OR h.alias LIKE ?)' : ''}
       ${category ? 'AND h.category = ?' : ''}
       ${foodMedicine === '1' ? 'AND h.is_food_medicine = 1' : ''}
     `, params.slice(0, -2))
@@ -164,17 +164,20 @@ class MySQLService {
   }
 
   async getHerbFoodMatches(id) {
+    // 先查药材名，用于匹配 source_herb
+    const [herbRows] = await pool.query('SELECT name FROM herbs WHERE id = ?', [id])
+    const herbName = herbRows.length > 0 ? herbRows[0].name : ''
+
+    // 同时通过 herb_id 和 source_herb 查询
     const [rows] = await pool.query(`
-      SELECT fm.*
-      FROM food_matches fm
-      JOIN herb_food_match hfm ON fm.id = hfm.food_match_id
-      WHERE hfm.herb_id = ?
-      ORDER BY hfm.sort_order
-    `, [id])
+      SELECT fm.* FROM food_matches fm
+      WHERE fm.herb_id = ? OR (fm.source_herb IS NOT NULL AND fm.source_herb = ?)
+      ORDER BY fm.id
+    `, [id, herbName])
 
     return rows.map(m => ({
       ...m,
-      ingredients: m.ingredients ? JSON.parse(m.ingredients) : []
+      ingredients: m.ingredients ? (typeof m.ingredients === 'string' ? JSON.parse(m.ingredients) : m.ingredients) : []
     }))
   }
 
@@ -248,7 +251,7 @@ class MySQLService {
     }
   }
 
-  async getQuizzes(page = 1, pageSize = 10, category = '', herbId = null, keyword = '') {
+  async getQuizzes(page = 1, pageSize = 10, category = '', herbId = null, keyword = '', topic_id = '') {
     let query = 'SELECT q.* FROM quizzes q'
     const params = []
     let where = []
@@ -268,6 +271,11 @@ class MySQLService {
     if (herbId) {
       where.push('q.herb_id = ?')
       params.push(herbId)
+    }
+
+    if (topic_id) {
+      where.push('q.topic_id = ?')
+      params.push(topic_id)
     }
 
     if (where.length > 0) query += ' WHERE ' + where.join(' AND ')

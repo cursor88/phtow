@@ -2,10 +2,11 @@ const express = require('express')
 const fs = require('fs')
 const { pool } = require('../config/mysql')
 const { addReferenceImage } = require('../services/imageSearchService')
+const { adminRequired } = require('../middleware/auth')
 
 const router = express.Router()
 
-router.get('/pending-images', async (req, res) => {
+router.get('/pending-images', adminRequired, async (req, res) => {
   try {
     const { status = 'pending', page = 1, pageSize = 20 } = req.query
     const offset = (parseInt(page) - 1) * parseInt(pageSize)
@@ -96,7 +97,7 @@ router.post('/approve-image/:id', async (req, res) => {
   }
 })
 
-router.post('/reject-image/:id', async (req, res) => {
+router.post('/reject-image/:id', adminRequired, async (req, res) => {
   try {
     const { id } = req.params
     const { reviewerNote } = req.body
@@ -119,7 +120,7 @@ router.post('/reject-image/:id', async (req, res) => {
   }
 })
 
-router.get('/dashboard-stats', async (req, res) => {
+router.get('/dashboard-stats', adminRequired, async (req, res) => {
   try {
     const [pendingRows] = await pool.query(
       'SELECT COUNT(*) as count FROM pending_reference_images WHERE status = "pending"'

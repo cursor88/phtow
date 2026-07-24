@@ -3,6 +3,7 @@ const router = express.Router()
 const path = require('path')
 const herbs = require('../data/herbs')
 const paths = require('../config/paths')
+const { authRequired } = require('../middleware/auth')
 
 const DATA_FILE = paths.IDENTIFY_RECORDS
 const fs = require('fs')
@@ -27,8 +28,9 @@ function saveRecords(records) {
   }
 }
 
-function getRecordsList(page, pageSize) {
-  let records = loadRecords()
+function getRecordsList(page, pageSize, userId) {
+  let allRecords = loadRecords()
+  const records = userId ? allRecords.filter(r => !r.user_id || r.user_id === userId) : allRecords
   const detailedRecords = records.map(r => {
     const herb = herbs.find(h => h.id === r.herbId)
     return {
@@ -43,9 +45,9 @@ function getRecordsList(page, pageSize) {
   return { list, total: detailedRecords.length }
 }
 
-router.get('/list', (req, res) => {
+router.get('/list', authRequired, (req, res) => {
   const { page = 1, pageSize = 20 } = req.query
-  const { list, total } = getRecordsList(page, pageSize)
+  const { list, total } = getRecordsList(page, pageSize, req.user.id)
   res.json({
     code: 0,
     message: '成功',
@@ -58,9 +60,9 @@ router.get('/list', (req, res) => {
   })
 })
 
-router.get('/records', (req, res) => {
+router.get('/records', authRequired, (req, res) => {
   const { page = 1, pageSize = 20 } = req.query
-  const { list, total } = getRecordsList(page, pageSize)
+  const { list, total } = getRecordsList(page, pageSize, req.user.id)
   res.json({
     code: 0,
     message: '成功',
@@ -73,7 +75,7 @@ router.get('/records', (req, res) => {
   })
 })
 
-router.post('/add', (req, res) => {
+router.post('/add', authRequired, (req, res) => {
   const { herbId, herbName, accuracy, image, source } = req.body
   
   if (!herbId && !herbName) {
@@ -84,6 +86,7 @@ router.post('/add', (req, res) => {
   
   const newRecord = {
     id: Date.now(),
+    user_id: req.user.id,
     herbId: parseInt(herbId) || null,
     herbName: herbName || '',
     accuracy: parseFloat(accuracy) || 0,
@@ -108,8 +111,9 @@ router.post('/add', (req, res) => {
   })
 })
 
-router.get('/stats', (req, res) => {
-  const records = loadRecords()
+router.get('/stats', authRequired, (req, res) => {
+  const allRecords = loadRecords()
+  const records = allRecords.filter(r => !r.user_id || r.user_id === req.user.id)
   
   const today = new Date().toISOString().split('T')[0]
   const todayCount = records.filter(r => r.date === today).length
@@ -124,13 +128,13 @@ router.get('/stats', (req, res) => {
   })
 })
 
-router.post('/delete/:id', (req, res) => {
+router.post('/delete/:id', authRequired, (req, res) => {
   const id = parseInt(req.params.id)
   let records = loadRecords()
   
-  const index = records.findIndex(r => r.id === id)
+  const index = records.findIndex(r => r.id === id && r.user_id === req.user.id)
   if (index === -1) {
-    return res.json({ code: -1, message: '记录不存在' })
+    return res.json({ code: -1, message: '记录不存在或无权删除' })
   }
   
   records.splice(index, 1)

@@ -4,6 +4,7 @@ const path = require('path')
 const fs = require('fs')
 const mysqlService = require('../services/mysqlService')
 const paths = require('../config/paths')
+const { authRequired } = require('../middleware/auth')
 
 const DAILY_HERBS_FILE = paths.DAILY_HERBS
 const CHECKIN_RECORDS_FILE = paths.CHECKIN_RECORDS
@@ -62,11 +63,11 @@ router.get('/daily-herb', async (req, res) => {
   })
 })
 
-router.get('/records', async (req, res) => {
+router.get('/records', authRequired, async (req, res) => {
   let records = []
   try {
     const data = require('../data/checkinRecords.json')
-    records = data
+    records = data.filter(r => !r.user_id || r.user_id === req.user.id)
   } catch (e) {
     records = []
   }
@@ -90,7 +91,7 @@ router.get('/records', async (req, res) => {
   })
 })
 
-router.post('/checkin', async (req, res) => {
+router.post('/checkin', authRequired, async (req, res) => {
   const { herbId } = req.body
   
   if (!herbId) {
@@ -98,6 +99,7 @@ router.post('/checkin', async (req, res) => {
   }
   
   const today = getTodayStr()
+  const userId = req.user.id
   let records = []
   try {
     const data = require('../data/checkinRecords.json')
@@ -106,13 +108,14 @@ router.post('/checkin', async (req, res) => {
     records = []
   }
   
-  const existingRecord = records.find(r => r.date === today && r.herbId === herbId)
+  const existingRecord = records.find(r => r.user_id === userId && r.date === today && r.herbId === herbId)
   if (existingRecord) {
     return res.json({ code: 0, message: '今日已打卡', data: { alreadyChecked: true } })
   }
   
   const newRecord = {
     id: Date.now(),
+    user_id: userId,
     date: today,
     herbId: parseInt(herbId),
     timestamp: Date.now()
@@ -132,16 +135,17 @@ router.post('/checkin', async (req, res) => {
   })
 })
 
-router.get('/calendar', async (req, res) => {
+router.get('/calendar', authRequired, async (req, res) => {
   const { year, month } = req.query
   const now = new Date()
   const targetYear = parseInt(year) || now.getFullYear()
   const targetMonth = parseInt(month) || now.getMonth() + 1
+  const userId = req.user.id
   
   let records = []
   try {
     const data = require('../data/checkinRecords.json')
-    records = data
+    records = data.filter(r => !r.user_id || r.user_id === userId)
   } catch (e) {
     records = []
   }
@@ -173,11 +177,12 @@ router.get('/calendar', async (req, res) => {
   })
 })
 
-router.get('/stats', (req, res) => {
+router.get('/stats', authRequired, (req, res) => {
+  const userId = req.user.id
   let records = []
   try {
     const data = require('../data/checkinRecords.json')
-    records = data
+    records = data.filter(r => !r.user_id || r.user_id === userId)
   } catch (e) {
     records = []
   }

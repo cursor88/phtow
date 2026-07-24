@@ -1,7 +1,7 @@
 {
   "providers": {
     "zhipu": {
-      "apiKey": "test-api-key",
+      "apiKey": "7a0f30c1de3549178517f1f84771b21d.CcglB38WjnykCutH",
       "model": "glm-4-flash",
       "apiBase": "https://open.bigmodel.cn/api/paas/v4",
       "name": "智谱AI",

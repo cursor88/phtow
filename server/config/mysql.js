@@ -119,6 +119,31 @@ async function initTables() {
     `)
 
     await conn.query(`
+      CREATE TABLE IF NOT EXISTS quiz_topics (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(50) NOT NULL,
+        description TEXT,
+        icon VARCHAR(50) DEFAULT '📚',
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_topic_name (name),
+        INDEX idx_topic_sort (sort_order)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS quiz_topic_category (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        topic_id INT NOT NULL,
+        category VARCHAR(30) NOT NULL,
+        UNIQUE KEY uk_topic_category (topic_id, category),
+        INDEX idx_tc_topic (topic_id),
+        FOREIGN KEY (topic_id) REFERENCES quiz_topics(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+
+    await conn.query(`
       CREATE TABLE IF NOT EXISTS quizzes (
         id INT PRIMARY KEY AUTO_INCREMENT,
         question TEXT NOT NULL,
@@ -127,12 +152,15 @@ async function initTables() {
         explanation TEXT,
         difficulty VARCHAR(10),
         category VARCHAR(30),
+        topic_id INT,
         herb_id INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (herb_id) REFERENCES herbs(id) ON DELETE SET NULL,
+        FOREIGN KEY (topic_id) REFERENCES quiz_topics(id) ON DELETE SET NULL,
         INDEX idx_quiz_herb_id (herb_id),
-        INDEX idx_quiz_category (category)
+        INDEX idx_quiz_category (category),
+        INDEX idx_quiz_topic (topic_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `)
 
@@ -186,13 +214,103 @@ async function initTables() {
 
     try {
       await conn.query(`
-        ALTER TABLE pending_reference_images 
+        ALTER TABLE pending_reference_images
         MODIFY COLUMN herb_id INT NULL,
         DROP FOREIGN KEY pending_reference_images_ibfk_1
       `)
     } catch (e) {
       if (e.errno !== 1091) throw e
     }
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        nickname VARCHAR(50),
+        security_question VARCHAR(100) DEFAULT '您的昵称是什么？',
+        security_answer_hash VARCHAR(255),
+        role VARCHAR(20) DEFAULT 'user',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_user_username (username)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+
+    // 兼容：给旧表加字段
+    try {
+      await conn.query(`ALTER TABLE users ADD COLUMN security_question VARCHAR(100) DEFAULT '您的昵称是什么？'`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+    try {
+      await conn.query(`ALTER TABLE users ADD COLUMN security_answer_hash VARCHAR(255)`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+    try {
+      await conn.query(`ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user'`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+
+    try {
+      await conn.query(`ALTER TABLE quizzes ADD COLUMN topic_id INT`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+    try {
+      await conn.query(`ALTER TABLE quiz_answers ADD COLUMN topic_id INT`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+    try {
+      await conn.query(`ALTER TABLE wrong_questions ADD COLUMN topic_id INT`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS user_favorites (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        target_type VARCHAR(20) NOT NULL,
+        target_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_uf_user_target (user_id, target_type, target_id),
+        INDEX idx_uf_user (user_id, target_type),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS wrong_questions (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        question_id INT NOT NULL,
+        topic_id INT,
+        question TEXT NOT NULL,
+        options TEXT NOT NULL,
+        correct_answer VARCHAR(10) NOT NULL,
+        user_answer VARCHAR(10) NOT NULL,
+        explanation TEXT,
+        category VARCHAR(30),
+        difficulty VARCHAR(20),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_wq_user_question (user_id, question_id),
+        INDEX idx_wq_user (user_id),
+        INDEX idx_wq_topic (user_id, topic_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (topic_id) REFERENCES quiz_topics(id) ON DELETE SET NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS quiz_answers (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        question_id INT NOT NULL,
+        topic_id INT,
+        is_correct BOOLEAN NOT NULL,
+        first_answer VARCHAR(10),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_qa_user_question (user_id, question_id),
+        INDEX idx_qa_user (user_id),
+        INDEX idx_qa_user_correct (user_id, is_correct),
+        INDEX idx_qa_topic (user_id, topic_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (question_id) REFERENCES quizzes(id) ON DELETE CASCADE,
+        FOREIGN KEY (topic_id) REFERENCES quiz_topics(id) ON DELETE SET NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
 
     console.log('[MySQL] 数据表初始化完成')
   } catch (error) {

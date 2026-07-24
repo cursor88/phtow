@@ -3,6 +3,7 @@ const router = express.Router()
 const path = require('path')
 const fs = require('fs')
 const paths = require('../config/paths')
+const { authRequired } = require('../middleware/auth')
 
 const DATA_FILE = paths.CONSTITUTION_RECORDS
 
@@ -159,7 +160,7 @@ router.get('/questions', (req, res) => {
   }
 })
 
-router.post('/submit', (req, res) => {
+router.post('/submit', authRequired, (req, res) => {
   const { answers, mode = 'standard' } = req.body
   
   if (!answers || !Array.isArray(answers)) {
@@ -233,6 +234,7 @@ router.post('/submit', (req, res) => {
     
     const record = {
       id: Date.now(),
+      user_id: req.user.id,
       mode,
       date: new Date().toISOString().split('T')[0],
       timestamp: Date.now(),
@@ -291,6 +293,7 @@ router.post('/submit', (req, res) => {
   
   const record = {
     id: Date.now(),
+    user_id: req.user.id,
     mode,
     date: new Date().toISOString().split('T')[0],
     timestamp: Date.now(),
@@ -315,8 +318,9 @@ router.post('/submit', (req, res) => {
   })
 })
 
-router.get('/records', (req, res) => {
-  const records = loadRecords()
+router.get('/records', authRequired, (req, res) => {
+  const allRecords = loadRecords()
+  const records = allRecords.filter(r => !r.user_id || r.user_id === req.user.id)
   records.sort((a, b) => b.timestamp - a.timestamp)
   
   res.json({
@@ -329,10 +333,10 @@ router.get('/records', (req, res) => {
   })
 })
 
-router.get('/record/:id', (req, res) => {
+router.get('/record/:id', authRequired, (req, res) => {
   const id = parseInt(req.params.id)
   const records = loadRecords()
-  const record = records.find(r => r.id === id)
+  const record = records.find(r => r.id === id && (!r.user_id || r.user_id === req.user.id))
   
   if (!record) {
     return res.json({ code: -1, message: '记录不存在' })
@@ -353,13 +357,13 @@ router.get('/constitution-types', (req, res) => {
   })
 })
 
-router.delete('/record/:id', (req, res) => {
+router.delete('/record/:id', authRequired, (req, res) => {
   const id = parseInt(req.params.id)
   const records = loadRecords()
-  const index = records.findIndex(r => r.id === id)
+  const index = records.findIndex(r => r.id === id && (!r.user_id || r.user_id === req.user.id))
   
   if (index === -1) {
-    return res.json({ code: -1, message: '记录不存在' })
+    return res.json({ code: -1, message: '记录不存在或无权删除' })
   }
   
   records.splice(index, 1)
