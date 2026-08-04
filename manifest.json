@@ -1,62 +1,62 @@
 {
-  "name": "本草智识",
-  "appid": "__UNI__HERB001",
-  "description": "AI中药药材识别与互动学习小程序",
-  "versionName": "1.0.0",
-  "versionCode": "100",
-  "transformPx": false,
-  "app-plus": {
-    "usingComponents": true,
-    "nvueStyleCompiler": "uni-app",
-    "compilerVersion": 3,
-    "splashscreen": {
-      "alwaysShowBeforeRender": true,
-      "waiting": true,
-      "autoclose": true,
-      "delay": 0
-    },
-    "modules": {},
-    "distribute": {
-      "android": {
-        "permissions": [
-          "<uses-permission android:name=\"android.permission.CAMERA\"/>",
-          "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>",
-          "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>"
-        ]
-      },
-      "ios": {},
-      "sdkConfigs": {}
-    }
-  },
-  "quickapp": {},
-  "mp-weixin": {
-    "appid": "wx0000000000000000",
-    "setting": {
-      "urlCheck": false,
-      "es6": true,
-      "minified": true
-    },
-    "usingComponents": true,
-    "permission": {
-      "scope.userLocation": {
-        "desc": "您的位置信息将用于获取附近的药材分布"
-      }
-    }
-  },
-  "h5": {
-    "title": "本草智识 - AI中药识别",
-    "router": {
-      "mode": "hash"
-    },
-    "devServer": {
-      "port": 8080,
-      "proxy": {
-        "/api": {
-          "target": "http://localhost:8080",
-          "changeOrigin": true
+    "name" : "草木有方",
+    "appid" : "__UNI__HERB001",
+    "description" : "AI中药药材识别与互动学习小程序",
+    "versionName" : "1.0.0",
+    "versionCode" : "100",
+    "transformPx" : false,
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        "modules" : {},
+        "distribute" : {
+            "android" : {
+                "permissions" : [
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>"
+                ]
+            },
+            "ios" : {},
+            "sdkConfigs" : {}
         }
-      }
-    }
-  },
-  "vueVersion": "3"
+    },
+    "quickapp" : {},
+    "mp-weixin" : {
+        "appid" : "wx79e26fd77ce0aaf2",
+        "setting" : {
+            "urlCheck" : false,
+            "es6" : true,
+            "minified" : true
+        },
+        "usingComponents" : true,
+        "permission" : {
+            "scope.userLocation" : {
+                "desc" : "您的位置信息将用于获取附近的药材分布"
+            }
+        }
+    },
+    "h5" : {
+        "title" : "本草智识 - AI中药识别",
+        "router" : {
+            "mode" : "hash"
+        },
+        "devServer" : {
+            "port" : 8080,
+            "proxy" : {
+                "/api" : {
+                    "target" : "http://localhost:8080",
+                    "changeOrigin" : true
+                }
+            }
+        }
+    },
+    "vueVersion" : "3"
 }

@@ -30,13 +30,22 @@
       "style": {
         "navigationBarTitleText": "药材详情",
         "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarTextStyle": "white",
+        "enablePullDownRefresh": false
       }
     },
     {
       "path": "pages/quiz/quiz",
       "style": {
         "navigationBarTitleText": "趣味问答",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/quiz/topics",
+      "style": {
+        "navigationBarTitleText": "题库专题",
         "navigationBarBackgroundColor": "#2d8b5e",
         "navigationBarTextStyle": "white"
       }
@@ -56,18 +65,101 @@
         "navigationBarBackgroundColor": "#2d8b5e",
         "navigationBarTextStyle": "white"
       }
+    },
+    {
+      "path": "pages/mine/mine",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/forgot-password/forgot-password",
+      "style": {
+        "navigationBarTitleText": "找回密码",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/consult/consult",
+      "style": {
+        "navigationBarTitleText": "经方问诊",
+        "navigationStyle": "custom",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/chat-history/chat-history",
+      "style": {
+        "navigationBarTitleText": "问诊记录",
+        "navigationStyle": "custom",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/chat-detail/chat-detail",
+      "style": {
+        "navigationBarTitleText": "问诊详情",
+        "navigationStyle": "custom",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/constitution/constitution",
+      "style": {
+        "navigationBarTitleText": "体质测评",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/wrong-questions/wrong-questions",
+      "style": {
+        "navigationBarTitleText": "错题本",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/llm-config/llm-config",
+      "style": {
+        "navigationBarTitleText": "AI模型配置",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/review/review",
+      "style": {
+        "navigationBarTitleText": "识别纠错审核",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
     "navigationBarTitleText": "本草智识",
     "navigationBarBackgroundColor": "#2d8b5e",
-    "backgroundColor": "#f5f5f5"
+    "backgroundColor": "#f0f9f4"
   },
   "tabBar": {
     "color": "#999999",
     "selectedColor": "#2d8b5e",
-    "borderStyle": "black",
+    "borderStyle": "white",
     "backgroundColor": "#ffffff",
     "list": [
       {
@@ -77,22 +169,28 @@
         "selectedIconPath": "static/tabs/home-active.png"
       },
       {
+        "pagePath": "pages/identify/identify",
+        "text": "识别",
+        "iconPath": "static/tabs/quiz.png",
+        "selectedIconPath": "static/tabs/quiz-active.png"
+      },
+      {
         "pagePath": "pages/herb-list/herb-list",
         "text": "图鉴",
         "iconPath": "static/tabs/list.png",
         "selectedIconPath": "static/tabs/list-active.png"
       },
       {
-        "pagePath": "pages/quiz/quiz",
-        "text": "问答",
-        "iconPath": "static/tabs/quiz.png",
-        "selectedIconPath": "static/tabs/quiz-active.png"
-      },
-      {
         "pagePath": "pages/match/match",
-        "text": "搭配",
+        "text": "药食同源",
         "iconPath": "static/tabs/match.png",
         "selectedIconPath": "static/tabs/match-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "static/tabs/mine.png",
+        "selectedIconPath": "static/tabs/mine-active.png"
       }
     ]
   }

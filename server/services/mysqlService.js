@@ -17,7 +17,8 @@ class MySQLService {
   async getHerbById(id) {
     const [rows] = await pool.query(`
       SELECT h.*,
-             ki.smell, ki.texture, ki.cross_section, ki.outer_skin, ki.other
+             ki.smell, ki.texture, ki.cross_section, ki.outer_skin, ki.other,
+             (SELECT hi.image_url FROM herb_images hi WHERE hi.herb_id = h.id AND hi.is_cover = 1 ORDER BY hi.sort_order LIMIT 1) as cover_image_url
       FROM herbs h
       LEFT JOIN key_identification ki ON h.id = ki.herb_id
       WHERE h.id = ?
@@ -28,6 +29,11 @@ class MySQLService {
     const herb = rows[0]
     herb.alias = safeParseJSON(herb.alias)
     herb.keywords = safeParseJSON(herb.keywords)
+
+    // 兼容前端：将 cover_image_url 映射为 image 字段
+    if (herb.cover_image_url != null) {
+      herb.image = herb.cover_image_url
+    }
 
     herb.key_identification = {
       smell: herb.smell || '',
@@ -61,7 +67,8 @@ class MySQLService {
   async getHerbByName(name) {
     const [rows] = await pool.query(`
       SELECT h.*,
-             ki.smell, ki.texture, ki.cross_section, ki.outer_skin, ki.other
+             ki.smell, ki.texture, ki.cross_section, ki.outer_skin, ki.other,
+             (SELECT hi.image_url FROM herb_images hi WHERE hi.herb_id = h.id AND hi.is_cover = 1 ORDER BY hi.sort_order LIMIT 1) as cover_image_url
       FROM herbs h
       LEFT JOIN key_identification ki ON h.id = ki.herb_id
       WHERE h.name = ? OR h.alias LIKE ?
@@ -80,7 +87,12 @@ class MySQLService {
       FROM herbs h
       WHERE h.id = ?
     `, [id])
-    return rows.length ? rows[0] : null
+    if (!rows.length) return null
+    const row = rows[0]
+    if (row.cover_image_url != null) {
+      row.image = row.cover_image_url
+    }
+    return row
   }
 
   async searchHerbs(keyword, category = '', page = 1, pageSize = 10, foodMedicine = '') {
@@ -124,6 +136,11 @@ class MySQLService {
       const herb = { ...row }
       herb.alias = safeParseJSON(herb.alias)
       herb.keywords = safeParseJSON(herb.keywords)
+
+      // 兼容前端：将 cover_image_url 映射为 image 字段
+      if (herb.cover_image_url != null) {
+        herb.image = herb.cover_image_url
+      }
 
       herb.key_identification = {
         smell: herb.smell || '',
@@ -434,6 +451,11 @@ class MySQLService {
   _formatHerb(herb) {
     herb.alias = safeParseJSON(herb.alias)
     herb.keywords = safeParseJSON(herb.keywords)
+
+    // 兼容前端：将 cover_image_url 映射为 image 字段
+    if (herb.cover_image_url != null) {
+      herb.image = herb.cover_image_url
+    }
 
     herb.key_identification = {
       smell: herb.smell || '',

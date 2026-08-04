@@ -1,63 +1,15 @@
 <template>
   <view class="page">
-    <view class="search-header">
-      <view class="search-bar">
-        <text class="search-icon">🔍</text>
-        <input 
-          class="search-input" 
-          placeholder="搜索药材名称" 
-          v-model="searchKeyword"
-          @confirm="handleSearch"
-        />
-        <view class="clear-btn" v-if="searchKeyword" @click="clearSearch">✕</view>
-      </view>
-    </view>
-
-    <view class="checkin-calendar card">
-      <view class="calendar-header">
-        <view class="section-title">📅 打卡日历</view>
-        <view class="calendar-nav">
-          <view class="nav-btn" @click="prevMonth">‹</view>
-          <view class="nav-text">{{ currentYear }}年{{ currentMonth }}月</view>
-          <view class="nav-btn" @click="nextMonth">›</view>
-        </view>
-      </view>
-      <view class="calendar-weekdays">
-        <view class="weekday" v-for="day in weekdays" :key="day">{{ day }}</view>
-      </view>
-      <view class="calendar-grid">
-        <view 
-          class="calendar-day" 
-          v-for="(day, idx) in calendarDays" 
-          :key="idx"
-          :class="{ 
-            'other-month': !day.currentMonth, 
-            'today': day.isToday,
-            'checked': day.hasRecord,
-            'empty': !day.date
-          }"
-          @click="handleDayClick(day)"
-        >
-          <text v-if="day.date">{{ day.day }}</text>
-          <view class="checkin-dot" v-if="day.hasRecord"></view>
-        </view>
-      </view>
-      <view class="calendar-stats">
-        <view class="stat-item">
-          <text class="stat-value">{{ monthStats.checkedDays }}</text>
-          <text class="stat-label">本月打卡</text>
-        </view>
-        <view class="stat-divider"></view>
-        <view class="stat-item">
-          <text class="stat-value">{{ stats.consecutiveDays }}</text>
-          <text class="stat-label">连续打卡</text>
-        </view>
-        <view class="stat-divider"></view>
-        <view class="stat-item">
-          <text class="stat-value">{{ stats.totalCount }}</text>
-          <text class="stat-label">累计打卡</text>
-        </view>
-      </view>
+    <view class="search-bar">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input"
+        placeholder="搜索药材名称或别名"
+        v-model="searchKeyword"
+        @input="handleSearchInput"
+        @confirm="handleSearch"
+      />
+      <view class="clear-btn" v-if="searchKeyword" @click="clearSearch">✕</view>
     </view>
 
     <view class="category-tabs">
@@ -86,10 +38,13 @@
 
     <view class="herb-list" v-if="herbList.length > 0">
       <view class="herb-card" v-for="item in herbList" :key="item.id" @click="goToDetail(item.id)">
-        <image class="herb-img" :src="item.image" mode="aspectFill" @click.stop="previewImage(item.image)"></image>
+        <image class="herb-img" :src="getImg(item.image)" mode="aspectFill" @click.stop="previewImage(item.image)" @error="onImageError(item, $event)"></image>
         <view class="herb-content">
           <view class="herb-header">
-            <view class="herb-name">{{ item.name }}</view>
+            <view class="herb-name-row">
+              <view class="herb-name">{{ item.name }}</view>
+              <view class="food-medicine-tag" v-if="item.is_food_medicine === 1">🌿 药食同源</view>
+            </view>
             <view class="herb-actions">
               <view class="checkin-btn" :class="{ checked: isChecked(item.id) }" @click.stop="handleCheckin(item)">
                 <text>{{ isChecked(item.id) ? '已打卡' : '打卡' }}</text>
@@ -99,9 +54,6 @@
               </view>
             </view>
           </view>
-          <view class="herb-pinyin">{{ item.pinyin }}</view>
-          <view class="herb-category-tag">{{ item.category }}</view>
-          <view class="food-medicine-tag" v-if="item.is_food_medicine === 1">🌿 药食同源</view>
           <view class="herb-effect">{{ item.effect }}</view>
         </view>
       </view>
@@ -121,33 +73,16 @@
       <view class="load-more-btn" @click="loadMore">加载更多</view>
     </view>
 
-    <view class="day-detail-modal" v-if="showDayDetail" @click="closeDayDetail">
-      <view class="day-detail-content" @click.stop>
-        <view class="day-detail-header">
-          <view class="day-detail-title">{{ selectedDate }}</view>
-          <view class="day-detail-close" @click="closeDayDetail">×</view>
-        </view>
-        <view class="day-detail-body" v-if="dayRecords.length > 0">
-          <view class="day-record-item" v-for="record in dayRecords" :key="record.id">
-            <image class="record-img" :src="record.herb.image" mode="aspectFill"></image>
-            <view class="record-info">
-              <view class="record-name">{{ record.herb.name }}</view>
-              <view class="record-effect">{{ record.herb.effect }}</view>
-            </view>
-          </view>
-        </view>
-        <view class="day-detail-empty" v-else>
-          <text>当日未打卡</text>
-        </view>
-      </view>
-    </view>
+    <custom-tabbar current="herb"></custom-tabbar>
   </view>
 </template>
 
 <script>
-import { herbApi, checkinApi } from '@/api/index.js'
+import { herbApi, checkinApi, getImageUrl } from '@/api/index.js'
+import customTabbar from '@/components/custom-tabbar/custom-tabbar.vue'
 
 export default {
+  components: { customTabbar },
   data() {
     return {
       searchKeyword: '',
@@ -189,11 +124,19 @@ export default {
     this.loadCalendar()
   },
   onShow() {
+    uni.hideTabBar()
     this.loadFavorites()
     this.loadStats()
     this.loadCalendar()
   },
   methods: {
+    getImg(url) {
+      return getImageUrl(url)
+    },
+    onImageError(item, e) {
+      console.warn('Image load failed for herb:', item.id, item.name)
+      this.$set(item, 'image', '')
+    },
     loadFavorites() {
       const fav = uni.getStorageSync('favorites')
       this.favorites = fav ? JSON.parse(fav) : []
@@ -239,6 +182,12 @@ export default {
       this.hasMore = true
       this.herbList = []
       this.loadList()
+    },
+    handleSearchInput() {
+      if (this._searchTimer) clearTimeout(this._searchTimer)
+      this._searchTimer = setTimeout(() => {
+        this.handleSearch()
+      }, 250)
     },
     clearSearch() {
       this.searchKeyword = ''
@@ -356,14 +305,16 @@ export default {
       
       for (let i = 1; i <= totalDays; i++) {
         const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`
-        const hasRecord = records.some(r => r.date === dateStr)
-        
+        const dayRecord = records.find(r => r.date === dateStr)
+
         days.push({
           date: dateStr,
           day: i,
           currentMonth: true,
           isToday: dateStr === todayStr,
-          hasRecord
+          hasRecord: !!dayRecord,
+          herbId: dayRecord ? dayRecord.herbId : null,
+          herbName: dayRecord ? (dayRecord.herbName || dayRecord.name || '') : ''
         })
       }
       
@@ -398,11 +349,10 @@ export default {
       this.loadCalendar()
     },
     async handleDayClick(day) {
-      if (!day.date) return
-      
-      this.selectedDate = day.date
-      this.dayRecords = this.allRecords.filter(r => r.date === day.date)
-      this.showDayDetail = true
+      if (!day.date || !day.herbId) return
+      uni.navigateTo({
+        url: `/pages/detail/detail?id=${day.herbId}`
+      })
     },
     closeDayDetail() {
       this.showDayDetail = false
@@ -415,55 +365,54 @@ export default {
 .page {
   min-height: 100vh;
   background: $bg-primary;
-}
-
-.search-header {
-  background: $bg-card;
-  padding: $spacing-sm $spacing-lg;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: $shadow-sm;
+  padding-bottom: 70px;
 }
 
 .search-bar {
   display: flex;
   align-items: center;
-  background: $bg-secondary;
-  border-radius: $radius-full;
+  background: #fff;
+  border-radius: 50rpx;
   padding: 0 $spacing-lg;
-  height: 80rpx;
-  border: 2rpx solid transparent;
+  margin: $spacing-lg;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  height: 96rpx;
+  min-height: 96rpx;
+  border: 3rpx solid #e2e8f0;
   transition: border-color $transition-normal, box-shadow $transition-normal;
 }
 
 .search-bar:focus-within {
-  border-color: $primary-color;
-  box-shadow: 0 0 0 4rpx rgba($primary-color, 0.1);
+  border-color: $cta-color;
+  box-shadow: 0 0 0 6rpx rgba($cta-color, 0.1);
 }
 
 .search-icon {
   font-size: $font-size-lg;
-  margin-right: $spacing-sm;
+  color: #999;
+  margin-right: $spacing-md;
 }
 
 .search-input {
   flex: 1;
-  font-size: $font-size-base;
+  height: 96rpx;
+  min-height: 96rpx;
+  line-height: 96rpx;
+  font-size: 28rpx;
   color: $text-primary;
   background: transparent;
 }
 
 .search-input::placeholder {
-  color: $text-disabled;
+  color: #ccc;
 }
 
 .clear-btn {
   font-size: $font-size-base;
-  color: $text-muted;
+  color: #999;
   padding: $spacing-xs;
   cursor: pointer;
-  
+
   &:active {
     color: $text-secondary;
   }
@@ -549,18 +498,19 @@ export default {
   color: $text-primary;
   position: relative;
   cursor: pointer;
-  
+  padding: 4rpx 2rpx;
+
   &.other-month {
     color: $text-disabled;
   }
-  
+
   &.today {
     background: rgba($cta-color, 0.1);
-    border-radius: 50%;
+    border-radius: 8rpx;
     color: $cta-color;
     font-weight: $font-weight-semibold;
   }
-  
+
   &.checked {
     &::before {
       content: '';
@@ -572,10 +522,26 @@ export default {
       z-index: -1;
     }
   }
-  
+
   &.empty {
     pointer-events: none;
   }
+}
+
+.cal-day-num {
+  font-size: 24rpx;
+  line-height: 1;
+}
+
+.cal-herb-name {
+  font-size: 16rpx;
+  color: $cta-color;
+  margin-top: 4rpx;
+  line-height: 1.2;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .checkin-dot {
@@ -634,53 +600,58 @@ export default {
 }
 
 .tab-item {
-  padding: $spacing-sm $spacing-lg;
-  font-size: $font-size-sm;
-  color: $text-secondary;
-  background: $bg-secondary;
+  padding: 8rpx 32rpx;
+  font-size: 26rpx;
+  color: #666;
+  background: #fff;
   border-radius: $radius-full;
   margin-right: $spacing-sm;
   cursor: pointer;
   transition: all $transition-normal;
-  
+  border: 3rpx solid transparent;
+  flex-shrink: 0;
+
   &.active {
-    background: $primary-color;
-    color: #FFFFFF;
+    background: rgba($cta-color, 0.08);
+    color: $cta-color;
+    border-color: $cta-color;
   }
-  
+
   &:active {
     transform: scale(0.98);
   }
 }
 
 .herb-list {
-  padding: $spacing-lg;
+  padding: 0 $spacing-lg;
 }
 
 .herb-card {
   display: flex;
+  align-items: center;
   background: $bg-card;
-  border-radius: $radius-lg;
-  overflow: hidden;
+  border-radius: $radius-xl;
+  padding: $spacing-lg;
   margin-bottom: $spacing-lg;
   box-shadow: $shadow-card;
   cursor: pointer;
   transition: transform $transition-normal;
-  
+
   &:active {
     transform: scale(0.98);
   }
 }
 
 .herb-img {
-  width: 240rpx;
-  height: 240rpx;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: $radius-md;
   flex-shrink: 0;
+  margin-right: $spacing-lg;
 }
 
 .herb-content {
   flex: 1;
-  padding: $spacing-lg;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -691,10 +662,18 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  margin-bottom: $spacing-xs;
+}
+
+.herb-name-row {
+  display: flex;
+  align-items: center;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .herb-name {
-  font-size: $font-size-xl;
+  font-size: 32rpx;
   font-weight: $font-weight-semibold;
   color: $text-primary;
 }
@@ -759,31 +738,33 @@ export default {
   color: $primary-color;
   border-radius: $radius-sm;
   font-size: $font-size-xs;
-  margin-top: $spacing-sm;
+  margin-top: $spacing-xs;
   align-self: flex-start;
 }
 
 .food-medicine-tag {
   display: inline-block;
-  padding: 6rpx 16rpx;
-  background: rgba(#22c55e, 0.1);
+  padding: 4rpx 16rpx;
+  margin-left: 8rpx;
+  background: rgba(34, 197, 94, 0.1);
   color: #22c55e;
-  border-radius: $radius-sm;
-  font-size: $font-size-xs;
-  margin-top: $spacing-xs;
-  align-self: flex-start;
+  border-radius: 24rpx;
+  font-size: 20rpx;
   font-weight: $font-weight-medium;
+  vertical-align: middle;
+}
+
+.herb-pinyin {
+  font-size: $font-size-sm;
+  color: $text-muted;
+  margin-top: 4rpx;
 }
 
 .herb-effect {
-  font-size: $font-size-sm;
-  color: $text-secondary;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin-top: $spacing-xs;
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.4;
+  margin-top: 8rpx;
 }
 
 .empty-state {

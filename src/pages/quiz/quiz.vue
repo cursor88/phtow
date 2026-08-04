@@ -20,26 +20,37 @@
         </view>
       </view>
 
+      <view class="quiz-actions card">
+        <view class="action-btns">
+          <button class="action-btn topic-btn" @click="goToQuizList">
+            📚 题库
+          </button>
+          <button class="action-btn wrong-btn" @click="goToWrongQuestions">
+            📝 错题本
+          </button>
+        </view>
+      </view>
+
       <view class="quiz-card card" v-if="currentQuestion">
         <view class="quiz-meta">
           <view class="quiz-category">{{ currentQuestion.category }}</view>
-          <view class="quiz-difficulty" :class="'diff-' + currentQuestion.difficulty">
+          <view class="quiz-difficulty" :class="'diff-' + difficultyKey">
             {{ currentQuestion.difficulty }}
           </view>
         </view>
-        
+
         <view class="question-number">
           第 {{ questionIndex + 1 }} 题
         </view>
-        
+
         <view class="question-text">
           {{ currentQuestion.question }}
         </view>
 
         <view class="options-list">
-          <view 
-            class="option-item" 
-            v-for="(option, index) in currentQuestion.options" 
+          <view
+            class="option-item"
+            v-for="(option, index) in currentQuestion.options"
             :key="index"
             :class="getOptionClass(index)"
             @click="selectOption(index)"
@@ -64,11 +75,14 @@
         </view>
 
         <view class="action-row">
-          <button class="secondary-btn" v-if="answered" @click="nextQuestion">
-            下一题
+          <button class="secondary-btn" v-if="!answered && quizHistory.length > 0" @click="prevQuestion">
+            ← 上一题
           </button>
-          <button class="primary-btn" v-else :disabled="selectedIndex === null" @click="submitAnswer">
+          <button class="primary-btn" v-if="!answered" :disabled="selectedIndex === null" @click="submitAnswer">
             提交答案
+          </button>
+          <button class="primary-btn" v-if="answered" @click="nextQuestion">
+            下一题 →
           </button>
         </view>
       </view>
@@ -87,7 +101,7 @@
 </template>
 
 <script>
-import { quizApi } from '@/api/index.js'
+import { quizApi, wrongQuestionApi } from '@/api/index.js'
 import utils from '@/utils/index.js'
 
 export default {
@@ -102,13 +116,19 @@ export default {
       questionIndex: 0,
       correctCount: 0,
       totalCount: 0,
-      mode: 'random'
+      mode: 'random',
+      topicId: null,
+      quizHistory: []
     }
   },
   computed: {
     accuracy() {
       if (this.totalCount === 0) return 0
       return Math.round((this.correctCount / this.totalCount) * 100)
+    },
+    difficultyKey() {
+      const map = { '简单': 'easy', '中等': 'medium', '困难': 'hard' }
+      return map[this.currentQuestion && this.currentQuestion.difficulty] || 'easy'
     }
   },
   onLoad(options) {
@@ -116,9 +136,12 @@ export default {
       this.mode = 'daily'
       this.loadDailyQuestion()
     } else {
+      if (options.topicId) {
+        this.topicId = options.topicId
+      }
       this.loadRandomQuestion()
     }
-    
+
     const stats = utils.storage.get('quiz_stats')
     if (stats) {
       this.correctCount = stats.correctCount || 0
@@ -135,7 +158,7 @@ export default {
     },
     async loadRandomQuestion() {
       try {
-        this.currentQuestion = await quizApi.getRandomQuestion()
+        this.currentQuestion = await quizApi.getRandomQuestion(this.topicId)
         this.resetQuestion()
       } catch (e) {
         console.error('加载题目失败', e)
@@ -150,7 +173,7 @@ export default {
     },
     getOptionClass(index) {
       const classes = []
-      
+
       if (this.answered) {
         if (this.isCorrectOption(index)) {
           classes.push('correct')
@@ -162,7 +185,7 @@ export default {
       } else if (this.selectedIndex === index) {
         classes.push('selected')
       }
-      
+
       return classes
     },
     isCorrectOption(index) {
@@ -175,21 +198,32 @@ export default {
     },
     async submitAnswer() {
       if (this.selectedIndex === null) return
-      
+
       const answer = String.fromCharCode(65 + this.selectedIndex)
-      
+
       try {
         const res = await quizApi.submitAnswer(this.currentQuestion.id, answer)
         this.answered = true
         this.isCorrect = res.isCorrect
         this.correctAnswer = res.correctAnswer
         this.explanation = res.explanation
-        
+
         this.totalCount++
         if (res.isCorrect) {
           this.correctCount++
+        } else {
+          this.addToWrongQuestions({
+            questionId: this.currentQuestion.id,
+            userAnswer: answer,
+            correctAnswer: res.correctAnswer,
+            question: this.currentQuestion.question,
+            options: this.currentQuestion.options,
+            explanation: this.currentQuestion.explanation,
+            category: this.currentQuestion.category,
+            difficulty: this.currentQuestion.difficulty
+          })
         }
-        
+
         utils.storage.set('quiz_stats', {
           correctCount: this.correctCount,
           totalCount: this.totalCount
@@ -199,8 +233,35 @@ export default {
       }
     },
     nextQuestion() {
+      if (this.currentQuestion) {
+        this.quizHistory.push(this.currentQuestion)
+        if (this.quizHistory.length > 50) this.quizHistory.shift()
+      }
       this.questionIndex++
       this.loadRandomQuestion()
+    },
+    prevQuestion() {
+      if (this.quizHistory.length === 0) {
+        uni.showToast({ title: '没有上一题了', icon: 'none' })
+        return
+      }
+      const prev = this.quizHistory.pop()
+      this.currentQuestion = prev
+      this.questionIndex = Math.max(0, this.questionIndex - 1)
+      this.resetQuestion()
+    },
+    goToQuizList() {
+      uni.navigateTo({ url: '/pages/quiz/topics' })
+    },
+    goToWrongQuestions() {
+      uni.navigateTo({ url: '/pages/wrong-questions/wrong-questions' })
+    },
+    async addToWrongQuestions(data) {
+      try {
+        await wrongQuestionApi.add(data)
+      } catch (e) {
+        console.error('加入错题本失败', e)
+      }
     }
   }
 }
@@ -252,6 +313,43 @@ export default {
   background: #eee;
 }
 
+.quiz-actions {
+  padding: 20rpx 24rpx;
+}
+
+.action-btns {
+  display: flex;
+  gap: 20rpx;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22rpx 0;
+  margin: 0;
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.action-btn::after {
+  border: none;
+}
+
+.topic-btn {
+  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
+  color: #fff;
+}
+
+.wrong-btn {
+  background: #fff;
+  color: #2d8b5e;
+  border: 2rpx solid #2d8b5e;
+}
+
 .quiz-meta {
   display: flex;
   justify-content: space-between;
@@ -271,18 +369,18 @@ export default {
   font-size: 22rpx;
   padding: 6rpx 16rpx;
   border-radius: 16rpx;
-  
-  &.diff-简单 {
+
+  &.diff-easy {
     color: #059669;
     background: #d1fae5;
   }
-  
-  &.diff-中等 {
+
+  &.diff-medium {
     color: #d97706;
     background: #fef3c7;
   }
-  
-  &.diff-困难 {
+
+  &.diff-hard {
     color: #dc2626;
     background: #fee2e2;
   }
@@ -315,26 +413,26 @@ export default {
   margin-bottom: 16rpx;
   background: #fff;
   transition: all 0.2s;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
-  
+
   &.selected {
     border-color: #2d8b5e;
     background: #f0fdf4;
   }
-  
+
   &.correct {
     border-color: #10b981;
     background: #ecfdf5;
   }
-  
+
   &.wrong {
     border-color: #ef4444;
     background: #fef2f2;
   }
-  
+
   &.disabled {
     opacity: 0.6;
   }
@@ -353,17 +451,17 @@ export default {
   color: #6b7280;
   margin-right: 20rpx;
   flex-shrink: 0;
-  
+
   .selected & {
     background: #2d8b5e;
     color: #fff;
   }
-  
+
   .correct & {
     background: #10b981;
     color: #fff;
   }
-  
+
   .wrong & {
     background: #ef4444;
     color: #fff;
@@ -386,11 +484,11 @@ export default {
   font-size: 28rpx;
   font-weight: bold;
   margin-left: 12rpx;
-  
+
   .correct & {
     color: #10b981;
   }
-  
+
   .wrong & {
     color: #ef4444;
   }
@@ -458,6 +556,12 @@ export default {
 
 .secondary-btn::after {
   border: none;
+}
+
+.secondary-btn[disabled] {
+  opacity: 0.4;
+  color: #999;
+  border-color: #ddd;
 }
 
 .loading {

@@ -82,8 +82,9 @@ router.get('/daily', async (req, res) => {
 })
 
 router.get('/random', async (req, res) => {
-  const { list, total } = await mysqlService.getQuizzes(1, 100)
-  
+  const { topic_id } = req.query
+  const { list, total } = await mysqlService.getQuizzes(1, 200, '', null, '', topic_id)
+
   if (total === 0) {
     return res.json({
       code: 404,
@@ -91,7 +92,7 @@ router.get('/random', async (req, res) => {
       data: null
     })
   }
-  
+
   const index = Math.floor(Math.random() * total)
   const question = list[index] || list[0]
 
@@ -106,7 +107,8 @@ router.get('/random', async (req, res) => {
       explanation: question.explanation,
       difficulty: question.difficulty,
       category: question.category,
-      herbId: question.herb_id
+      herbId: question.herb_id,
+      topicId: question.topic_id
     }
   })
 })

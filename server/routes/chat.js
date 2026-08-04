@@ -20,21 +20,27 @@ router.post('/create', (req, res) => {
 });
 
 router.post('/message', async (req, res) => {
-  const { sessionId, message } = req.body;
-  
+  let { sessionId, message } = req.body;
+
+  // 没有 sessionId 时自动创建会话
   if (!sessionId) {
-    return res.json({ code: -1, message: '请提供会话ID' });
+    try {
+      sessionId = chatService.createSession();
+    } catch (e) {
+      console.error('[Chat] 自动创建会话失败:', e);
+      return res.json({ code: -1, message: '创建会话失败' });
+    }
   }
-  
+
   if (!message) {
     return res.json({ code: -1, message: '请输入消息内容' });
   }
-  
+
   try {
     const result = await chatService.processMessage(sessionId, message);
     res.json({
       code: 0,
-      data: result
+      data: { ...result, sessionId }
     });
   } catch (e) {
     console.error('[Chat] 处理消息出错:', e);

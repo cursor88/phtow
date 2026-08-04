@@ -2,7 +2,7 @@
   <view class="page">
     <view class="detail-container" v-if="herb">
       <view class="herb-hero">
-        <image class="herb-image" :src="userImage || herb.image" mode="aspectFill" @click="previewImage(userImage || herb.image)"></image>
+        <image class="herb-image" :src="userImage || getImg(herb.image)" mode="aspectFill" @click="previewImage(userImage || herb.image)"></image>
         <view class="herb-overlay"></view>
         <view class="herb-title-area">
           <view class="herb-name">{{ herb.name }}</view>
@@ -73,9 +73,6 @@
               <view class="classics-content">"{{ item.content }}"</view>
             </view>
           </view>
-          <view class="more-btn" @click="goToClassics">
-            查看更多典籍记载 →
-          </view>
         </view>
 
         <view class="section card food-match-section">
@@ -83,17 +80,23 @@
             <text class="title-icon">🍲</text>
             药食同源
           </view>
-          <view class="food-desc">以下是{{ herb.name }}的养生搭配推荐</view>
+          <view class="food-desc">以下是{{ herb.name }}的养生搭配推荐（点击食材标签可查看详情）</view>
           <view class="food-list">
-            <view class="food-item" v-for="item in foodMatches" :key="item.id" @click="goToMatchDetail(item.id)">
-              <image class="food-img" :src="item.image" mode="aspectFill"></image>
+            <view class="food-item" v-for="item in foodMatches" :key="item.id" @click="showMatchDetail(item)">
+              <image class="food-img" :src="getImg(item.image)" mode="aspectFill"></image>
               <view class="food-info">
                 <view class="food-name">{{ item.name }}</view>
                 <view class="food-effect">{{ item.effect }}</view>
                 <view class="food-ingredients">
-                  <text class="ingredient-tag" v-for="(ing, idx) in item.ingredients.slice(0, 4)" :key="idx">{{ ing }}</text>
+                  <text 
+                    class="ingredient-tag" 
+                    v-for="(ing, idx) in item.ingredients.slice(0, 4)" 
+                    :key="idx"
+                    @click.stop="goToHerbDetail(ing)"
+                  >{{ ing }}</text>
                 </view>
               </view>
+              <view class="food-arrow">→</view>
             </view>
           </view>
           <view class="more-btn" @click="goToMatchList">
@@ -107,11 +110,57 @@
       <view class="loading-spinner"></view>
       <text>加载中...</text>
     </view>
+
+    <view class="match-detail-modal" v-if="showMatchModal" @click="closeMatchModal">
+      <view class="match-detail-content" @click.stop>
+        <view class="match-detail-header">
+          <image class="match-detail-img" :src="getImg(currentMatch.image)" mode="aspectFill"></image>
+          <view class="match-detail-close" @click="closeMatchModal">×</view>
+        </view>
+        <view class="match-detail-body">
+          <view class="match-detail-name">{{ currentMatch.name }}</view>
+          
+          <view class="match-detail-section">
+            <view class="match-detail-label">主要食材（点击查看详情）</view>
+            <view class="match-detail-ingredients">
+              <text 
+                class="ingredient-clickable" 
+                v-for="(ing, idx) in currentMatch.ingredients" 
+                :key="idx"
+                @click="goToHerbDetail(ing)"
+              >
+                {{ ing }}
+              </text>
+            </view>
+          </view>
+          
+          <view class="match-detail-section">
+            <view class="match-detail-label">功效</view>
+            <view class="match-detail-text">{{ currentMatch.effect }}</view>
+          </view>
+          
+          <view class="match-detail-section">
+            <view class="match-detail-label">适宜人群</view>
+            <view class="match-detail-text">{{ currentMatch.suitable || '暂无' }}</view>
+          </view>
+          
+          <view class="match-detail-section match-caution-section">
+            <view class="match-detail-label match-caution-label">禁忌</view>
+            <view class="match-detail-text">{{ currentMatch.taboo || '暂无' }}</view>
+          </view>
+          
+          <view class="match-detail-section">
+            <view class="match-detail-label">做法</view>
+            <view class="match-detail-method">{{ currentMatch.method || '暂无' }}</view>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script>
-import { herbApi } from '@/api/index.js'
+import { herbApi, matchApi, getImageUrl } from '@/api/index.js'
 
 export default {
   data() {
@@ -121,7 +170,9 @@ export default {
       herb: null,
       foodMatches: [],
       isFavorite: false,
-      favorites: []
+      favorites: [],
+      showMatchModal: false,
+      currentMatch: {}
     }
   },
   onLoad(options) {
@@ -132,6 +183,9 @@ export default {
     this.loadDetail()
   },
   methods: {
+    getImg(url) {
+      return getImageUrl(url)
+    },
     previewImage(url) {
       if (!url) return
       uni.previewImage({
@@ -175,11 +229,6 @@ export default {
         console.error('加载搭配失败', e)
       }
     },
-    goToClassics() {
-      uni.navigateTo({
-        url: `/pages/classics/classics?id=${this.herbId}`
-      })
-    },
     goToMatchDetail(id) {
       uni.navigateTo({
         url: `/pages/match/match?id=${id}&herbId=${this.herbId}`
@@ -188,6 +237,28 @@ export default {
     goToMatchList() {
       uni.switchTab({
         url: '/pages/match/match'
+      })
+    },
+    async showMatchDetail(item) {
+      try {
+        const detail = await matchApi.getMatchDetail(item.id)
+        this.currentMatch = detail
+      } catch (e) {
+        console.error('加载搭配详情失败，使用列表数据', e)
+        this.currentMatch = item
+      }
+      this.showMatchModal = true
+    },
+    closeMatchModal() {
+      this.showMatchModal = false
+    },
+    goToHerbDetail(name) {
+      if (!name) return
+      const cleanName = String(name).trim()
+      if (!cleanName) return
+      this.showMatchModal = false
+      uni.navigateTo({
+        url: `/pages/detail/detail?name=${encodeURIComponent(cleanName)}`
       })
     }
   }
@@ -232,6 +303,7 @@ export default {
   position: relative;
   height: 400rpx;
   overflow: hidden;
+  background: linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%);
 }
 
 .herb-image {
@@ -468,6 +540,7 @@ export default {
 .food-list {
   .food-item {
     display: flex;
+    align-items: center;
     background: $bg-card;
     border-radius: $radius-md;
     overflow: hidden;
@@ -486,14 +559,16 @@ export default {
   }
   
   .food-img {
-    width: 180rpx;
-    height: 180rpx;
+    width: 140rpx;
+    height: 140rpx;
     flex-shrink: 0;
+    border-radius: $radius-sm;
+    margin: $spacing-sm;
   }
   
   .food-info {
     flex: 1;
-    padding: $spacing-md;
+    padding: $spacing-sm $spacing-sm $spacing-sm 0;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -525,10 +600,24 @@ export default {
   
   .ingredient-tag {
     font-size: $font-size-xs;
-    color: $text-secondary;
-    background: $bg-secondary;
-    padding: 4rpx 12rpx;
-    border-radius: $radius-sm;
+    color: $cta-color;
+    background: rgba($cta-color, 0.08);
+    padding: 6rpx 16rpx;
+    border-radius: $radius-full;
+    transition: all $transition-fast;
+    
+    &:active {
+      background: $cta-color;
+      color: #FFFFFF;
+      transform: scale(0.95);
+    }
+  }
+
+  .food-arrow {
+    color: $text-disabled;
+    font-size: $font-size-lg;
+    margin-right: $spacing-md;
+    flex-shrink: 0;
   }
 }
 
@@ -541,5 +630,146 @@ export default {
   color: $primary-color;
   font-weight: $font-weight-medium;
   cursor: pointer;
+}
+
+.match-detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+}
+
+.match-detail-content {
+  width: 100%;
+  max-height: 85vh;
+  background: $bg-card;
+  border-radius: $radius-xl $radius-xl 0 0;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.match-detail-header {
+  position: relative;
+  height: 300rpx;
+}
+
+.match-detail-img {
+  width: 100%;
+  height: 100%;
+}
+
+.match-detail-close {
+  position: absolute;
+  top: $spacing-md;
+  right: $spacing-md;
+  width: 64rpx;
+  height: 64rpx;
+  background: rgba(0, 0, 0, 0.5);
+  color: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xxl;
+  line-height: 1;
+  cursor: pointer;
+  
+  &:active {
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.match-detail-body {
+  padding: $spacing-lg;
+  max-height: calc(85vh - 300rpx);
+  overflow-y: auto;
+}
+
+.match-detail-name {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin-bottom: $spacing-lg;
+}
+
+.match-detail-section {
+  margin-bottom: $spacing-lg;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.match-detail-label {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  color: $cta-color;
+  margin-bottom: $spacing-sm;
+  display: flex;
+  align-items: center;
+}
+
+.match-detail-label::before {
+  content: '';
+  width: 6rpx;
+  height: 24rpx;
+  background: $cta-color;
+  border-radius: $radius-sm;
+  margin-right: $spacing-sm;
+}
+
+.match-caution-label {
+  color: $error-color;
+}
+
+.match-caution-label::before {
+  background: $error-color;
+}
+
+.match-detail-text {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  line-height: 1.8;
+  padding-left: $spacing-sm;
+}
+
+.match-detail-ingredients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  padding-left: $spacing-sm;
+}
+
+.ingredient-clickable {
+  padding: $spacing-xs $spacing-md;
+  background: rgba($cta-color, 0.1);
+  color: $cta-color;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  transition: all $transition-fast;
+  
+  &:active {
+    background: $cta-color;
+    color: #FFFFFF;
+    transform: scale(0.95);
+  }
+}
+
+.match-detail-method {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  line-height: 2;
+  padding-left: $spacing-sm;
+  white-space: pre-line;
 }
 </style>

@@ -66,13 +66,16 @@
         </view>
       </view>
     </view>
+    <custom-tabbar current="identify"></custom-tabbar>
   </view>
 </template>
 
 <script>
 import { herbApi, identifyApi } from '@/api/index.js'
+import customTabbar from '@/components/custom-tabbar/custom-tabbar.vue'
 
 export default {
+  components: { customTabbar },
   data() {
     return {
       imagePath: '',
@@ -90,6 +93,7 @@ export default {
     }
   },
   onShow() {
+    uni.hideTabBar()
     if (this.result && !this.identifying) {
       this.imagePath = ''
       this.result = null
@@ -162,6 +166,7 @@ export default {
 .page {
   min-height: 100vh;
   background: $bg-primary;
+  padding-bottom: 70px;
 }
 
 .identify-container {
@@ -257,6 +262,7 @@ export default {
 }
 
 .primary-btn {
+  width: 100%;
   background: linear-gradient(135deg, $cta-color 0%, lighten($cta-color, 8%) 100%);
   color: #FFFFFF;
   border-radius: $radius-full;
@@ -285,6 +291,7 @@ export default {
 }
 
 .secondary-btn {
+  width: 100%;
   background: $bg-card;
   color: $cta-color;
   border: 2rpx solid $cta-color;

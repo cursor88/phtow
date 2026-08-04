@@ -28,11 +28,24 @@
       </view>
 
       <view class="herb-section card" v-if="!isSearching">
-        <view class="section-title">选择药材查看搭配</view>
-        <view class="herb-selector">
-          <view 
-            class="herb-chip" 
-            v-for="herb in herbList" 
+        <view class="section-title">搜索药材查看搭配</view>
+        <view class="search-input-wrap">
+          <text class="search-icon">🌿</text>
+          <input
+            class="search-input"
+            type="text"
+            placeholder="输入药材名称，如：人参、枸杞"
+            v-model="herbSearchKeyword"
+            @input="onHerbSearchInput"
+          />
+          <view class="search-clear" v-if="herbSearchKeyword" @click="clearHerbSearch">
+            <text>✕</text>
+          </view>
+        </view>
+        <view class="herb-chips" v-if="filteredHerbList.length > 0 || selectedHerbId">
+          <view
+            class="herb-chip"
+            v-for="herb in displayedHerbList"
             :key="herb.id"
             :class="{ active: selectedHerbId === herb.id }"
             @click="selectHerb(herb.id)"
@@ -53,32 +66,43 @@
           :key="item.id" 
           @click="showDetail(item)"
         >
-          <image class="match-img" :src="item.image" mode="aspectFill"></image>
-          <view class="match-info">
-            <view class="match-name">{{ item.name }}</view>
-            <view class="match-effect">{{ item.effect }}</view>
-            <view class="result-meta">
-              <text class="result-score">推荐度 {{ Math.min(Math.round(item.score * 10), 100) }}%</text>
-              <text class="result-herb">{{ item.herbName || '' }}</text>
+          <view class="match-card-top">
+            <image class="match-img" :src="getImg(item.image)" mode="aspectFill" @error="onImgError(item)"></image>
+            <view class="match-info">
+              <view class="match-name">{{ item.name }}</view>
+              <view class="match-effect">{{ item.effect }}</view>
+              <view class="result-meta">
+                <text class="result-score">推荐度 {{ Math.min(Math.round(item.score * 10), 100) }}%</text>
+                <text
+                  class="result-herb match-tag"
+                  v-if="item.herbName"
+                  @click.stop="goToHerbDetail(item.herbName)"
+                >{{ item.herbName || '' }}</text>
+              </view>
             </view>
           </view>
-          <view class="match-arrow">→</view>
         </view>
       </view>
 
       <view class="match-list" v-if="!isSearching && matchList.length > 0">
         <view class="match-card" v-for="item in matchList" :key="item.id" @click="showDetail(item)">
-          <image class="match-img" :src="item.image" mode="aspectFill"></image>
-          <view class="match-info">
-            <view class="match-name">{{ item.name }}</view>
-            <view class="match-effect">{{ item.effect }}</view>
-            <view class="match-tags">
-              <text class="match-tag" v-for="(ing, idx) in item.ingredients.slice(0, 3)" :key="idx">
-                {{ ing }}
-              </text>
+          <view class="match-card-top">
+            <image class="match-img" :src="getImg(item.image)" mode="aspectFill" @error="onImgError(item)"></image>
+            <view class="match-info">
+              <view class="match-name">{{ item.name }}</view>
+              <view class="match-effect">{{ item.effect }}</view>
             </view>
           </view>
-          <view class="match-arrow">→</view>
+          <view class="match-tags">
+            <text 
+              class="match-tag" 
+              v-for="(ing, idx) in item.ingredients" 
+              :key="idx"
+              @click.stop="goToHerbDetail(ing)"
+            >
+              {{ ing }}
+            </text>
+          </view>
         </view>
       </view>
 
@@ -101,16 +125,21 @@
       <view class="detail-modal" v-if="showDetailModal" @click="closeDetail">
         <view class="detail-content" @click.stop>
           <view class="detail-header">
-            <image class="detail-img" :src="currentDetail.image" mode="aspectFill"></image>
+            <image class="detail-img" :src="getImg(currentDetail.image)" mode="aspectFill"></image>
             <view class="detail-close" @click="closeDetail">×</view>
           </view>
           <view class="detail-body">
             <view class="detail-name">{{ currentDetail.name }}</view>
             
             <view class="detail-section">
-              <view class="detail-label">主要食材</view>
+              <view class="detail-label">主要食材（点击可查看详情）</view>
               <view class="detail-ingredients">
-                <text class="ingredient-item" v-for="(ing, idx) in currentDetail.ingredients" :key="idx">
+                <text 
+                  class="ingredient-item" 
+                  v-for="(ing, idx) in currentDetail.ingredients" 
+                  :key="idx"
+                  @click.stop="goToHerbDetail(ing)"
+                >
                   {{ ing }}
                 </text>
               </view>
@@ -139,13 +168,16 @@
         </view>
       </view>
     </view>
+    <custom-tabbar current="match"></custom-tabbar>
   </view>
 </template>
 
 <script>
-import { matchApi, herbApi } from '@/api/index.js'
+import { matchApi, herbApi, getImageUrl } from '@/api/index.js'
+import customTabbar from '@/components/custom-tabbar/custom-tabbar.vue'
 
 export default {
+  components: { customTabbar },
   data() {
     return {
       herbList: [],
@@ -154,11 +186,30 @@ export default {
       showDetailModal: false,
       currentDetail: null,
       searchKeyword: '',
+      herbSearchKeyword: '',
+      _herbSearchTimer: null,
       searchResults: [],
       isSearching: false,
       searchLoading: false,
       searchTimer: null,
       quickTags: ['口干舌燥', '失眠', '湿气重', '疲劳乏力', '上火', '眼睛干涩']
+    }
+  },
+  computed: {
+    filteredHerbList() {
+      const kw = this.herbSearchKeyword.trim().toLowerCase()
+      if (!kw) return this.herbList
+      return this.herbList.filter(h =>
+        h.name && h.name.toLowerCase().includes(kw)
+      )
+    },
+    displayedHerbList() {
+      const selected = this.herbList.find(h => h.id === this.selectedHerbId)
+      const list = this.filteredHerbList.slice()
+      if (selected && !list.find(h => h.id === selected.id)) {
+        list.unshift(selected)
+      }
+      return list
     }
   },
   onLoad(options) {
@@ -171,11 +222,18 @@ export default {
     this.loadHerbList()
   },
   onShow() {
+    uni.hideTabBar()
     if (!this.isSearching && this.selectedHerbId) {
       this.loadMatchList(this.selectedHerbId)
     }
   },
   methods: {
+    getImg(url) {
+      return getImageUrl(url)
+    },
+    onImgError(item) {
+      this.$set(item, 'image', '')
+    },
     async loadHerbList() {
       try {
         const res = await herbApi.getList({ page: 1, pageSize: 20 })
@@ -190,6 +248,22 @@ export default {
     selectHerb(id) {
       this.selectedHerbId = id
       this.loadMatchList(id)
+    },
+    onHerbSearchInput() {
+      if (this._herbSearchTimer) clearTimeout(this._herbSearchTimer)
+      this._herbSearchTimer = setTimeout(() => {
+        // 自动选中第一个匹配项
+        if (this.filteredHerbList.length > 0) {
+          this.selectHerb(this.filteredHerbList[0].id)
+        }
+      }, 250)
+    },
+    clearHerbSearch() {
+      this.herbSearchKeyword = ''
+      this.selectedHerbId = this.herbList.length > 0 ? this.herbList[0].id : null
+      if (this.selectedHerbId) {
+        this.loadMatchList(this.selectedHerbId)
+      }
     },
     async loadMatchList(herbId) {
       try {
@@ -253,6 +327,15 @@ export default {
     },
     closeDetail() {
       this.showDetailModal = false
+    },
+    goToHerbDetail(name) {
+      if (!name) return
+      const cleanName = String(name).trim()
+      if (!cleanName) return
+      this.showDetailModal = false
+      uni.navigateTo({
+        url: `/pages/detail/detail?name=${encodeURIComponent(cleanName)}`
+      })
     }
   }
 }
@@ -262,6 +345,7 @@ export default {
 .page {
   min-height: 100vh;
   background: $bg-primary;
+  padding-bottom: 70px;
 }
 
 .container {
@@ -279,42 +363,47 @@ export default {
 .search-input-wrap {
   display: flex;
   align-items: center;
-  background: $bg-secondary;
-  border-radius: $radius-full;
+  background: #f8fafc;
+  border-radius: 50rpx;
   padding: 0 $spacing-lg;
-  height: 80rpx;
+  height: 96rpx;
+  min-height: 96rpx;
   margin-bottom: $spacing-md;
-  border: 2rpx solid transparent;
+  border: 3rpx solid #e2e8f0;
   transition: border-color $transition-normal, box-shadow $transition-normal;
 }
 
 .search-input-wrap:focus-within {
-  border-color: $primary-color;
-  box-shadow: 0 0 0 4rpx rgba($primary-color, 0.1);
+  border-color: $cta-color;
+  box-shadow: 0 0 0 6rpx rgba($cta-color, 0.1);
 }
 
 .search-icon {
   font-size: $font-size-lg;
   margin-right: $spacing-md;
+  color: #999;
 }
 
 .search-input {
   flex: 1;
-  font-size: $font-size-base;
+  height: 96rpx;
+  min-height: 96rpx;
+  line-height: 96rpx;
+  font-size: 28rpx;
   color: $text-primary;
   background: transparent;
 }
 
 .search-input::placeholder {
-  color: $text-disabled;
+  color: #ccc;
 }
 
 .search-clear {
   font-size: $font-size-base;
-  color: $text-muted;
+  color: #999;
   padding: $spacing-xs;
   cursor: pointer;
-  
+
   &:active {
     color: $text-secondary;
   }
@@ -323,59 +412,59 @@ export default {
 .quick-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: $spacing-sm;
+  gap: 16rpx;
 }
 
 .quick-tag {
-  padding: $spacing-sm $spacing-lg;
-  background: rgba($cta-color, 0.08);
+  padding: 12rpx 28rpx;
+  background: #f0f9f4;
   color: $cta-color;
-  border-radius: $radius-full;
-  font-size: $font-size-sm;
+  border-radius: 40rpx;
+  font-size: 24rpx;
   border: 2rpx solid rgba($cta-color, 0.2);
   transition: all $transition-normal;
   cursor: pointer;
-  
+
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.98);
     background: $cta-color;
-    color: #FFFFFF;
-    border-color: $cta-color;
+    color: #fff;
   }
 }
 
 .herb-section {
   .section-title {
-    font-size: $font-size-base;
-    font-weight: $font-weight-semibold;
+    font-size: 30rpx;
+    font-weight: 600;
     color: $text-primary;
     margin-bottom: $spacing-md;
   }
 }
 
-.herb-selector {
+.herb-chips {
   display: flex;
   flex-wrap: wrap;
   gap: $spacing-md;
+  margin-top: $spacing-md;
 }
 
 .herb-chip {
-  padding: $spacing-sm $spacing-xl;
-  background: $bg-secondary;
+  padding: 12rpx 28rpx;
+  background: #f8fafc;
   color: $text-secondary;
-  border-radius: $radius-full;
-  font-size: $font-size-sm;
-  border: 2rpx solid transparent;
+  border-radius: 40rpx;
+  font-size: 24rpx;
+  border: 2rpx solid #e2e8f0;
   transition: all $transition-normal;
   cursor: pointer;
-  
+
   &.active {
-    background: rgba($cta-color, 0.1);
+    background: rgba($cta-color, 0.08);
     color: $cta-color;
     border-color: $cta-color;
-    font-weight: $font-weight-medium;
+    font-weight: 500;
   }
-  
+
   &:active {
     transform: scale(0.98);
   }
@@ -424,10 +513,8 @@ export default {
 
 .match-list, .search-result {
   .match-card {
-    display: flex;
-    align-items: center;
     background: $bg-card;
-    border-radius: $radius-lg;
+    border-radius: $radius-xl;
     padding: $spacing-lg;
     margin-bottom: $spacing-lg;
     box-shadow: $shadow-card;
@@ -438,11 +525,17 @@ export default {
       transform: scale(0.98);
     }
   }
+
+  .match-card-top {
+    display: flex;
+    align-items: center;
+    margin-bottom: $spacing-md;
+  }
   
   .match-img {
     width: 140rpx;
     height: 140rpx;
-    border-radius: $radius-md;
+    border-radius: 20rpx;
     margin-right: $spacing-lg;
     flex-shrink: 0;
   }
@@ -453,7 +546,7 @@ export default {
   }
   
   .match-name {
-    font-size: $font-size-lg;
+    font-size: $font-size-xl;
     font-weight: $font-weight-semibold;
     color: $text-primary;
     margin-bottom: $spacing-xs;
@@ -461,8 +554,8 @@ export default {
   
   .match-effect {
     font-size: $font-size-sm;
-    color: $cta-color;
-    margin-bottom: $spacing-sm;
+    color: #2d8b5e;
+    margin-top: $spacing-xs;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
@@ -472,21 +565,24 @@ export default {
   .match-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: $spacing-xs;
+    gap: 8rpx;
   }
   
   .match-tag {
-    font-size: $font-size-xs;
-    color: $text-secondary;
-    background: $bg-secondary;
-    padding: 4rpx 12rpx;
-    border-radius: $radius-sm;
-  }
-  
-  .match-arrow {
-    color: $text-disabled;
-    font-size: $font-size-lg;
-    margin-left: $spacing-sm;
+    font-size: 22rpx;
+    color: $cta-color;
+    background: rgba($cta-color, 0.08);
+    border: 1rpx solid rgba($cta-color, 0.2);
+    padding: 6rpx 20rpx;
+    border-radius: $radius-full;
+    transition: all $transition-fast;
+    
+    &:active {
+      background: $cta-color;
+      color: #FFFFFF;
+      border-color: $cta-color;
+      transform: scale(0.95);
+    }
   }
 }
 
@@ -673,6 +769,13 @@ export default {
   color: $cta-color;
   border-radius: $radius-full;
   font-size: $font-size-sm;
+  transition: all $transition-fast;
+  
+  &:active {
+    background: $cta-color;
+    color: #FFFFFF;
+    transform: scale(0.95);
+  }
 }
 
 .detail-method {

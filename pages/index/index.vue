@@ -1,56 +1,53 @@
 <template>
   <view class="page">
     <view class="banner">
-      <view class="banner-content">
-        <view class="banner-title">本草智识</view>
-        <view class="banner-subtitle">AI中药药材识别与学习平台</view>
-      </view>
-      <view class="banner-decoration"></view>
+      <view class="banner-title">草木有方</view>
+      <view class="banner-subtitle">AI经方中医问诊与中药学习平台</view>
+    </view>
+
+    <!-- LLM 状态栏 -->
+    <view class="llm-status-bar" :class="{ disabled: !llmEnabled }" @click="goToLlmConfig">
+      <view class="llm-status-dot" :class="{ disabled: !llmEnabled }"></view>
+      <view class="llm-status-text" :class="{ disabled: !llmEnabled }">{{ llmStatusText }}</view>
+      <view class="llm-status-arrow" :class="{ disabled: !llmEnabled }">→</view>
     </view>
 
     <view class="container">
-      <view class="quick-actions card">
+      <!-- 快速识别 -->
+      <view class="card">
         <view class="section-title">快速识别</view>
         <view class="action-btns">
           <view class="action-btn" @click="takePhoto">
-            <view class="action-icon camera-icon">
-              <text class="iconfont">📷</text>
-            </view>
+            <view class="action-icon cam">📷</view>
             <text class="action-text">拍照识别</text>
           </view>
           <view class="action-btn" @click="chooseImage">
-            <view class="action-icon album-icon">
-              <text class="iconfont">🖼️</text>
-            </view>
+            <view class="action-icon alb">🖼️</view>
             <text class="action-text">相册选择</text>
           </view>
           <view class="action-btn" @click="goToQuiz">
-            <view class="action-icon quiz-icon">
-              <text class="iconfont">📝</text>
-            </view>
+            <view class="action-icon qz">📝</view>
             <text class="action-text">趣味问答</text>
           </view>
         </view>
       </view>
 
-      <view class="daily-quiz card" @click="goToQuizDetail">
+      <!-- 今日一题 -->
+      <view class="card daily-quiz-card" @click="goToQuizDetail">
         <view class="quiz-header">
-          <view class="section-title">今日一测</view>
+          <view class="section-title">今日一题</view>
           <view class="quiz-tag">{{ dailyQuestion.difficulty || '加载中' }}</view>
         </view>
-        <view class="quiz-question" v-if="dailyQuestion">
-          {{ dailyQuestion.question }}
-        </view>
-        <view class="quiz-question" v-else>
-          加载中...
-        </view>
+        <view class="quiz-question" v-if="dailyQuestion">{{ dailyQuestion.question }}</view>
+        <view class="quiz-question" v-else>加载题目中...</view>
         <view class="quiz-footer">
           <text class="quiz-category">{{ dailyQuestion.category || '' }}</text>
           <text class="quiz-go">去答题 →</text>
         </view>
       </view>
 
-      <view class="daily-herb card" @click="goToHerbDetail">
+      <!-- 今日药材 -->
+      <view class="card daily-herb-card" @click="goToHerbDetail">
         <view class="daily-herb-header">
           <view class="section-title">🌿 今日药材</view>
           <view class="daily-herb-status" :class="{ checked: dailyHerbChecked }">
@@ -58,10 +55,9 @@
           </view>
         </view>
         <view class="daily-herb-content" v-if="dailyHerb">
-          <image class="daily-herb-img" :src="dailyHerb.image" mode="aspectFill"></image>
+          <image class="daily-herb-img" :src="getImg(dailyHerb.image)" mode="aspectFill" @error="onImgError($event)"></image>
           <view class="daily-herb-info">
             <view class="daily-herb-name">{{ dailyHerb.name }}</view>
-            <view class="daily-herb-pinyin">{{ dailyHerb.pinyin }}</view>
             <view class="daily-herb-effect">{{ dailyHerb.effect }}</view>
           </view>
         </view>
@@ -77,11 +73,49 @@
         </view>
       </view>
 
-      <view class="herb-showcase card">
+      <!-- 经方问诊入口 -->
+      <view class="card consult-card" @click="goToConsult">
+        <view class="consult-header">
+          <view class="section-title consult-title">🏥 经方问诊</view>
+          <view class="consult-badge">倪海厦视角</view>
+        </view>
+        <view class="consult-body">
+          <view class="consult-icon">📖</view>
+          <view class="consult-info">
+            <view class="consult-name">倪师经方辨证论治</view>
+            <view class="consult-desc">伤寒论 · 金匮要略 · 黄帝内经</view>
+          </view>
+          <view class="consult-arrow">→</view>
+        </view>
+        <view class="consult-note">基于倪海厦人纪系列教学内容，提供六经辨证、经方建议、养生指导</view>
+      </view>
+
+      <!-- 体质测评入口 -->
+      <view class="card constitution-card" @click="goToConstitution">
+        <view class="constitution-header">
+          <view class="section-title constitution-title">🧬 体质测评</view>
+          <view class="constitution-badge">了解你的身体</view>
+        </view>
+        <view class="constitution-body">
+          <view class="constitution-icon">🩺</view>
+          <view class="constitution-info">
+            <view class="constitution-name">中医体质辨识</view>
+            <view class="constitution-desc">依据国家标准 GB/T 46939-2025</view>
+          </view>
+          <view class="constitution-arrow">→</view>
+        </view>
+        <view class="constitution-btns">
+          <view class="constitution-btn" @click.stop="goToConstitutionMode('standard')">标准测评 (60题)</view>
+          <view class="constitution-btn" @click.stop="goToConstitutionMode('quick')">快速测评(18题)</view>
+        </view>
+      </view>
+
+      <!-- 药材图鉴 -->
+      <view class="card">
         <view class="section-title">药材图鉴</view>
         <view class="herb-list">
           <view class="herb-item" v-for="item in showcaseHerbs" :key="item.id" @click="goToDetail(item.id)">
-            <image class="herb-img" :src="item.image" mode="aspectFill"></image>
+            <image class="herb-img" :src="getImg(item.image)" mode="aspectFill" @error="onImgError($event)"></image>
             <view class="herb-info">
               <view class="herb-name">{{ item.name }}</view>
               <view class="herb-category">{{ item.category }}</view>
@@ -89,48 +123,53 @@
           </view>
         </view>
       </view>
-
-      <view class="features card">
-        <view class="feature-list">
-          <view class="feature-item" @click="goToConstitution">
-            <view class="feature-icon">🧬</view>
-            <view class="feature-text">
-              <view class="feature-title">体质测评</view>
-              <view class="feature-desc">中医体质辨识</view>
-            </view>
-          </view>
-        </view>
-      </view>
     </view>
+    <custom-tabbar current="home"></custom-tabbar>
   </view>
 </template>
 
 <script>
-import { quizApi, herbApi, checkinApi } from '@/api/index.js'
+import { quizApi, herbApi, checkinApi, llmConfigApi, getImageUrl } from '@/api/index.js'
+import customTabbar from '@/components/custom-tabbar/custom-tabbar.vue'
 
 export default {
+  components: { customTabbar },
   data() {
     return {
       dailyQuestion: null,
       showcaseHerbs: [],
       dailyHerb: null,
-      dailyHerbChecked: false
+      dailyHerbChecked: false,
+      llmEnabled: false,
+      llmStatusText: '加载中...'
     }
   },
   onLoad() {
     this.loadDailyQuestion()
     this.loadShowcaseHerbs()
     this.loadDailyHerb()
+    this.loadLlmStatus()
+  },
+  onShow() {
+    uni.hideTabBar()
+    this.loadLlmStatus()
   },
   onPullDownRefresh() {
     this.loadDailyQuestion()
     this.loadShowcaseHerbs()
     this.loadDailyHerb()
+    this.loadLlmStatus()
     setTimeout(() => {
       uni.stopPullDownRefresh()
     }, 500)
   },
   methods: {
+    getImg(url) {
+      return getImageUrl(url)
+    },
+    onImgError(e) {
+      console.warn('Image load failed')
+    },
     async loadDailyQuestion() {
       try {
         this.dailyQuestion = await quizApi.getDailyQuestion()
@@ -150,16 +189,28 @@ export default {
       try {
         const result = await checkinApi.getDailyHerb()
         this.dailyHerb = result.herb
-        
         const stats = await checkinApi.getStats()
         this.dailyHerbChecked = stats.todayChecked
       } catch (e) {
         console.error('获取今日药材失败', e)
       }
     },
+    async loadLlmStatus() {
+      try {
+        const res = await llmConfigApi.getStatus()
+        this.llmEnabled = res.enabled
+        if (res.enabled) {
+          this.llmStatusText = `AI增强模式 - ${res.provider || ''} ${res.model || ''}`
+        } else {
+          this.llmStatusText = '本地知识库模式 - 配置API Key解锁AI增强'
+        }
+      } catch (e) {
+        this.llmEnabled = false
+        this.llmStatusText = '本地知识库模式 - 配置API Key解锁AI增强'
+      }
+    },
     async handleDailyCheckin() {
       if (!this.dailyHerb) return
-      
       try {
         await checkinApi.checkin(this.dailyHerb.id)
         this.dailyHerbChecked = true
@@ -173,8 +224,7 @@ export default {
         count: 1,
         sourceType: ['camera'],
         success: (res) => {
-          const tempFilePath = res.tempFilePaths[0]
-          this.identifyHerb(tempFilePath)
+          this.identifyHerb(res.tempFilePaths[0])
         }
       })
     },
@@ -183,8 +233,7 @@ export default {
         count: 1,
         sourceType: ['album'],
         success: (res) => {
-          const tempFilePath = res.tempFilePaths[0]
-          this.identifyHerb(tempFilePath)
+          this.identifyHerb(res.tempFilePaths[0])
         }
       })
     },
@@ -194,42 +243,36 @@ export default {
       })
     },
     goToQuiz() {
-      uni.switchTab({
-        url: '/pages/quiz/quiz'
-      })
+      uni.navigateTo({ url: '/pages/quiz/quiz' })
     },
     goToQuizDetail() {
-      uni.navigateTo({
-        url: '/pages/quiz/quiz?mode=daily'
-      })
+      uni.navigateTo({ url: '/pages/quiz/quiz?mode=daily' })
     },
     goToDetail(id) {
-      uni.navigateTo({
-        url: `/pages/detail/detail?id=${id}`
-      })
+      uni.navigateTo({ url: `/pages/detail/detail?id=${id}` })
+    },
+    goToConsult() {
+      uni.navigateTo({ url: '/pages/consult/consult' })
+    },
+    goToLlmConfig() {
+      uni.navigateTo({ url: '/pages/llm-config/llm-config' })
     },
     goToConstitution() {
       uni.showActionSheet({
         itemList: ['标准测评 (60题)', '快速测评 (18题)'],
         success: (res) => {
           const mode = res.tapIndex === 0 ? 'standard' : 'quick'
-          uni.navigateTo({
-            url: `/pages/constitution/constitution?mode=${mode}`
-          })
+          uni.navigateTo({ url: `/pages/constitution/constitution?mode=${mode}` })
         }
       })
     },
+    goToConstitutionMode(mode) {
+      uni.navigateTo({ url: `/pages/constitution/constitution?mode=${mode}` })
+    },
     goToHerbDetail() {
       if (this.dailyHerb) {
-        uni.navigateTo({
-          url: `/pages/detail/detail?id=${this.dailyHerb.id}`
-        })
+        uni.navigateTo({ url: `/pages/detail/detail?id=${this.dailyHerb.id}` })
       }
-    },
-    goToHerbList() {
-      uni.switchTab({
-        url: '/pages/herb-list/herb-list'
-      })
     }
   }
 }
@@ -238,27 +281,20 @@ export default {
 <style lang="scss">
 .page {
   min-height: 100vh;
-  background: $bg-primary;
+  background: #f0f9f4;
+  padding-bottom: 70px;
 }
 
 .banner {
-  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 50%, lighten($secondary-color, 12%) 100%);
-  padding: 60rpx 32rpx 80rpx;
-  position: relative;
-  overflow: hidden;
-}
-
-.banner-content {
-  position: relative;
-  z-index: 2;
+  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
+  padding: 60rpx 32rpx 60rpx;
 }
 
 .banner-title {
   font-size: 48rpx;
-  font-weight: $font-weight-bold;
+  font-weight: bold;
   color: #FFFFFF;
   margin-bottom: 12rpx;
-  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .banner-subtitle {
@@ -266,36 +302,69 @@ export default {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.banner-decoration {
-  position: absolute;
-  right: -40rpx;
-  top: -40rpx;
-  width: 200rpx;
-  height: 200rpx;
-  background: rgba(255, 255, 255, 0.1);
+/* LLM 状态栏 */
+.llm-status-bar {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 32rpx;
+  background: rgba(45, 139, 94, 0.08);
+  border-bottom: 1rpx solid rgba(45, 139, 94, 0.15);
+
+  &.disabled {
+    background: rgba(245, 158, 11, 0.08);
+    border-bottom-color: rgba(245, 158, 11, 0.15);
+  }
+}
+
+.llm-status-dot {
+  width: 16rpx;
+  height: 16rpx;
   border-radius: 50%;
+  background: #2d8b5e;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+
+  &.disabled {
+    background: #F59E0B;
+  }
+}
+
+.llm-status-text {
+  flex: 1;
+  font-size: 24rpx;
+  color: #2d8b5e;
+
+  &.disabled {
+    color: #F59E0B;
+  }
+}
+
+.llm-status-arrow {
+  font-size: 28rpx;
+  color: #2d8b5e;
+
+  &.disabled {
+    color: #F59E0B;
+  }
 }
 
 .container {
   padding: 24rpx;
-  margin-top: -40rpx;
-  position: relative;
-  z-index: 10;
 }
 
 .card {
-  background: $bg-card;
-  border-radius: $radius-lg;
+  background: #FFFFFF;
+  border-radius: 20rpx;
   padding: 32rpx;
-  margin-bottom: $spacing-lg;
-  box-shadow: $shadow-card;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .section-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-semibold;
-  color: $text-primary;
-  margin-bottom: $spacing-lg;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24rpx;
   display: flex;
   align-items: center;
 }
@@ -304,26 +373,23 @@ export default {
   content: '';
   width: 8rpx;
   height: 32rpx;
-  background: $primary-color;
-  border-radius: $radius-sm;
-  margin-right: $spacing-md;
+  background: #2d8b5e;
+  border-radius: 4rpx;
+  margin-right: 16rpx;
 }
 
+/* 快速识别 */
 .action-btns {
   display: flex;
   justify-content: space-around;
-  padding: $spacing-md 0;
+  padding: 16rpx 0;
 }
 
 .action-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  cursor: pointer;
-  padding: $spacing-sm;
-  transition: transform $transition-normal;
-  min-width: 140rpx;
-  
+
   &:active {
     transform: scale(0.95);
   }
@@ -337,108 +403,88 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 44rpx;
-  margin-bottom: $spacing-sm;
-  transition: background-color $transition-normal;
-}
+  margin-bottom: 12rpx;
 
-.camera-icon {
-  background: rgba($cta-color, 0.1);
-}
-
-.album-icon {
-  background: rgba($primary-color, 0.1);
-}
-
-.quiz-icon {
-  background: rgba($warning-color, 0.1);
+  &.cam { background: rgba(45, 139, 94, 0.1); }
+  &.alb { background: rgba(45, 139, 94, 0.1); }
+  &.qz { background: rgba(245, 158, 11, 0.1); }
 }
 
 .action-text {
-  font-size: $font-size-sm;
-  color: $text-primary;
+  font-size: 24rpx;
+  color: #333;
 }
 
-.daily-quiz {
-  background: $bg-card;
-  border: 1rpx solid $border-light;
-  cursor: pointer;
-  transition: box-shadow $transition-normal;
-  
-  &:active {
-    box-shadow: $shadow-md;
-  }
+/* 今日一题 */
+.daily-quiz-card {
+  &:active { box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08); }
 }
 
 .quiz-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $spacing-sm;
+  margin-bottom: 16rpx;
 }
 
 .quiz-tag {
-  font-size: $font-size-xs;
-  color: $warning-color;
-  background: rgba($warning-color, 0.1);
-  padding: 4rpx 16rpx;
-  border-radius: $radius-full;
+  font-size: 22rpx;
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 4rpx 20rpx;
+  border-radius: 20rpx;
 }
 
 .quiz-question {
-  font-size: $font-size-lg;
-  color: $text-primary;
+  font-size: 30rpx;
+  color: #333;
   line-height: 1.6;
-  margin-bottom: $spacing-lg;
-  font-weight: $font-weight-medium;
+  margin-bottom: 24rpx;
+  font-weight: 500;
 }
 
 .quiz-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: $spacing-md;
-  border-top: 1rpx solid $border-light;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f0f0f0;
 }
 
 .quiz-category {
-  font-size: $font-size-sm;
-  color: $text-muted;
+  font-size: 24rpx;
+  color: #999;
 }
 
 .quiz-go {
-  font-size: $font-size-sm;
-  color: $primary-color;
-  font-weight: $font-weight-medium;
+  font-size: 24rpx;
+  color: #2d8b5e;
+  font-weight: 500;
 }
 
-.daily-herb {
-  background: rgba($cta-color, 0.04);
-  border: 1rpx solid rgba($cta-color, 0.2);
-  cursor: pointer;
-  transition: box-shadow $transition-normal;
-  
-  &:active {
-    box-shadow: $shadow-md;
-  }
+/* 今日药材 */
+.daily-herb-card {
+  background: linear-gradient(135deg, #f0f9f4 0%, rgba(45, 139, 94, 0.08) 100%);
+  border: 1rpx solid rgba(45, 139, 94, 0.2);
 }
 
 .daily-herb-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $spacing-md;
+  margin-bottom: 24rpx;
 }
 
 .daily-herb-status {
-  font-size: $font-size-sm;
-  color: $warning-color;
-  background: rgba($warning-color, 0.1);
+  font-size: 24rpx;
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.1);
   padding: 6rpx 20rpx;
-  border-radius: $radius-full;
-  
+  border-radius: 20rpx;
+
   &.checked {
-    color: $cta-color;
-    background: rgba($cta-color, 0.15);
+    color: #2d8b5e;
+    background: rgba(45, 139, 94, 0.15);
   }
 }
 
@@ -450,8 +496,8 @@ export default {
 .daily-herb-img {
   width: 160rpx;
   height: 160rpx;
-  border-radius: $radius-lg;
-  margin-right: $spacing-lg;
+  border-radius: 16rpx;
+  margin-right: 24rpx;
   flex-shrink: 0;
 }
 
@@ -461,21 +507,15 @@ export default {
 }
 
 .daily-herb-name {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: $text-primary;
-  margin-bottom: $spacing-xs;
-}
-
-.daily-herb-pinyin {
-  font-size: $font-size-sm;
-  color: $text-muted;
-  margin-bottom: $spacing-sm;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 12rpx;
 }
 
 .daily-herb-effect {
-  font-size: $font-size-sm;
-  color: $cta-color;
+  font-size: 26rpx;
+  color: #2d8b5e;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -488,17 +528,17 @@ export default {
   flex-direction: column;
   align-items: center;
   padding: 40rpx;
-  color: $text-muted;
+  color: #999;
 }
 
 .loading-spinner {
   width: 40rpx;
   height: 40rpx;
-  border: 3rpx solid rgba($primary-color, 0.2);
-  border-top-color: $primary-color;
+  border: 3rpx solid rgba(45, 139, 94, 0.2);
+  border-top-color: #2d8b5e;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: $spacing-md;
+  margin-bottom: 16rpx;
 }
 
 @keyframes spin {
@@ -509,127 +549,221 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: $spacing-md;
-  margin-top: $spacing-md;
-  border-top: 1rpx dashed rgba($cta-color, 0.3);
+  padding-top: 24rpx;
+  margin-top: 24rpx;
+  border-top: 1rpx dashed rgba(45, 139, 94, 0.2);
 }
 
 .daily-herb-tip {
-  font-size: $font-size-xs;
-  color: $text-muted;
+  font-size: 22rpx;
+  color: #999;
 }
 
 .checkin-btn {
   padding: 12rpx 32rpx;
-  background: linear-gradient(135deg, $cta-color, lighten($cta-color, 8%));
+  background: linear-gradient(135deg, #2d8b5e, #3da878);
   color: #FFFFFF;
-  border-radius: $radius-full;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  cursor: pointer;
-  transition: opacity $transition-normal, transform $transition-normal;
-  
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+
   &:active {
     opacity: 0.8;
     transform: scale(0.98);
   }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+}
+
+/* 经方问诊入口 */
+.consult-card {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0.15) 100%);
+  border: 1rpx solid rgba(168, 85, 247, 0.2);
+}
+
+.consult-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.consult-title {
+  margin-bottom: 0;
+}
+
+.consult-badge {
+  font-size: 22rpx;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.1);
+  padding: 4rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.consult-body {
+  display: flex;
+  align-items: center;
+}
+
+.consult-icon {
+  width: 120rpx;
+  height: 120rpx;
+  background: rgba(168, 85, 247, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56rpx;
+  margin-right: 24rpx;
+}
+
+.consult-info {
+  flex: 1;
+}
+
+.consult-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.consult-desc {
+  font-size: 24rpx;
+  color: #a855f7;
+  margin-top: 8rpx;
+}
+
+.consult-arrow {
+  font-size: 40rpx;
+  color: #a855f7;
+}
+
+.consult-note {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 24rpx;
+  line-height: 1.6;
+}
+
+/* 体质测评入口 */
+.constitution-card {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.15) 100%);
+  border: 1rpx solid rgba(245, 158, 11, 0.2);
+}
+
+.constitution-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.constitution-title {
+  margin-bottom: 0;
+}
+
+.constitution-badge {
+  font-size: 22rpx;
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 4rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.constitution-body {
+  display: flex;
+  align-items: center;
+}
+
+.constitution-icon {
+  width: 120rpx;
+  height: 120rpx;
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56rpx;
+  margin-right: 24rpx;
+}
+
+.constitution-info {
+  flex: 1;
+}
+
+.constitution-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.constitution-desc {
+  font-size: 24rpx;
+  color: #F59E0B;
+  margin-top: 8rpx;
+}
+
+.constitution-arrow {
+  font-size: 40rpx;
+  color: #F59E0B;
+}
+
+.constitution-btns {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.constitution-btn {
+  flex: 1;
+  padding: 16rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  color: #F59E0B;
+  text-align: center;
+
+  &:active {
+    opacity: 0.7;
   }
 }
 
-.herb-showcase {
-  .herb-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-  
-  .herb-item {
-    width: 31%;
-    margin-bottom: $spacing-md;
-    border-radius: $radius-md;
-    overflow: hidden;
-    background: $bg-secondary;
-    cursor: pointer;
-    transition: transform $transition-normal, box-shadow $transition-normal;
-    
-    &:active {
-      transform: scale(0.98);
-      box-shadow: $shadow-md;
-    }
-  }
-  
-  .herb-img {
-    width: 100%;
-    height: 160rpx;
-  }
-  
-  .herb-info {
-    padding: 12rpx 8rpx;
-    text-align: center;
-  }
-  
-  .herb-name {
-    font-size: $font-size-sm;
-    color: $text-primary;
-    font-weight: $font-weight-medium;
-    margin-bottom: 4rpx;
-  }
-  
-  .herb-category {
-    font-size: $font-size-xs;
-    color: $text-muted;
+/* 药材图鉴 */
+.herb-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.herb-item {
+  width: 31%;
+  margin-bottom: 24rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  background: #f9f9f9;
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 
-.feature-list {
-  .feature-item {
-    display: flex;
-    align-items: center;
-    padding: $spacing-md 0;
-    border-bottom: 1rpx solid $border-light;
-    cursor: pointer;
-    transition: background-color $transition-normal;
-    
-    &:last-child {
-      border-bottom: none;
-    }
-    
-    &:active {
-      background-color: $bg-hover;
-    }
-  }
-  
-  .feature-icon {
-    width: 80rpx;
-    height: 80rpx;
-    border-radius: $radius-md;
-    background: rgba($primary-color, 0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36rpx;
-    margin-right: $spacing-lg;
-  }
-  
-  .feature-text {
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .feature-title {
-    font-size: $font-size-lg;
-    color: $text-primary;
-    font-weight: $font-weight-medium;
-    margin-bottom: 6rpx;
-  }
-  
-  .feature-desc {
-    font-size: $font-size-sm;
-    color: $text-muted;
-  }
+.herb-img {
+  width: 100%;
+  height: 160rpx;
+}
+
+.herb-info {
+  padding: 12rpx 8rpx;
+  text-align: center;
+}
+
+.herb-name {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 4rpx;
+}
+
+.herb-category {
+  font-size: 20rpx;
+  color: #999;
 }
 </style>

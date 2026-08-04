@@ -2,10 +2,10 @@
   <view class="page">
     <view class="profile-header">
       <view class="profile-bg"></view>
-      <view class="profile-info">
+      <view class="profile-info" @click="handleProfileClick">
         <view class="avatar">👤</view>
-        <view class="user-name">本草学者</view>
-        <view class="user-title">坚持学习，每日进步</view>
+        <view class="user-name">{{ userInfo ? userInfo.username : '点击登录' }}</view>
+        <view class="user-title">{{ userInfo ? '欢迎回来' : '登录后享受更多功能' }}</view>
       </view>
       <view class="profile-stats">
         <view class="stat-item">
@@ -27,6 +27,71 @@
 
     <view class="container">
       <view class="section card">
+        <view class="section-header">
+          <view class="section-title">🌿 我的收藏药材</view>
+          <view class="section-more" @click="goToFavHerbs">查看全部</view>
+        </view>
+        <view class="record-list" v-if="favHerbs.length > 0">
+          <view class="record-item" v-for="item in favHerbs.slice(0, 2)" :key="item.id" @click="goToHerbDetail(item.id)">
+            <image class="record-img" :src="getImg(item.cover_image_url)" mode="aspectFill" v-if="item.cover_image_url"></image>
+            <view class="record-img placeholder-img" v-else>
+              <text>🌿</text>
+            </view>
+            <view class="record-info">
+              <view class="record-name">{{ item.name }}</view>
+              <view class="record-effect">{{ item.effect }}</view>
+            </view>
+          </view>
+        </view>
+        <view class="empty-state" v-else>
+          <text class="empty-icon">🌿</text>
+          <text class="empty-text">暂无收藏药材</text>
+        </view>
+      </view>
+
+      <view class="section card">
+        <view class="section-header">
+          <view class="section-title">🍲 我的收藏搭配</view>
+          <view class="section-more" @click="goToFavMatches">查看全部</view>
+        </view>
+        <view class="record-list" v-if="favMatches.length > 0">
+          <view class="record-item" v-for="item in favMatches.slice(0, 2)" :key="item.id">
+            <view class="record-img placeholder-img">
+              <text>🍲</text>
+            </view>
+            <view class="record-info">
+              <view class="record-name">{{ item.name }}</view>
+              <view class="record-effect">{{ item.effect }}</view>
+            </view>
+          </view>
+        </view>
+        <view class="empty-state" v-else>
+          <text class="empty-icon">🍲</text>
+          <text class="empty-text">暂无收藏搭配</text>
+        </view>
+      </view>
+
+      <view class="section card">
+        <view class="section-title">📊 打卡统计</view>
+        <view class="stats-row">
+          <view class="stats-col">
+            <text class="stats-num">{{ stats.totalCount }}</text>
+            <text class="stats-label">累计打卡</text>
+          </view>
+          <view class="stats-divider"></view>
+          <view class="stats-col">
+            <text class="stats-num">{{ stats.consecutiveDays }}</text>
+            <text class="stats-label">连续天数</text>
+          </view>
+          <view class="stats-divider"></view>
+          <view class="stats-col">
+            <text class="stats-num">{{ monthStats.checkedDays }}/{{ monthStats.totalDays }}</text>
+            <text class="stats-label">本月打卡</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="section card">
         <view class="section-title">📅 打卡日历</view>
         <view class="calendar-nav">
           <view class="nav-btn" @click="prevMonth">‹</view>
@@ -37,41 +102,21 @@
           <view class="weekday" v-for="day in weekdays" :key="day">{{ day }}</view>
         </view>
         <view class="calendar-grid">
-          <view 
-            class="calendar-day" 
-            v-for="(day, idx) in calendarDays" 
+          <view
+            class="calendar-day"
+            v-for="(day, idx) in calendarDays"
             :key="idx"
-            :class="{ 
-              'other-month': !day.currentMonth, 
+            :class="{
+              'other-month': !day.currentMonth,
               'today': day.isToday,
               'checked': day.hasRecord
             }"
             @click="handleDayClick(day)"
           >
-            <text v-if="day.date">{{ day.day }}</text>
-            <view class="checkin-dot" v-if="day.hasRecord"></view>
+            <text v-if="day.date" class="cal-day-num">{{ day.day }}</text>
+            <view class="cal-herb-name" v-if="day.hasRecord && day.herbName">{{ day.herbName }}</view>
           </view>
         </view>
-      </view>
-
-      <view class="section card">
-        <view class="section-title">📚 打卡记录</view>
-        <view class="record-list" :class="{ 'scroll-list': checkinRecords.length > 3 }" v-if="checkinRecords.length > 0">
-          <view class="record-item" v-for="item in checkinRecords" :key="item.id">
-            <image class="record-img" :src="item.herb.image" mode="aspectFill"></image>
-            <view class="record-info">
-              <view class="record-name">{{ item.herb.name }}</view>
-              <view class="record-effect">{{ item.herb.effect }}</view>
-              <view class="record-date">{{ formatDate(item.date) }}</view>
-            </view>
-            <view class="record-badge">✓</view>
-          </view>
-        </view>
-        <view class="empty-state" v-else>
-          <text class="empty-icon">📖</text>
-          <text class="empty-text">暂无打卡记录，快去学习吧</text>
-        </view>
-        <view class="scroll-tip" v-if="checkinRecords.length > 3">滑动查看更多</view>
       </view>
 
       <view class="section card">
@@ -83,9 +128,9 @@
             :key="item.id"
             @click="goToHerbDetail(item.herbId)"
           >
-            <image 
-              class="record-img" 
-              :src="item.herb ? item.herb.image : ''" 
+            <image
+              class="record-img"
+              :src="getImg(item.herb ? item.herb.image : '')"
               mode="aspectFill"
               v-if="item.herb"
             ></image>
@@ -113,6 +158,28 @@
           <text class="empty-tip">拍摄药材图片开始识别</text>
         </view>
         <view class="scroll-tip" v-if="identifyRecords.length > 3">滑动查看更多</view>
+      </view>
+
+      <view class="section card">
+        <view class="section-header">
+          <view class="section-title">🏥 我的问诊记录</view>
+          <view class="section-more" @click="goToChatHistory">查看全部</view>
+        </view>
+        <view class="record-list" v-if="chatRecords.length > 0">
+          <view class="record-item" v-for="item in chatRecords" :key="item.sessionId" @click="goToChatDetail(item.sessionId)">
+            <view class="record-img placeholder-img">
+              <text>🏥</text>
+            </view>
+            <view class="record-info">
+              <view class="record-name">{{ item.summary || '问诊记录' }}</view>
+              <view class="record-date">{{ formatDate(item.createdAt) }} · {{ item.diagnosis || '未辨证' }}</view>
+            </view>
+          </view>
+        </view>
+        <view class="empty-state" v-else>
+          <text class="empty-icon">🏥</text>
+          <text class="empty-text">暂无问诊记录</text>
+        </view>
       </view>
 
       <view class="section card">
@@ -197,14 +264,14 @@
 
       <view class="section card">
         <view class="menu-list">
-          <view class="menu-item" @click="goToFavorites">
-            <view class="menu-icon">❤️</view>
-            <view class="menu-text">我的收藏</view>
+          <view class="menu-item" @click="goToLlmConfig">
+            <view class="menu-icon">🤖</view>
+            <view class="menu-text">AI模型配置</view>
             <view class="menu-arrow">→</view>
           </view>
-          <view class="menu-item" @click="goToWrongQuestions">
-            <view class="menu-icon">📝</view>
-            <view class="menu-text">错题本</view>
+          <view class="menu-item" @click="goToChatHistory">
+            <view class="menu-icon">🏥</view>
+            <view class="menu-text">问诊记录</view>
             <view class="menu-arrow">→</view>
           </view>
           <view class="menu-item" @click="goToHerbList">
@@ -212,37 +279,17 @@
             <view class="menu-text">药材图鉴</view>
             <view class="menu-arrow">→</view>
           </view>
-          <view class="menu-item" @click="goToClassics">
-            <view class="menu-icon">📖</view>
-            <view class="menu-text">典籍溯源</view>
+          <view class="menu-item" v-if="userInfo && userInfo.role === 'admin'" @click="goToReview">
+            <view class="menu-icon">🔧</view>
+            <view class="menu-text">识别纠错审核</view>
+            <view class="review-badge" v-if="reviewPendingCount > 0">{{ reviewPendingCount }}</view>
             <view class="menu-arrow">→</view>
           </view>
-          <view class="menu-item logout-item" @click="handleLogout">
+          <view class="menu-item logout-item" v-if="userInfo" @click="handleLogout">
             <view class="menu-icon">🚪</view>
             <view class="menu-text">退出登录</view>
             <view class="menu-arrow">→</view>
           </view>
-        </view>
-      </view>
-    </view>
-
-    <view class="day-detail-modal" v-if="showDayDetail" @click="closeDayDetail">
-      <view class="day-detail-content" @click.stop>
-        <view class="day-detail-header">
-          <view class="day-detail-title">{{ selectedDate }}</view>
-          <view class="day-detail-close" @click="closeDayDetail">×</view>
-        </view>
-        <view class="day-detail-body" v-if="dayRecords.length > 0">
-          <view class="day-record-item" v-for="record in dayRecords" :key="record.id">
-            <image class="record-img" :src="record.herb.image" mode="aspectFill"></image>
-            <view class="record-info">
-              <view class="record-name">{{ record.herb.name }}</view>
-              <view class="record-effect">{{ record.herb.effect }}</view>
-            </view>
-          </view>
-        </view>
-        <view class="day-detail-empty" v-else>
-          <text>当日未打卡</text>
         </view>
       </view>
     </view>
@@ -255,15 +302,23 @@
         <view class="achievement-modal-btn" @click="closeAchievementModal">知道了</view>
       </view>
     </view>
+    <custom-tabbar current="mine"></custom-tabbar>
   </view>
 </template>
 
 <script>
-import { checkinApi, identifyApi, constitutionApi } from '@/api/index.js'
+import { checkinApi, identifyApi, constitutionApi, favoriteApi, chatApi, authApi, reviewApi, getImageUrl } from '@/api/index.js'
+import utils from '@/utils/index.js'
+import customTabbar from '@/components/custom-tabbar/custom-tabbar.vue'
 
 export default {
+  components: { customTabbar },
   data() {
     return {
+      userInfo: null,
+      favHerbs: [],
+      favMatches: [],
+      chatRecords: [],
       stats: {
         totalCount: 0,
         todayChecked: false,
@@ -285,6 +340,7 @@ export default {
       showDayDetail: false,
       selectedDate: '',
       dayRecords: [],
+      reviewPendingCount: 0,
       showAchievementModal: false,
       achievementDetail: {
         name: '',
@@ -294,16 +350,36 @@ export default {
     }
   },
   onLoad() {
+    this.userInfo = utils.storage.get('userInfo')
     this.loadStats()
     this.loadCalendar()
     this.loadRecords()
+    this.loadFavorites()
+    this.loadChatRecords()
   },
   onShow() {
+    uni.hideTabBar()
+    this.userInfo = utils.storage.get('userInfo')
     this.loadStats()
     this.loadCalendar()
     this.loadRecords()
+    this.loadFavorites()
+    this.loadChatRecords()
+    this.loadReviewPending()
   },
   methods: {
+    getImg(url) {
+      return getImageUrl(url)
+    },
+    async loadReviewPending() {
+      if (!this.userInfo || this.userInfo.role !== 'admin') return
+      try {
+        const res = await reviewApi.getStats()
+        this.reviewPendingCount = res.pendingCount || res.pending || 0
+      } catch (e) {
+        console.error('加载审核统计失败', e)
+      }
+    },
     async loadStats() {
       try {
         const result = await checkinApi.getStats()
@@ -346,14 +422,16 @@ export default {
       
       for (let i = 1; i <= totalDays; i++) {
         const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`
-        const hasRecord = records.some(r => r.date === dateStr)
-        
+        const dayRecord = records.find(r => r.date === dateStr)
+
         days.push({
           date: dateStr,
           day: i,
           currentMonth: true,
           isToday: dateStr === todayStr,
-          hasRecord
+          hasRecord: !!dayRecord,
+          herbId: dayRecord ? dayRecord.herbId : null,
+          herbName: dayRecord ? (dayRecord.herbName || dayRecord.name || '') : ''
         })
       }
       
@@ -401,6 +479,27 @@ export default {
         console.error('加载记录失败', e)
       }
     },
+    async loadFavorites() {
+      try {
+        const [herbs, matches] = await Promise.all([
+          favoriteApi.getHerbs(),
+          favoriteApi.getMatches()
+        ])
+        this.favHerbs = herbs || []
+        this.favMatches = matches || []
+      } catch (e) {
+        console.error('加载收藏失败', e)
+      }
+    },
+    async loadChatRecords() {
+      try {
+        const result = await chatApi.getHistory(1)
+        const list = Array.isArray(result) ? result : (result.list || [])
+        this.chatRecords = list.slice(0, 3)
+      } catch (e) {
+        console.error('加载问诊记录失败', e)
+      }
+    },
     getConstitutionColor(type) {
       const colors = {
         pinghe: '#10b981',
@@ -420,11 +519,10 @@ export default {
       return `${d.getMonth() + 1}月${d.getDate()}日`
     },
     handleDayClick(day) {
-      if (!day.date) return
-      
-      this.selectedDate = day.date
-      this.dayRecords = this.checkinRecords.filter(r => r.date === day.date)
-      this.showDayDetail = true
+      if (!day.date || !day.herbId) return
+      uni.navigateTo({
+        url: `/pages/detail/detail?id=${day.herbId}`
+      })
     },
     closeDayDetail() {
       this.showDayDetail = false
@@ -492,31 +590,64 @@ export default {
         }
       })
     },
-    goToFavorites() {
-      uni.showToast({ title: '功能开发中', icon: 'none' })
+    handleProfileClick() {
+      if (!this.userInfo) {
+        this.goToLogin()
+      }
     },
-    goToWrongQuestions() {
-      uni.showToast({ title: '功能开发中', icon: 'none' })
+    goToFavHerbs() {
+      uni.switchTab({
+        url: '/pages/herb-list/herb-list'
+      })
+    },
+    goToFavMatches() {
+      uni.switchTab({
+        url: '/pages/match/match'
+      })
+    },
+    goToLlmConfig() {
+      uni.navigateTo({
+        url: '/pages/llm-config/llm-config'
+      })
+    },
+    goToChatHistory() {
+      uni.navigateTo({
+        url: '/pages/chat-history/chat-history'
+      })
+    },
+    goToChatDetail(sessionId) {
+      uni.navigateTo({
+        url: `/pages/chat-detail/chat-detail?sessionId=${sessionId}`
+      })
+    },
+    goToReview() {
+      uni.navigateTo({
+        url: '/pages/review/review'
+      })
+    },
+    goToLogin() {
+      uni.navigateTo({
+        url: '/pages/login/login'
+      })
     },
     goToHerbList() {
       uni.switchTab({
         url: '/pages/herb-list/herb-list'
       })
     },
-    goToClassics() {
-      uni.navigateTo({
-        url: '/pages/classics/classics'
-      })
-    },
     handleLogout() {
       uni.showModal({
         title: '确认退出',
         content: '确定要退出登录吗？',
-        success: (res) => {
+        success: async (res) => {
           if (res.confirm) {
-            uni.removeStorageSync('userToken')
-            uni.removeStorageSync('userId')
-            uni.removeStorageSync('userInfo')
+            try {
+              await authApi.logout()
+            } catch (e) {
+              console.error('退出登录请求失败', e)
+            }
+            utils.storage.remove('token')
+            utils.storage.remove('userInfo')
             uni.showToast({
               title: '已退出登录',
               icon: 'success'
@@ -537,7 +668,8 @@ export default {
 <style lang="scss">
 .page {
   min-height: 100vh;
-  background: $bg-primary;
+  background: #f0f9f4;
+  padding-bottom: 70px;
 }
 
 .profile-header {
@@ -551,7 +683,7 @@ export default {
   left: 0;
   right: 0;
   height: 300rpx;
-  background: linear-gradient(135deg, $cta-color 0%, lighten($cta-color, 8%) 50%, lighten($cta-color, 16%) 100%);
+  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
 }
 
 .profile-info {
@@ -607,7 +739,7 @@ export default {
 .stat-value {
   font-size: 44rpx;
   font-weight: $font-weight-bold;
-  color: $cta-color;
+  color: #2d8b5e;
 }
 
 .stat-label {
@@ -641,6 +773,53 @@ export default {
   margin-bottom: $spacing-lg;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+
+  .section-title {
+    margin-bottom: 0;
+  }
+}
+
+.section-more {
+  font-size: $font-size-sm;
+  color: #2d8b5e;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: $spacing-md 0;
+}
+
+.stats-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stats-num {
+  font-size: 44rpx;
+  font-weight: $font-weight-bold;
+  color: #2d8b5e;
+}
+
+.stats-label {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin-top: $spacing-xs;
+}
+
+.stats-divider {
+  width: 1rpx;
+  height: 60rpx;
+  background: $border-light;
+}
+
 .calendar-nav {
   display: flex;
   justify-content: center;
@@ -663,7 +842,7 @@ export default {
   transition: background-color $transition-normal;
   
   &:active {
-    background: rgba($primary-color, 0.1);
+    background: rgba(#2d8b5e, 0.1);
   }
 }
 
@@ -702,38 +881,67 @@ export default {
   color: $text-primary;
   position: relative;
   cursor: pointer;
-  
+  padding: 4rpx 2rpx;
+
   &.other-month {
     color: $text-disabled;
   }
-  
+
   &.today {
-    background: rgba($cta-color, 0.1);
-    border-radius: 50%;
-    color: $cta-color;
+    background: rgba(#2d8b5e, 0.1);
+    border-radius: 8rpx;
+    color: #2d8b5e;
     font-weight: $font-weight-semibold;
   }
-  
+
   &.checked {
     &::before {
       content: '';
       position: absolute;
       width: 60rpx;
       height: 60rpx;
-      background: rgba($cta-color, 0.1);
+      background: rgba(#2d8b5e, 0.1);
       border-radius: 50%;
       z-index: -1;
     }
   }
 }
 
+.cal-day-num {
+  font-size: 24rpx;
+  line-height: 1;
+}
+
+.cal-herb-name {
+  font-size: 16rpx;
+  color: #2d8b5e;
+  margin-top: 4rpx;
+  line-height: 1.2;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .checkin-dot {
   width: 8rpx;
   height: 8rpx;
-  background: $cta-color;
+  background: #2d8b5e;
   border-radius: 50%;
   position: absolute;
   bottom: 8rpx;
+}
+
+.review-badge {
+  background: #dc2626;
+  color: #fff;
+  font-size: 22rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+  margin-left: auto;
+  margin-right: 8rpx;
+  min-width: 32rpx;
+  text-align: center;
 }
 
 .record-list {
@@ -773,7 +981,7 @@ export default {
 
 .record-effect {
   font-size: $font-size-sm;
-  color: $cta-color;
+  color: #2d8b5e;
   margin-bottom: $spacing-xs;
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -789,8 +997,8 @@ export default {
 .record-badge {
   width: 48rpx;
   height: 48rpx;
-  background: rgba($cta-color, 0.1);
-  color: $cta-color;
+  background: rgba(#2d8b5e, 0.1);
+  color: #2d8b5e;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -821,7 +1029,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba($cta-color, 0.08);
+  background: rgba(#2d8b5e, 0.08);
   font-size: 48rpx;
 }
 
@@ -965,7 +1173,7 @@ export default {
 .achievement-status {
   width: 48rpx;
   height: 48rpx;
-  background: $cta-color;
+  background: #2d8b5e;
   color: #FFFFFF;
   border-radius: 50%;
   display: flex;
@@ -1065,7 +1273,7 @@ export default {
   transition: background-color $transition-normal;
   
   &:active {
-    background: rgba($primary-color, 0.1);
+    background: rgba(#2d8b5e, 0.1);
   }
 }
 
@@ -1118,7 +1326,7 @@ export default {
 
 .achievement-modal-btn {
   padding: $spacing-md $spacing-xl;
-  background: linear-gradient(135deg, $cta-color, lighten($cta-color, 8%));
+  background: linear-gradient(135deg, #2d8b5e, lighten(#2d8b5e, 8%));
   color: #FFFFFF;
   border-radius: $radius-full;
   font-size: $font-size-base;

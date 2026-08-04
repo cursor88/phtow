@@ -3,9 +3,9 @@
     <view class="search-header">
       <view class="search-bar">
         <text class="search-icon">🔍</text>
-        <input 
-          class="search-input" 
-          placeholder="搜索药材名称" 
+        <input
+          class="search-input"
+          placeholder="搜索药材名称"
           v-model="searchKeyword"
           @confirm="handleSearch"
         />
@@ -16,31 +16,26 @@
     <view class="category-tabs">
       <scroll-view scroll-x class="tabs-scroll">
         <view class="tabs-container">
-          <view 
-            class="tab-item" 
-            :class="{ active: currentCategory === '' }"
-            @click="switchCategory('')"
-          >全部</view>
-          <view 
-            class="tab-item" 
-            :class="{ active: showFoodMedicine }"
-            @click="toggleFoodMedicine"
-          >🌿 药食同源</view>
-          <view 
-            class="tab-item" 
+          <view
+            class="tab-item"
             :class="{ active: currentCategory === item }"
-            v-for="item in categories" 
+            v-for="item in categories"
             :key="item"
             @click="switchCategory(item)"
-          >{{ item }}</view>
+          >{{ item === '药食同源' ? '🌿 ' + item : item }}</view>
         </view>
       </scroll-view>
     </view>
 
     <view class="herb-list" v-if="herbList.length > 0">
-      <view class="herb-card" v-for="item in herbList" :key="item.id" @click="goToDetail(item.id)">
-        <image class="herb-img" :src="item.image" mode="aspectFill"></image>
-        <view class="herb-content">
+      <view class="herb-card" v-for="item in herbList" :key="item.id">
+        <image
+          class="herb-img"
+          :src="getHerbImageUrl(item)"
+          mode="aspectFill"
+          @click.stop="previewHerbImage(item)"
+        ></image>
+        <view class="herb-content" @click="goToDetail(item.id)">
           <view class="herb-header">
             <view class="herb-name">{{ item.name }}</view>
             <view class="favorite-btn" @click.stop="toggleFavorite(item)">
@@ -48,16 +43,19 @@
             </view>
           </view>
           <view class="herb-pinyin">{{ item.pinyin }}</view>
-          <view class="herb-category-tag">{{ item.category }}</view>
-          <view class="food-medicine-tag" v-if="item.is_food_medicine === 1">🌿 药食同源</view>
+          <view class="herb-tags">
+            <view class="herb-category-tag">{{ item.category }}</view>
+            <view class="food-medicine-tag" v-if="item.is_food_medicine === 1">🌿 药食同源</view>
+          </view>
           <view class="herb-effect">{{ item.effect }}</view>
         </view>
       </view>
     </view>
 
     <view class="empty-state" v-else-if="!loading">
-      <view class="empty-icon">📭</view>
-      <view class="empty-text">没有找到相关药材</view>
+      <view class="empty-icon">🔍</view>
+      <view class="empty-title">未找到相关药材</view>
+      <view class="empty-desc">试试其他关键词或分类</view>
     </view>
 
     <view class="loading" v-else>
@@ -65,126 +63,191 @@
       <text>加载中...</text>
     </view>
 
-    <view class="load-more" v-if="hasMore">
-      <view class="load-more-btn" @click="loadMore">加载更多</view>
+    <!-- 数字分页 -->
+    <view class="pagination" v-if="total > pageSize">
+      <view
+        class="pagination-btn"
+        :class="{ disabled: currentPage <= 1 }"
+        @click="goToPage(currentPage - 1)"
+      >←</view>
+      <template v-for="(p, idx) in pageList" :key="idx">
+        <view v-if="p === -1" class="pagination-dot">...</view>
+        <view
+          v-else
+          class="pagination-btn"
+          :class="{ active: p === currentPage }"
+          @click="goToPage(p)"
+        >{{ p }}</view>
+      </template>
+      <view
+        class="pagination-btn"
+        :class="{ disabled: currentPage >= totalPages }"
+        @click="goToPage(currentPage + 1)"
+      >→</view>
     </view>
+
+    <view class="page-info" v-if="total > 0">共 {{ total }} 味药材</view>
+
+    <!-- 图片预览 -->
+    <view class="image-preview-overlay" v-if="previewVisible" @click="closePreview">
+      <image class="preview-img" :src="previewUrl" mode="aspectFit"></image>
+      <view class="image-preview-close" @click.stop="closePreview">×</view>
+      <view class="image-preview-hint">点击任意位置关闭</view>
+    </view>
+
+    <custom-tabbar current="herb"></custom-tabbar>
   </view>
 </template>
 
 <script>
-import { herbApi } from '@/api/index.js'
+import { herbApi, favoriteApi, getHerbImageUrl } from '@/api/index.js'
+import customTabbar from '@/components/custom-tabbar/custom-tabbar.vue'
 
 export default {
+  components: { customTabbar },
   data() {
     return {
       searchKeyword: '',
-      currentCategory: '',
-      showFoodMedicine: false,
-      categories: ['补虚药', '清热药', '利水渗湿药', '解表药', '化痰止咳平喘药', '理气药'],
+      currentCategory: '全部',
+      categories: ['全部', '药食同源', '解表药', '清热药', '泻下药', '祛风湿药', '利水渗湿药', '温里药', '理气药', '消食药', '驱虫药', '止血药', '活血化瘀药', '化痰止咳平喘药', '安神药', '平肝息风药', '开窍药', '补虚药', '收涩药', '涌吐药'],
       herbList: [],
       loading: false,
-      page: 1,
+      currentPage: 1,
       pageSize: 10,
-      hasMore: true,
-      favorites: []
+      total: 0,
+      totalPages: 0,
+      favorites: [],
+      previewVisible: false,
+      previewUrl: ''
+    }
+  },
+  computed: {
+    // 数字分页按钮列表（带省略号，参考 demo.html 逻辑）
+    pageList() {
+      const pages = []
+      const total = this.totalPages
+      const cur = this.currentPage
+      for (let i = 1; i <= total; i++) {
+        if (i === 1 || i === total || (i >= cur - 1 && i <= cur + 1)) {
+          pages.push(i)
+        } else if (pages.length > 0 && pages[pages.length - 1] !== -1) {
+          pages.push(-1)
+        }
+      }
+      return pages
     }
   },
   onLoad() {
+    uni.hideTabBar()
     this.loadFavorites()
     this.loadList()
   },
   onShow() {
+    uni.hideTabBar()
     this.loadFavorites()
   },
   methods: {
-    loadFavorites() {
-      const fav = uni.getStorageSync('favorites')
-      this.favorites = fav ? JSON.parse(fav) : []
+    getHerbImageUrl,
+    async loadFavorites() {
+      try {
+        const list = await favoriteApi.getHerbs()
+        this.favorites = (list || []).map(h => h.id)
+      } catch (e) {
+        console.error('加载收藏失败', e)
+      }
     },
     isFavorite(id) {
       return this.favorites.includes(id)
     },
     async toggleFavorite(item) {
-      if (this.isFavorite(item.id)) {
-        this.favorites = this.favorites.filter(id => id !== item.id)
-        uni.showToast({ title: '已取消收藏', icon: 'none' })
-      } else {
-        this.favorites.push(item.id)
-        uni.showToast({ title: '已收藏', icon: 'success' })
+      try {
+        await favoriteApi.toggleHerb(item.id)
+        if (this.isFavorite(item.id)) {
+          this.favorites = this.favorites.filter(id => id !== item.id)
+          uni.showToast({ title: '已取消收藏', icon: 'none' })
+        } else {
+          this.favorites.push(item.id)
+          uni.showToast({ title: '已收藏', icon: 'success' })
+        }
+      } catch (e) {
+        console.error('收藏操作失败', e)
+        uni.showToast({ title: '操作失败', icon: 'none' })
       }
-      uni.setStorageSync('favorites', JSON.stringify(this.favorites))
     },
     handleSearch() {
-      this.page = 1
-      this.hasMore = true
-      this.herbList = []
+      this.currentPage = 1
       this.loadList()
     },
     clearSearch() {
       this.searchKeyword = ''
-      this.handleSearch()
+      this.currentPage = 1
+      this.loadList()
     },
     switchCategory(category) {
       this.currentCategory = category
-      this.showFoodMedicine = false
-      this.page = 1
-      this.hasMore = true
-      this.herbList = []
+      this.currentPage = 1
       this.loadList()
     },
-    toggleFoodMedicine() {
-      this.showFoodMedicine = !this.showFoodMedicine
-      this.currentCategory = ''
-      this.page = 1
-      this.hasMore = true
-      this.herbList = []
+    goToPage(page) {
+      if (page < 1 || page > this.totalPages || page === this.currentPage) return
+      this.currentPage = page
       this.loadList()
+      uni.pageScrollTo({ scrollTop: 0, duration: 200 })
     },
     async loadList() {
       if (this.loading) return
       this.loading = true
-      
       try {
-        const res = await herbApi.getList({
-          page: this.page,
+        const params = {
+          page: this.currentPage,
           pageSize: this.pageSize,
-          keyword: this.searchKeyword,
-          category: this.currentCategory,
-          foodMedicine: this.showFoodMedicine ? '1' : ''
-        })
-        
-        if (this.page === 1) {
-          this.herbList = res.list
-        } else {
-          this.herbList = [...this.herbList, ...res.list]
+          keyword: this.searchKeyword
         }
-        
-        this.hasMore = res.total > this.herbList.length
+        if (this.currentCategory === '药食同源') {
+          params.foodMedicine = '1'
+        } else if (this.currentCategory !== '全部') {
+          params.category = this.currentCategory
+        }
+        const res = await herbApi.getList(params)
+        this.herbList = res.list || []
+        this.total = res.total || 0
+        this.totalPages = Math.ceil(this.total / this.pageSize)
       } catch (e) {
         console.error('加载列表失败', e)
       } finally {
         this.loading = false
       }
     },
-    loadMore() {
-      if (this.hasMore && !this.loading) {
-        this.page++
-        this.loadList()
-      }
-    },
     goToDetail(id) {
       uni.navigateTo({
         url: `/pages/detail/detail?id=${id}`
       })
+    },
+    // 图片预览：使用 uni.previewImage 原生组件，支持双指缩放和滑动关闭
+    previewHerbImage(item) {
+      const url = getHerbImageUrl(item)
+      // 收集当前列表所有图片，支持左右滑动预览
+      const urls = this.herbList.map(h => getHerbImageUrl(h))
+      const current = urls.indexOf(url)
+      uni.previewImage({
+        current: current >= 0 ? url : 0,
+        urls: urls,
+        indicator: 'number'
+      })
+    },
+    closePreview() {
+      this.previewVisible = false
+      this.previewUrl = ''
     }
   }
 }
 </script>
 
-<style lang="scss">
+<style lang="css">
 .page {
   min-height: 100vh;
   background: #f5f7fa;
+  padding-bottom: 140rpx;
 }
 
 .search-header {
@@ -239,17 +302,19 @@ export default {
 }
 
 .tab-item {
-  padding: 16rpx 32rpx;
+  padding: 16rpx 24rpx;
   font-size: 26rpx;
-  color: #666;
-  background: #f5f5f5;
-  border-radius: 40rpx;
-  margin-right: 16rpx;
-  
-  &.active {
-    background: linear-gradient(135deg, #2d8b5e, #3da878);
-    color: #fff;
-  }
+  color: #999;
+  background: transparent;
+  border-radius: 0;
+  margin-right: 0;
+  display: inline-flex;
+}
+
+.tab-item.active {
+  background: transparent;
+  color: #2d8b5e;
+  font-weight: 600;
 }
 
 .herb-list {
@@ -316,27 +381,31 @@ export default {
   margin-top: 8rpx;
 }
 
+.herb-tags {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 12rpx;
+}
+
 .herb-category-tag {
-  display: inline-block;
   padding: 6rpx 16rpx;
   background: #e8f5ee;
   color: #2d8b5e;
   border-radius: 16rpx;
   font-size: 22rpx;
-  margin-top: 12rpx;
-  align-self: flex-start;
+  margin-right: 8rpx;
+  margin-bottom: 8rpx;
 }
 
 .food-medicine-tag {
-  display: inline-block;
   padding: 6rpx 16rpx;
-  background: rgba(#22c55e, 0.1);
+  background: #e7faee;
   color: #22c55e;
   border-radius: 16rpx;
   font-size: 22rpx;
-  margin-top: 8rpx;
-  align-self: flex-start;
   font-weight: 500;
+  margin-right: 8rpx;
+  margin-bottom: 8rpx;
 }
 
 .herb-effect {
@@ -355,16 +424,24 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 100rpx 0;
+  padding: 120rpx 0;
 }
 
 .empty-icon {
   font-size: 80rpx;
   margin-bottom: 24rpx;
+  opacity: 0.5;
 }
 
-.empty-text {
-  font-size: 28rpx;
+.empty-title {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+  font-weight: 500;
+}
+
+.empty-desc {
+  font-size: 24rpx;
   color: #999;
 }
 
@@ -373,7 +450,7 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60rpx 0;
+  padding: 80rpx 0;
   color: #999;
   font-size: 26rpx;
 }
@@ -381,7 +458,7 @@ export default {
 .loading-spinner {
   width: 40rpx;
   height: 40rpx;
-  border: 3rpx solid #e8f5ee;
+  border: 4rpx solid #e8f5ee;
   border-top-color: #2d8b5e;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -392,18 +469,96 @@ export default {
   to { transform: rotate(360deg); }
 }
 
-.load-more {
-  padding: 40rpx 0;
-  text-align: center;
+/* 数字分页（参考 demo.html） */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx 0 16rpx;
+  flex-wrap: wrap;
 }
 
-.load-more-btn {
-  display: inline-block;
-  padding: 20rpx 60rpx;
+.pagination-btn {
+  min-width: 72rpx;
+  height: 72rpx;
+  border-radius: 12rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: #fff;
-  color: #2d8b5e;
-  border-radius: 50rpx;
+  border: 2rpx solid #e5e7eb;
   font-size: 28rpx;
-  border: 2rpx solid #2d8b5e;
+  color: #666;
+  padding: 0 16rpx;
+  margin: 0 6rpx;
+}
+
+.pagination-btn.active {
+  background: #2d8b5e;
+  color: #fff;
+  border-color: #2d8b5e;
+  font-weight: 600;
+}
+
+.pagination-btn.disabled {
+  opacity: 0.4;
+}
+
+.pagination-dot {
+  color: #999;
+  font-size: 28rpx;
+  padding: 0 8rpx;
+}
+
+.page-info {
+  text-align: center;
+  font-size: 24rpx;
+  color: #999;
+  padding: 8rpx 0 32rpx;
+}
+
+/* 图片预览（兜底 UI，主要走 uni.previewImage） */
+.image-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-img {
+  width: 95%;
+  max-height: 85vh;
+}
+
+.image-preview-close {
+  position: absolute;
+  top: 32rpx;
+  right: 32rpx;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.image-preview-hint {
+  position: absolute;
+  bottom: 48rpx;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 24rpx;
 }
 </style>

@@ -27,7 +27,7 @@ router.post('/add', authRequired, async (req, res) => {
   try {
     const { questionId, userAnswer, correctAnswer, question, options, explanation, category, difficulty } = req.body;
 
-    if (!questionId || !userAnswer || !correctAnswer || !question || !options) {
+    if (!questionId || userAnswer === undefined || userAnswer === null || correctAnswer === undefined || correctAnswer === null || !question || !options) {
       return res.json({ code: 400, message: '参数错误', data: null });
     }
 
