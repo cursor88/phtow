@@ -5,7 +5,7 @@ const fs = require('fs')
 const path = require('path')
 
 const BASE_URL = 'https://sys01.lib.hkbu.edu.hk/cmed/mmid'
-const herbsUploadDir = path.join(__dirname, '../uploads/herbs')
+const herbsUploadDir = path.join(__dirname, '../data/assets/herbs')
 
 function stripHtml(s) {
   if (!s) return ''
@@ -215,7 +215,7 @@ async function main() {
             const savePath = path.join(herbDir, fileName)
             const ok = await downloadImage(detail.imageUrl, savePath)
             if (ok) {
-              const imgUrlDb = `/uploads/herbs/${dbHerb.id}/${fileName}`
+              const imgUrlDb = `/static/herbs/${dbHerb.id}/${fileName}`
               const [count] = await connection.query(
                 'SELECT COUNT(*) as cnt FROM herb_images WHERE herb_id = ?', [dbHerb.id]
               )

@@ -4,14 +4,14 @@ const path = require('path')
 const { pool } = require('./config/mysql')
 
 const HERB_ID = 2
-const HERB_DIR = path.join(__dirname, 'uploads', 'herbs', String(HERB_ID))
+const HERB_DIR = path.join(__dirname, 'data/assets', 'herbs', String(HERB_ID))
 
 async function fixHerbImage() {
   // 1. 删除该药材所有现有图片
   await pool.query('DELETE FROM herb_images WHERE herb_id = ?', [HERB_ID])
   console.log(`已删除 herbId=${HERB_ID} 的旧图片记录`)
 
-  // 2. 扫描 uploads/herbs/2/ 目录
+  // 2. 扫描 data/assets/herbs/2/ 目录
   if (!fs.existsSync(HERB_DIR)) {
     console.log(`目录不存在: ${HERB_DIR}`)
     process.exit(1)
@@ -24,7 +24,7 @@ async function fixHerbImage() {
   console.log(`发现 ${files.length} 张真实图片:`)
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
-    const url = `/uploads/herbs/${HERB_ID}/${file}`
+    const url = `/static/herbs/${HERB_ID}/${file}`
     await pool.query(
       'INSERT INTO herb_images (herb_id, image_url, sort_order, description, is_cover) VALUES (?, ?, ?, ?, ?)',
       [HERB_ID, url, i, `${file}`, i === 0 ? 1 : 0]

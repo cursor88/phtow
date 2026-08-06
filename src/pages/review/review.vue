@@ -161,8 +161,8 @@ export default {
       const raw = item.image_path || item.imageUrl || item.image || ''
       if (!raw) return ''
       if (raw.startsWith('http') || raw.startsWith('data:')) return raw
-      const filename = raw.replace(/.*feedback-images[/\\]/, '')
-      return getImageUrl('/feedback-images/' + filename)
+      const filename = raw.replace(/.*feedback[/\\]/, '')
+      return getImageUrl('/uploads/feedback/' + filename)
     },
     async loadStats() {
       try {

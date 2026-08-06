@@ -213,8 +213,7 @@ async function initTables() {
     `)
 
     try {
-      await conn.query(`
-        ALTER TABLE pending_reference_images
+      await conn.query(`ALTER TABLE pending_reference_images
         MODIFY COLUMN herb_id INT NULL,
         DROP FOREIGN KEY pending_reference_images_ibfk_1
       `)
@@ -236,27 +235,6 @@ async function initTables() {
         INDEX idx_user_username (username)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `)
-
-    // 兼容：给旧表加字段
-    try {
-      await conn.query(`ALTER TABLE users ADD COLUMN security_question VARCHAR(100) DEFAULT '您的昵称是什么？'`)
-    } catch (e) { if (e.errno !== 1060) throw e }
-    try {
-      await conn.query(`ALTER TABLE users ADD COLUMN security_answer_hash VARCHAR(255)`)
-    } catch (e) { if (e.errno !== 1060) throw e }
-    try {
-      await conn.query(`ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user'`)
-    } catch (e) { if (e.errno !== 1060) throw e }
-
-    try {
-      await conn.query(`ALTER TABLE quizzes ADD COLUMN topic_id INT`)
-    } catch (e) { if (e.errno !== 1060) throw e }
-    try {
-      await conn.query(`ALTER TABLE quiz_answers ADD COLUMN topic_id INT`)
-    } catch (e) { if (e.errno !== 1060) throw e }
-    try {
-      await conn.query(`ALTER TABLE wrong_questions ADD COLUMN topic_id INT`)
-    } catch (e) { if (e.errno !== 1060) throw e }
 
     await conn.query(`
       CREATE TABLE IF NOT EXISTS user_favorites (
@@ -309,6 +287,51 @@ async function initTables() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (question_id) REFERENCES quizzes(id) ON DELETE CASCADE,
         FOREIGN KEY (topic_id) REFERENCES quiz_topics(id) ON DELETE SET NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+
+    // 兼容：给旧表加字段（必须放在对应 CREATE TABLE 之后）
+    try {
+      await conn.query(`ALTER TABLE users ADD COLUMN security_question VARCHAR(100) DEFAULT '您的昵称是什么？'`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+    try {
+      await conn.query(`ALTER TABLE users ADD COLUMN security_answer_hash VARCHAR(255)`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+    try {
+      await conn.query(`ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user'`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+
+    try {
+      await conn.query(`ALTER TABLE quizzes ADD COLUMN topic_id INT`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+    try {
+      await conn.query(`ALTER TABLE quiz_answers ADD COLUMN topic_id INT`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+    try {
+      await conn.query(`ALTER TABLE wrong_questions ADD COLUMN topic_id INT`)
+    } catch (e) { if (e.errno !== 1060) throw e }
+
+    // 真伪鉴别表：记录常见造假中药材的真品/伪品对比数据
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS herb_authentication (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        herb_name VARCHAR(50) NOT NULL,
+        herb_id INT,
+        counterfeiter VARCHAR(100),
+        fraud_type VARCHAR(50),
+        summary TEXT,
+        key_points TEXT,
+        genuine_features TEXT,
+        fake_features TEXT,
+        genuine_images TEXT,
+        fake_images TEXT,
+        source VARCHAR(100),
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_auth_herb_name (herb_name),
+        INDEX idx_auth_fraud_type (fraud_type),
+        INDEX idx_auth_herb_id (herb_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `)
 

@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": 1785765452654,
+    "user_id": 3,
+    "herbId": 96,
+    "herbName": "雪莲花",
+    "accuracy": 0.977119355885542,
+    "image": "",
+    "source": "image-search",
+    "timestamp": 1785765452654,
+    "date": "2026-08-03"
+  }
+]

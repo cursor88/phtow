@@ -3,7 +3,7 @@ const mysql = require('mysql2/promise')
 const fs = require('fs')
 const path = require('path')
 
-const herbsUploadDir = path.join(__dirname, '../uploads/herbs')
+const herbsUploadDir = path.join(__dirname, '../data/assets/herbs')
 
 async function main() {
   const connection = await mysql.createConnection({

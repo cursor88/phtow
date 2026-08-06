@@ -1,197 +1,14 @@
 [
   {
-    "id": 1784623473567,
+    "id": 1785851714028,
+    "user_id": 3,
     "mode": "quick",
-    "date": "2026-07-21",
-    "timestamp": 1784623473567,
+    "date": "2026-08-04",
+    "timestamp": 1785851714028,
     "answers": [
       {
         "qid": 1,
-        "value": 3
-      },
-      {
-        "qid": 2,
-        "value": 1
-      },
-      {
-        "qid": 3,
-        "value": 3
-      },
-      {
-        "qid": 4,
-        "value": 3
-      },
-      {
-        "qid": 5,
-        "value": 2
-      },
-      {
-        "qid": 6,
-        "value": 1
-      },
-      {
-        "qid": 7,
-        "value": 2
-      },
-      {
-        "qid": 8,
-        "value": 1
-      },
-      {
-        "qid": 9,
-        "value": 3
-      }
-    ],
-    "rawScores": {
-      "qixu": 3,
-      "yangxu": 1,
-      "yinxu": 3,
-      "shire": 3,
-      "tanshi": 2,
-      "xueyu": 1,
-      "qiyu": 2,
-      "tebing": 1,
-      "pinghe": 3
-    },
-    "convertedScores": {
-      "qixu": 50,
-      "yangxu": 0,
-      "yinxu": 50,
-      "shire": 50,
-      "tanshi": 25,
-      "xueyu": 0,
-      "qiyu": 25,
-      "tebing": 0,
-      "pinghe": 50
-    },
-    "mainType": "qixu",
-    "mainTypeName": "气虚质",
-    "mainScore": 50,
-    "mixedTypes": [
-      {
-        "type": "qixu",
-        "name": "气虚质",
-        "score": 50
-      },
-      {
-        "type": "yinxu",
-        "name": "阴虚质",
-        "score": 50
-      },
-      {
-        "type": "shire",
-        "name": "湿热质",
-        "score": 50
-      },
-      {
-        "type": "tanshi",
-        "name": "痰湿质",
-        "score": 25
-      },
-      {
-        "type": "qiyu",
-        "name": "气郁质",
-        "score": 25
-      }
-    ],
-    "constitutionInfo": {
-      "name": "气虚质",
-      "desc": "容易疲劳，稍微活动就气短",
-      "color": "#f59e0b",
-      "icon": "💨"
-    }
-  },
-  {
-    "id": 1784623731995,
-    "mode": "quick",
-    "date": "2026-07-21",
-    "timestamp": 1784623731995,
-    "answers": [
-      {
-        "qid": 1,
-        "value": 3
-      },
-      {
-        "qid": 2,
-        "value": 1
-      },
-      {
-        "qid": 3,
-        "value": 2
-      },
-      {
-        "qid": 4,
-        "value": 2
-      },
-      {
-        "qid": 5,
-        "value": 2
-      },
-      {
-        "qid": 6,
-        "value": 1
-      },
-      {
-        "qid": 7,
-        "value": 2
-      },
-      {
-        "qid": 8,
-        "value": 1
-      },
-      {
-        "qid": 9,
-        "value": 3
-      }
-    ],
-    "rawScores": {
-      "qixu": 3,
-      "yangxu": 1,
-      "yinxu": 2,
-      "shire": 2,
-      "tanshi": 2,
-      "xueyu": 1,
-      "qiyu": 2,
-      "tebing": 1,
-      "pinghe": 3
-    },
-    "convertedScores": {
-      "qixu": 50,
-      "yangxu": 0,
-      "yinxu": 25,
-      "shire": 25,
-      "tanshi": 25,
-      "xueyu": 0,
-      "qiyu": 25,
-      "tebing": 0,
-      "pinghe": 50
-    },
-    "mainType": "qixu",
-    "mainTypeName": "气虚质",
-    "mainScore": 50,
-    "mixedTypes": [
-      {
-        "type": "pinghe",
-        "name": "平和质",
-        "score": 50
-      }
-    ],
-    "constitutionInfo": {
-      "name": "气虚质",
-      "desc": "容易疲劳，稍微活动就气短",
-      "color": "#f59e0b",
-      "icon": "💨"
-    }
-  },
-  {
-    "id": 1784643706965,
-    "mode": "quick",
-    "date": "2026-07-21",
-    "timestamp": 1784643706965,
-    "answers": [
-      {
-        "qid": 1,
-        "value": 3
+        "value": 4
       },
       {
         "qid": 2,
@@ -199,23 +16,23 @@
       },
       {
         "qid": 3,
-        "value": 3
+        "value": 4
       },
       {
         "qid": 4,
-        "value": 2
+        "value": 4
       },
       {
         "qid": 5,
-        "value": 1
+        "value": 4
       },
       {
         "qid": 6,
-        "value": 1
+        "value": 4
       },
       {
         "qid": 7,
-        "value": 3
+        "value": 4
       },
       {
         "qid": 8,
@@ -227,7 +44,7 @@
       },
       {
         "qid": 10,
-        "value": 1
+        "value": 4
       },
       {
         "qid": 11,
@@ -235,148 +52,15 @@
       },
       {
         "qid": 12,
-        "value": 2
-      },
-      {
-        "qid": 13,
-        "value": 1
-      },
-      {
-        "qid": 14,
-        "value": 1
-      },
-      {
-        "qid": 15,
-        "value": 2
-      },
-      {
-        "qid": 16,
-        "value": 2
-      },
-      {
-        "qid": 17,
-        "value": 1
-      },
-      {
-        "qid": 18,
-        "value": 2
-      }
-    ],
-    "rawScores": {
-      "pinghe": 7,
-      "qixu": 5,
-      "yangxu": 2,
-      "yinxu": 7,
-      "tanshi": 5,
-      "shire": 6,
-      "xueyu": 2,
-      "qiyu": 4,
-      "tebing": 3
-    },
-    "convertedScores": {
-      "pinghe": 63,
-      "qixu": 38,
-      "yangxu": 0,
-      "yinxu": 63,
-      "tanshi": 38,
-      "shire": 50,
-      "xueyu": 0,
-      "qiyu": 25,
-      "tebing": 13
-    },
-    "mainType": "yinxu",
-    "mainTypeName": "阴虚质",
-    "mainScore": 63,
-    "mixedTypes": [
-      {
-        "type": "pinghe",
-        "name": "平和质",
-        "score": 63
-      },
-      {
-        "type": "shire",
-        "name": "湿热质",
-        "score": 50
-      },
-      {
-        "type": "qixu",
-        "name": "气虚质",
-        "score": 38
-      },
-      {
-        "type": "tanshi",
-        "name": "痰湿质",
-        "score": 38
-      }
-    ],
-    "constitutionInfo": {
-      "name": "阴虚质",
-      "desc": "感到手脚心发热，口干舌燥",
-      "color": "#ef4444",
-      "icon": "🔥"
-    }
-  },
-  {
-    "id": 1784727321960,
-    "mode": "quick",
-    "date": "2026-07-22",
-    "timestamp": 1784727321960,
-    "answers": [
-      {
-        "qid": 1,
-        "value": 3
-      },
-      {
-        "qid": 2,
-        "value": 3
-      },
-      {
-        "qid": 3,
         "value": 4
       },
       {
-        "qid": 4,
-        "value": 3
-      },
-      {
-        "qid": 5,
-        "value": 5
-      },
-      {
-        "qid": 6,
-        "value": 5
-      },
-      {
-        "qid": 7,
+        "qid": 13,
         "value": 4
       },
       {
-        "qid": 8,
-        "value": 2
-      },
-      {
-        "qid": 9,
-        "value": 3
-      },
-      {
-        "qid": 10,
-        "value": 1
-      },
-      {
-        "qid": 11,
-        "value": 3
-      },
-      {
-        "qid": 12,
-        "value": 3
-      },
-      {
-        "qid": 13,
-        "value": 1
-      },
-      {
         "qid": 14,
-        "value": 1
+        "value": 4
       },
       {
         "qid": 15,
@@ -384,69 +68,69 @@
       },
       {
         "qid": 16,
-        "value": 3
+        "value": 4
       },
       {
         "qid": 17,
-        "value": 3
+        "value": 4
       },
       {
         "qid": 18,
-        "value": 2
+        "value": 4
       }
     ],
     "rawScores": {
-      "pinghe": 6,
-      "qixu": 7,
-      "yangxu": 10,
-      "yinxu": 6,
-      "tanshi": 4,
-      "shire": 6,
-      "xueyu": 2,
-      "qiyu": 7,
-      "tebing": 5
+      "pinghe": 8,
+      "qixu": 8,
+      "yangxu": 8,
+      "yinxu": 8,
+      "tanshi": 8,
+      "shire": 8,
+      "xueyu": 8,
+      "qiyu": 8,
+      "tebing": 8
     },
     "convertedScores": {
-      "pinghe": 50,
-      "qixu": 63,
-      "yangxu": 100,
-      "yinxu": 50,
-      "tanshi": 25,
-      "shire": 50,
-      "xueyu": 0,
-      "qiyu": 63,
-      "tebing": 38
+      "pinghe": 75,
+      "qixu": 75,
+      "yangxu": 75,
+      "yinxu": 75,
+      "tanshi": 75,
+      "shire": 75,
+      "xueyu": 75,
+      "qiyu": 75,
+      "tebing": 75
     },
-    "mainType": "yangxu",
-    "mainTypeName": "阳虚质",
-    "mainScore": 100,
+    "mainType": "qixu",
+    "mainTypeName": "气虚质",
+    "mainScore": 75,
     "mixedTypes": [
-      {
-        "type": "qixu",
-        "name": "气虚质",
-        "score": 63
-      },
-      {
-        "type": "qiyu",
-        "name": "气郁质",
-        "score": 63
-      },
       {
         "type": "pinghe",
         "name": "平和质",
-        "score": 50
+        "score": 75
+      },
+      {
+        "type": "yangxu",
+        "name": "阳虚质",
+        "score": 75
       },
       {
         "type": "yinxu",
         "name": "阴虚质",
-        "score": 50
+        "score": 75
+      },
+      {
+        "type": "tanshi",
+        "name": "痰湿质",
+        "score": 75
       }
     ],
     "constitutionInfo": {
-      "name": "阳虚质",
-      "desc": "手脚冰凉，尤其怕冷",
-      "color": "#3b82f6",
-      "icon": "❄️"
+      "name": "气虚质",
+      "desc": "容易疲劳，稍微活动就气短",
+      "color": "#f59e0b",
+      "icon": "💨"
     }
   }
 ]

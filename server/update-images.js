@@ -17,7 +17,7 @@ if (!HERB_ID || isNaN(HERB_ID)) {
   process.exit(1)
 }
 
-const HERB_DIR = path.join(__dirname, 'uploads', 'herbs', String(HERB_ID))
+const HERB_DIR = path.join(__dirname, 'data/assets', 'herbs', String(HERB_ID))
 
 async function updateHerbImages() {
   await pool.query('DELETE FROM herb_images WHERE herb_id = ?', [HERB_ID])
@@ -30,7 +30,7 @@ async function updateHerbImages() {
   console.log(`发现 ${files.length} 张图片:`)
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
-    const url = `/uploads/herbs/${HERB_ID}/${file}`
+    const url = `/static/herbs/${HERB_ID}/${file}`
     await pool.query(
       'INSERT INTO herb_images (herb_id, image_url, sort_order, description, is_cover) VALUES (?, ?, ?, ?, ?)',
       [HERB_ID, url, i, `${file}`, i === 0 ? 1 : 0]

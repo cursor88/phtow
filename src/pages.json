@@ -148,6 +148,22 @@
         "navigationBarBackgroundColor": "#2d8b5e",
         "navigationBarTextStyle": "white"
       }
+    },
+    {
+      "path": "pages/authenticate/authenticate",
+      "style": {
+        "navigationBarTitleText": "真伪鉴别",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/authenticate/authenticate-detail",
+      "style": {
+        "navigationBarTitleText": "真伪鉴别详情",
+        "navigationBarBackgroundColor": "#2d8b5e",
+        "navigationBarTextStyle": "white"
+      }
     }
   ],
   "globalStyle": {

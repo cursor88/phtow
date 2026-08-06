@@ -129,6 +129,22 @@
         </view>
       </view>
 
+      <view class="auth-entry-card card" @click="goToAuthenticate">
+        <view class="auth-entry-header">
+          <view class="section-title">🔍 真伪鉴别</view>
+          <view class="auth-entry-tag">避坑指南</view>
+        </view>
+        <view class="auth-entry-content">
+          <view class="auth-entry-icon">🛡️</view>
+          <view class="auth-entry-info">
+            <view class="auth-entry-name">常见造假中药材鉴别</view>
+            <view class="auth-entry-desc">茯苓·陈皮·黄芪·天麻等真伪对比</view>
+          </view>
+          <view class="auth-entry-arrow">→</view>
+        </view>
+        <view class="auth-entry-note">按药材名搜索，查看真伪图片对比与关键鉴别点</view>
+      </view>
+
       <view class="features card">
         <view class="section-title">核心功能</view>
         <view class="feature-list">
@@ -318,6 +334,11 @@ export default {
     goToLlmConfig() {
       uni.navigateTo({
         url: '/pages/llm-config/llm-config'
+      })
+    },
+    goToAuthenticate() {
+      uni.navigateTo({
+        url: '/pages/authenticate/authenticate'
       })
     },
     async loadLlmStatus() {
@@ -904,5 +925,72 @@ export default {
 
 .constitution-btn::after {
   border: none;
+}
+
+/* 真伪鉴别入口卡片 */
+.auth-entry-card {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0.15) 100%);
+  border: 2rpx solid rgba(168, 85, 247, 0.2);
+}
+
+.auth-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.auth-entry-tag {
+  font-size: 22rpx;
+  color: #9333ea;
+  background: rgba(168, 85, 247, 0.1);
+  padding: 6rpx 24rpx;
+  border-radius: 20rpx;
+}
+
+.auth-entry-content {
+  display: flex;
+  align-items: center;
+}
+
+.auth-entry-icon {
+  width: 120rpx;
+  height: 120rpx;
+  background: rgba(168, 85, 247, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56rpx;
+  margin-right: 28rpx;
+  flex-shrink: 0;
+}
+
+.auth-entry-info {
+  flex: 1;
+}
+
+.auth-entry-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.auth-entry-desc {
+  font-size: 24rpx;
+  color: #9333ea;
+  margin-top: 8rpx;
+}
+
+.auth-entry-arrow {
+  font-size: 40rpx;
+  color: #9333ea;
+}
+
+.auth-entry-note {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 20rpx;
+  line-height: 1.5;
 }
 </style>

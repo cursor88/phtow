@@ -53,5 +53,20 @@
     "date": "2026-07-22",
     "herbId": 16,
     "available": true
+  },
+  {
+    "date": "2026-07-24",
+    "herbId": 38,
+    "available": true
+  },
+  {
+    "date": "2026-08-03",
+    "herbId": 164,
+    "available": true
+  },
+  {
+    "date": "2026-08-04",
+    "herbId": 75,
+    "available": true
   }
 ]

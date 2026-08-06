@@ -2,9 +2,17 @@ node_modules
 npm-debug.log
 .git
 .gitignore
-README.md
 .env
 server/node_modules
+# 用户上传目录不打包进镜像（运行时挂载持久卷）
 server/uploads/*
+# 保留内置图片目录 server/data/assets/（药材图片、鉴别图片）
 dist
-技术文章-草木有方开发历程.md
+*.md
+uploads.tar.gz
+root@*
+test.js
+fix-demo.js
+http-server.js
+.DS_Store
+Thumbs.db

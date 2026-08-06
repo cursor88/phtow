@@ -5,7 +5,7 @@ const fs = require('fs')
 const path = require('path')
 
 const BASE_URL = 'https://sys01.lib.hkbu.edu.hk/cmed/mmid'
-const herbsUploadDir = path.join(__dirname, '../uploads/herbs')
+const herbsUploadDir = path.join(__dirname, '../data/assets/herbs')
 
 function parseListPage(html) {
   const herbs = []
@@ -153,7 +153,7 @@ async function main() {
 
         const ok = await downloadImage(detail.imageUrl, savePath)
         if (ok) {
-          const imgUrlDb = `/uploads/herbs/${herb.id}/${fileName}`
+          const imgUrlDb = `/static/herbs/${herb.id}/${fileName}`
           await connection.query(`
             INSERT INTO herb_images (herb_id, image_url, is_cover, sort_order, created_at)
             VALUES (?, ?, 1, 1, NOW())

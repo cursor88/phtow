@@ -5,7 +5,7 @@ const fs = require('fs')
 const path = require('path')
 
 const BASE_URL = 'https://zjzybbg.zjyj.org.cn/bbg'
-const herbsUploadDir = path.join(__dirname, '../uploads/herbs')
+const herbsUploadDir = path.join(__dirname, '../data/assets/herbs')
 
 async function searchMedicine(keyword) {
   try {
@@ -153,7 +153,7 @@ async function main() {
 
       const ok = await downloadImage(imageUrl, savePath)
       if (ok) {
-        const imgUrlDb = `/uploads/herbs/${herbId}/${fileName}`
+        const imgUrlDb = `/static/herbs/${herbId}/${fileName}`
         // 已有图片时不设为封面
         const isCover = (herb.img_count === 0 && imageCount === 0) ? 1 : 0
         await connection.query(`

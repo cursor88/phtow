@@ -3124,7 +3124,7 @@ async function loadReviewList(status) {
   }
 
   list.innerHTML = data.list.map(function(item) {
-    var imgUrl = item.image_path ? '/feedback-images/' + item.image_path.replace(/.*feedback-images[/\\]/, '') : '';
+    var imgUrl = item.image_path ? '/uploads/feedback/' + item.image_path.replace(/.*feedback[/\\]/, '') : '';
     var actionButtons = '';
     if (status === 'pending') {
       actionButtons = '<div style="display:flex;gap:8px;margin-top:10px;"><button onclick="approveImage(' + item.id + ')" style="flex:1;padding:8px;background:#2d8b5e;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">✓ 通过并入库</button><button onclick="rejectImage(' + item.id + ')" style="flex:1;padding:8px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:8px;font-size:13px;cursor:pointer;">✗ 拒绝</button></div>';

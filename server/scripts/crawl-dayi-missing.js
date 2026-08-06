@@ -6,7 +6,7 @@ const path = require('path')
 const { missing } = require('./probe-dayi-dry')
 
 const BASE_URL = 'https://www.dayi.org.cn'
-const herbsUploadDir = path.join(__dirname, '../uploads/herbs')
+const herbsUploadDir = path.join(__dirname, '../data/assets/herbs')
 
 function stripHtml(s) {
   if (!s) return ''
@@ -256,7 +256,7 @@ async function main() {
         if (ok) {
           imgCount++
           totalImg++
-          const imgUrlDb = `/uploads/herbs/${m.id}/${fileName}`
+          const imgUrlDb = `/static/herbs/${m.id}/${fileName}`
           const isCover = (imgCount === 1) ? 1 : 0
           await connection.query(`
             INSERT INTO herb_images (herb_id, image_url, is_cover, sort_order, created_at)

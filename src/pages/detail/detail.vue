@@ -166,6 +166,32 @@
           </view>
         </view>
 
+        <!-- 真伪鉴别（仅有鉴别数据时显示） -->
+        <view class="section card auth-section" v-if="authData">
+          <view class="section-title auth-section-title">
+            <text class="title-icon">🔍</text>
+            真伪鉴别
+          </view>
+          <view class="auth-summary-row">
+            <view class="auth-counterfeiter-info">
+              <text class="auth-counterfeiter-label">冒充物：</text>
+              <text class="auth-counterfeiter-value">{{ authData.counterfeiter }}</text>
+            </view>
+            <view class="auth-fraud-type-tag" :class="fraudClass(authData.fraudType)">{{ authData.fraudType }}</view>
+          </view>
+          <view class="auth-warn-text">{{ authData.summary }}</view>
+          <view class="auth-keypoints-preview" v-if="authData.keyPoints && authData.keyPoints.length">
+            <view class="auth-kp-item" v-for="(kp, idx) in authData.keyPoints.slice(0, 2)" :key="idx">
+              <text class="auth-kp-label">{{ kp.label }}</text>
+              <view class="auth-kp-compare">
+                <text class="auth-kp-genuine">真：{{ kp.genuine }}</text>
+                <text class="auth-kp-fake">假：{{ kp.fake }}</text>
+              </view>
+            </view>
+          </view>
+          <view class="more-btn" @click="goToAuthDetail">查看完整鉴别指南 →</view>
+        </view>
+
         <view class="section card food-match-section">
           <view class="section-title food-title">
             <text class="title-icon">🍲</text>
@@ -244,7 +270,7 @@
 </template>
 
 <script>
-import { herbApi, matchApi, favoriteApi, getImageUrl, resolveHerbImage } from '@/api/index.js'
+import { herbApi, matchApi, favoriteApi, authenticateApi, getImageUrl, resolveHerbImage } from '@/api/index.js'
 
 export default {
   data() {
@@ -253,6 +279,7 @@ export default {
       userImage: '',
       herb: null,
       foodMatches: [],
+      authData: null,
       isFavorite: false,
       favorites: [],
       currentSlide: 0,
@@ -301,6 +328,7 @@ export default {
     this.loadFavorites()
     this.loadDetail()
     this.loadFoodMatch()
+    this.loadAuthData()
   },
   methods: {
     getImageUrl,
@@ -336,6 +364,29 @@ export default {
       } catch (e) {
         console.error('加载搭配失败', e)
       }
+    },
+    async loadAuthData() {
+      try {
+        const data = await authenticateApi.getByHerb('', parseInt(this.herbId))
+        this.authData = data || null
+      } catch (e) {
+        console.error('加载真伪鉴别失败', e)
+      }
+    },
+    fraudClass(type) {
+      const map = {
+        '冒充': 'fraud-maoc',
+        '做旧': 'fraud-jiu',
+        '染色': 'fraud-ran',
+        '硫熏': 'fraud-liu'
+      }
+      return map[type] || 'fraud-default'
+    },
+    goToAuthDetail() {
+      if (!this.authData) return
+      uni.navigateTo({
+        url: `/pages/authenticate/authenticate-detail?id=${this.authData.id}`
+      })
     },
     onSwiperChange(e) {
       this.currentSlide = e.detail.current
@@ -958,6 +1009,126 @@ export default {
 .food-match-section {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   border: 2rpx solid #bbf7d0;
+}
+
+/* 真伪鉴别 section */
+.auth-section {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border: 2rpx solid #d8b4fe;
+}
+
+.auth-section-title {
+  color: #7c3aed;
+}
+
+.auth-section-title::before {
+  background: linear-gradient(180deg, #a855f7, #7c3aed);
+}
+
+.auth-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.auth-counterfeiter-info {
+  font-size: 26rpx;
+  color: #333;
+}
+
+.auth-counterfeiter-label {
+  color: #999;
+}
+
+.auth-counterfeiter-value {
+  color: #7c3aed;
+  font-weight: 500;
+}
+
+.auth-fraud-type-tag {
+  font-size: 22rpx;
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+}
+
+.auth-fraud-type-tag.fraud-maoc {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1rpx solid rgba(239, 68, 68, 0.2);
+}
+
+.auth-fraud-type-tag.fraud-jiu {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  border: 1rpx solid rgba(245, 158, 11, 0.2);
+}
+
+.auth-fraud-type-tag.fraud-ran {
+  background: rgba(168, 85, 247, 0.1);
+  color: #9333ea;
+  border: 1rpx solid rgba(168, 85, 247, 0.2);
+}
+
+.auth-fraud-type-tag.fraud-liu {
+  background: rgba(234, 179, 8, 0.1);
+  color: #a16207;
+  border: 1rpx solid rgba(234, 179, 8, 0.2);
+}
+
+.auth-fraud-type-tag.fraud-default {
+  background: rgba(45, 139, 94, 0.1);
+  color: #2d8b5e;
+  border: 1rpx solid rgba(45, 139, 94, 0.2);
+}
+
+.auth-warn-text {
+  font-size: 26rpx;
+  color: #6b21a8;
+  line-height: 1.6;
+  background: rgba(168, 85, 247, 0.06);
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.auth-keypoints-preview {
+  background: #ffffff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.auth-kp-item {
+  margin-bottom: 14rpx;
+}
+
+.auth-kp-item:last-child {
+  margin-bottom: 0;
+}
+
+.auth-kp-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 6rpx;
+  display: block;
+}
+
+.auth-kp-compare {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-kp-genuine {
+  font-size: 24rpx;
+  color: #2d8b5e;
+  margin-bottom: 4rpx;
+}
+
+.auth-kp-fake {
+  font-size: 24rpx;
+  color: #dc2626;
 }
 
 .food-title {

@@ -1,7 +1,7 @@
 /**
  * 批量导入药材图片
  * 使用方法：
- * 1. 将药材图片按目录组织：server/uploads/herbs/{药材ID}/xxx.jpg
+ * 1. 将药材图片按目录组织：server/data/assets/herbs/{药材ID}/xxx.jpg
  * 2. 运行此脚本，自动扫描目录并更新数据库
  * 
  * 支持的图片格式：jpg, jpeg, png, gif, webp
@@ -12,7 +12,7 @@ const mysql = require('mysql2/promise')
 const fs = require('fs')
 const path = require('path')
 
-const herbsUploadDir = path.join(__dirname, '../uploads/herbs')
+const herbsUploadDir = path.join(__dirname, '../data/assets/herbs')
 const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
 
 async function main() {
@@ -68,7 +68,7 @@ async function main() {
 
       for (let i = 0; i < imageFiles.length; i++) {
         const fileName = imageFiles[i]
-        const imageUrl = `/uploads/herbs/${herb.id}/${fileName}`
+        const imageUrl = `/static/herbs/${herb.id}/${fileName}`
         const isCover = (i === 0) ? 1 : 0
         
         // 检查是否已存在

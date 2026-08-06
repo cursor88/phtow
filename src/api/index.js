@@ -2,7 +2,7 @@
 // - H5 端：优先使用当前页面 origin 走同源 /api 代理（避免跨域与域名配置）
 // - 小程序端：可通过 uni.getStorageSync('apiBase') / 'serverOrigin' 覆盖默认值，
 //   默认回退到编译期固定的内网 IP（开发期勾选"不校验合法域名"即可，发布期请改为 HTTPS 域名）
-const DEFAULT_INNER_ORIGIN = 'http://192.168.3.8:8080'
+const DEFAULT_INNER_ORIGIN = 'http://106.52.158.137'
 
 const _resolveOrigin = () => {
   try {
@@ -299,6 +299,25 @@ export const reviewApi = {
   approve: (id, data) => request({ url: `/admin/approve-image/${id}`, method: 'POST', data }),
   reject: (id, data) => request({ url: `/admin/reject-image/${id}`, method: 'POST', data }),
   getStats: () => request({ url: '/admin/dashboard-stats' })
+}
+
+// 真伪鉴别 API
+export const authenticateApi = {
+  getList: (params) => {
+    params = params || {}
+    let url = `/authenticate/list?page=${params.page || 1}&pageSize=${params.pageSize || 10}`
+    if (params.fraudType) url += `&fraudType=${encodeURIComponent(params.fraudType)}`
+    if (params.keyword) url += `&keyword=${encodeURIComponent(params.keyword)}`
+    return request({ url })
+  },
+  getDetail: (id) => request({ url: `/authenticate/detail/${id}` }),
+  getByHerb: (herbName, herbId) => {
+    let url = '/authenticate/by-herb?'
+    if (herbName) url += `herbName=${encodeURIComponent(herbName)}`
+    if (herbId) url += `&herbId=${herbId}`
+    return request({ url })
+  },
+  getTypes: () => request({ url: '/authenticate/types' })
 }
 
 // 识别纠错反馈：使用 uni.uploadFile 提交图片+表单字段

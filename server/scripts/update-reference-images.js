@@ -4,7 +4,7 @@ const path = require('path')
 const { pool } = require('../config/mysql')
 const { extractFeatures } = require('../services/imageFeatureService')
 
-const herbsUploadDir = path.join(__dirname, '../uploads/herbs')
+const herbsUploadDir = path.join(__dirname, '../data/assets/herbs')
 
 async function main() {
   console.log('[更新参考图] 开始更新 reference_images 表...')

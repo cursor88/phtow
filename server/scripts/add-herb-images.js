@@ -1,6 +1,6 @@
 /**
  * 为数据库中的每种药材添加至少2张图片
- * 图片保存在 server/uploads/herbs/{herb_id}/ 目录下
+ * 图片保存在 server/data/assets/herbs/{herb_id}/ 目录下
  * 并更新 herb_images 表
  */
 
@@ -9,7 +9,7 @@ const mysql = require('mysql2/promise')
 const fs = require('fs')
 const path = require('path')
 
-const herbsUploadDir = path.join(__dirname, '../uploads/herbs')
+const herbsUploadDir = path.join(__dirname, '../data/assets/herbs')
 
 // 药材对应的颜色主题（用于生成不同的图标）
 const colorThemes = [
@@ -95,7 +95,7 @@ async function main() {
         fs.writeFileSync(filePath, svgContent, 'utf-8')
         
         // 插入数据库
-        const imageUrl = `/uploads/herbs/${herb.id}/${fileName}`
+        const imageUrl = `/static/herbs/${herb.id}/${fileName}`
         const isCover = (existingCount === 0 && i === 0) ? 1 : 0
         
         await connection.query(`

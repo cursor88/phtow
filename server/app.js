@@ -33,6 +33,7 @@ app.use('/api/chat', require('./routes/chat'))
 app.use('/api/llm', require('./routes/llmConfig'))
 app.use('/api/feedback', require('./routes/feedback'))
 app.use('/api/admin', require('./routes/admin'))
+app.use('/api/authenticate', require('./routes/authenticate'))
 
 // 静态文件服务 - 提供前端页面
 const projectRoot = paths.PUBLIC_DIR
@@ -46,8 +47,10 @@ app.use((req, res, next) => {
 })
 
 app.use(express.static(projectRoot))
+// 内置静态资源（药材图片、鉴别图片等，随镜像分发）
+app.use('/static', express.static(path.join(__dirname, 'data/assets')))
+// 用户上传文件（反馈图片等，挂载持久卷）
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
-app.use('/feedback-images', express.static(path.join(__dirname, 'data/feedback-images')))
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(projectRoot, 'demo.html'))

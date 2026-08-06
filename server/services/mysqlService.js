@@ -473,6 +473,93 @@ class MySQLService {
 
     return herb
   }
+
+  // ========== 真伪鉴别模块 ==========
+  // 格式化单条鉴别记录（解析 JSON 字段）
+  _formatAuth(row) {
+    if (!row) return null
+    return {
+      id: row.id,
+      herbName: row.herb_name,
+      herbId: row.herb_id,
+      counterfeiter: row.counterfeiter,
+      fraudType: row.fraud_type,
+      summary: row.summary,
+      keyPoints: safeParseJSON(row.key_points, []),
+      genuineFeatures: safeParseJSON(row.genuine_features, []),
+      fakeFeatures: safeParseJSON(row.fake_features, []),
+      genuineImages: safeParseJSON(row.genuine_images, []),
+      fakeImages: safeParseJSON(row.fake_images, []),
+      source: row.source,
+      sortOrder: row.sort_order,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }
+  }
+
+  // 获取鉴别列表（支持按造假方式筛选 + 关键词搜索）
+  async getAuthenticationList(page = 1, pageSize = 10, fraudType = '', keyword = '') {
+    const offset = (page - 1) * pageSize
+    let sql = `SELECT * FROM herb_authentication WHERE 1=1`
+    const params = []
+    if (fraudType) {
+      sql += ` AND fraud_type = ?`
+      params.push(fraudType)
+    }
+    if (keyword) {
+      sql += ` AND (herb_name LIKE ? OR counterfeiter LIKE ? OR summary LIKE ?)`
+      const kw = `%${keyword}%`
+      params.push(kw, kw, kw)
+    }
+    // 统计总数
+    let countSql = sql.replace('SELECT *', 'SELECT COUNT(*) as total')
+    const [countRows] = await pool.query(countSql, params)
+    const total = countRows[0].total
+
+    // 分页查询
+    sql += ` ORDER BY sort_order ASC, id ASC LIMIT ? OFFSET ?`
+    params.push(pageSize, offset)
+    const [rows] = await pool.query(sql, params)
+
+    return {
+      list: rows.map(r => this._formatAuth(r)),
+      total,
+      page,
+      pageSize
+    }
+  }
+
+  // 按 id 获取详情
+  async getAuthenticationById(id) {
+    const [rows] = await pool.query(`SELECT * FROM herb_authentication WHERE id = ?`, [id])
+    return this._formatAuth(rows[0])
+  }
+
+  // 按药材名或药材id查询（用于药材详情页联动）
+  async getAuthenticationByHerb(herbName, herbId) {
+    let sql = `SELECT * FROM herb_authentication WHERE `
+    const params = []
+    if (herbId) {
+      sql += `herb_id = ?`
+      params.push(herbId)
+    } else if (herbName) {
+      sql += `herb_name = ? OR herb_name LIKE ?`
+      params.push(herbName, `%${herbName}%`)
+    } else {
+      return null
+    }
+    sql += ` ORDER BY sort_order ASC LIMIT 1`
+    const [rows] = await pool.query(sql, params)
+    return this._formatAuth(rows[0])
+  }
+
+  // 获取所有造假方式分类
+  async getAuthenticationTypes() {
+    const [rows] = await pool.query(
+      `SELECT DISTINCT fraud_type FROM herb_authentication WHERE fraud_type IS NOT NULL AND fraud_type != '' ORDER BY fraud_type`
+    )
+    return rows.map(r => r.fraud_type)
+  }
 }
 
 module.exports = new MySQLService()
