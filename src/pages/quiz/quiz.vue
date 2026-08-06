@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="quiz-container">
       <view class="quiz-header card">
@@ -270,7 +270,8 @@ export default {
 <style lang="scss">
 .page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #F5F1E8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .quiz-container {
@@ -278,11 +279,13 @@ export default {
 }
 
 .card {
-  background: #fff;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+  border-radius: 16rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .quiz-stats {
@@ -298,7 +301,7 @@ export default {
 .stat-num {
   font-size: 40rpx;
   font-weight: 700;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 8rpx;
 }
 
@@ -340,14 +343,14 @@ export default {
 }
 
 .topic-btn {
-  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
+  background: linear-gradient(135deg, #8CA082 0%, #A8B89E 100%);
   color: #fff;
 }
 
 .wrong-btn {
   background: #fff;
-  color: #2d8b5e;
-  border: 2rpx solid #2d8b5e;
+  color: #8CA082;
+  border: 2rpx solid #8CA082;
 }
 
 .quiz-meta {
@@ -395,7 +398,7 @@ export default {
 .question-text {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   line-height: 1.6;
   margin-bottom: 32rpx;
 }
@@ -419,7 +422,7 @@ export default {
   }
 
   &.selected {
-    border-color: #2d8b5e;
+    border-color: #8CA082;
     background: #f0fdf4;
   }
 
@@ -453,7 +456,7 @@ export default {
   flex-shrink: 0;
 
   .selected & {
-    background: #2d8b5e;
+    background: #8CA082;
     color: #fff;
   }
 
@@ -471,7 +474,7 @@ export default {
 .option-text {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: #3D3D3D;
   line-height: 1.5;
 }
 
@@ -528,7 +531,7 @@ export default {
 
 .primary-btn {
   flex: 1;
-  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
+  background: linear-gradient(135deg, #8CA082 0%, #A8B89E 100%);
   color: #fff;
   border-radius: 50rpx;
   font-size: 30rpx;
@@ -547,8 +550,8 @@ export default {
 .secondary-btn {
   flex: 1;
   background: #fff;
-  color: #2d8b5e;
-  border: 2rpx solid #2d8b5e;
+  color: #8CA082;
+  border: 2rpx solid #8CA082;
   border-radius: 50rpx;
   font-size: 30rpx;
   padding: 20rpx 0;
@@ -578,7 +581,7 @@ export default {
   width: 50rpx;
   height: 50rpx;
   border: 4rpx solid #e8f5ee;
-  border-top-color: #2d8b5e;
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -591,7 +594,7 @@ export default {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 16rpx;
 }
 

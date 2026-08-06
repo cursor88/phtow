@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="content" v-if="viewMode === 'select'">
       <view class="intro-card card">
@@ -174,6 +174,40 @@
         <view class="btn btn-secondary" @click="goSelect">返回测评</view>
       </view>
     </view>
+
+    <!-- 药食同源搭配底部弹框 -->
+    <view class="match-sheet-mask" v-if="matchSheetVisible" @click="closeMatchSheet"></view>
+    <view class="match-sheet" :class="{ 'match-sheet-show': matchSheetVisible }">
+      <view class="match-sheet-handle"></view>
+      <view class="match-sheet-header">
+        <text class="match-sheet-title">🍲 搭配详情</text>
+        <view class="match-sheet-close" @click="closeMatchSheet">✕</view>
+      </view>
+      <scroll-view scroll-y class="match-sheet-content" v-if="currentMatch">
+        <view class="ms-hero">
+          <text class="ms-hero-name">{{ currentMatch.name }}</text>
+          <text class="ms-hero-type">{{ currentMatch.type }}</text>
+        </view>
+        <view class="ms-section">
+          <text class="ms-section-label">📝 功效描述</text>
+          <text class="ms-section-text">{{ currentMatch.desc }}</text>
+        </view>
+        <view class="ms-section" v-if="currentMatch.herbs && currentMatch.herbs.length > 0">
+          <text class="ms-section-label">🌿 涉及药材</text>
+          <view class="ms-herbs-list">
+            <text
+              class="ms-herb-tag"
+              v-for="(h, i) in currentMatch.herbs"
+              :key="i"
+              @click="goToHerbByTag(h)"
+            >{{ h }}</text>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="match-sheet-footer">
+        <view class="ms-btn-primary" @click="openFullMatch">查看完整搭配 →</view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -191,6 +225,9 @@ export default {
       result: null,
       records: [],
       recordsLoading: false,
+      matchSheetVisible: false,
+      currentMatch: null,
+      matchLoading: false,
       options: ['没有', '很少', '有时', '经常', '总是'],
       constitutionTypes: {
         pinghe: { name: '平和质', color: '#2d8b5e', desc: '精力充沛，适应力强，很少不适' },
@@ -462,8 +499,17 @@ export default {
       return (this.constitutionTypes[type] || {}).color || '#2d8b5e'
     },
     goToMatchDetail(m) {
-      // 药食同源是 tabBar 页面，无法带参数跳转，通过 storage 中转搭配名称
-      uni.setStorageSync('pendingMatchName', m.name)
+      this.currentMatch = m
+      this.matchSheetVisible = true
+    },
+    closeMatchSheet() {
+      this.matchSheetVisible = false
+      this.currentMatch = null
+    },
+    openFullMatch() {
+      if (!this.currentMatch) return
+      uni.setStorageSync('pendingMatchName', this.currentMatch.name)
+      this.closeMatchSheet()
       uni.switchTab({
         url: '/pages/match/match'
       })
@@ -496,8 +542,9 @@ export default {
 <style>
 .page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #F5F1E8;
   padding-bottom: 160rpx;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .header {
@@ -505,7 +552,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 60rpx 32rpx 40rpx;
-  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
+  background: linear-gradient(135deg, #8CA082 0%, #A8B89C 100%);
   color: #ffffff;
 }
 
@@ -531,17 +578,19 @@ export default {
 }
 
 .card {
-  background: #ffffff;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 24rpx;
   display: flex;
   align-items: center;
@@ -551,15 +600,15 @@ export default {
   content: '';
   width: 8rpx;
   height: 30rpx;
-  background: linear-gradient(180deg, #2d8b5e, #3da878);
+  background: linear-gradient(180deg, #8CA082, #A8B89C);
   border-radius: 4rpx;
   margin-right: 16rpx;
 }
 
 .intro-card {
   text-align: center;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
-  border: 2rpx solid #e8f5ee;
+  background: linear-gradient(135deg, #EDF0E9 0%, rgba(255, 255, 255, 0.7) 100%);
+  border: 2rpx solid #D8DFD0;
 }
 
 .intro-icon {
@@ -570,7 +619,7 @@ export default {
 .intro-title {
   font-size: 38rpx;
   font-weight: 700;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 16rpx;
 }
 
@@ -599,11 +648,11 @@ export default {
 }
 
 .standard-icon {
-  background: linear-gradient(135deg, #e8f5ee, #d4efdf);
+  background: linear-gradient(135deg, #D8DFD0, #CBD6C0);
 }
 
 .quick-icon {
-  background: linear-gradient(135deg, #fff7e6, #ffe9c4);
+  background: linear-gradient(135deg, #F5E8D0, #EDD9B5);
 }
 
 .mode-info {
@@ -614,7 +663,7 @@ export default {
 .mode-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 8rpx;
 }
 
@@ -626,8 +675,8 @@ export default {
 
 .mode-tag {
   font-size: 22rpx;
-  color: #2d8b5e;
-  background: rgba(45, 139, 94, 0.08);
+  color: #8CA082;
+  background: rgba(140, 160, 130, 0.08);
   display: inline-block;
   padding: 4rpx 14rpx;
   border-radius: 16rpx;
@@ -645,9 +694,11 @@ export default {
   justify-content: center;
   padding: 24rpx;
   margin-bottom: 24rpx;
-  background: #ffffff;
-  border-radius: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .records-btn-icon {
@@ -657,7 +708,7 @@ export default {
 
 .records-btn-text {
   font-size: 28rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: 500;
 }
 
@@ -687,7 +738,7 @@ export default {
 
 .type-name {
   font-size: 26rpx;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .progress-wrap {
@@ -696,14 +747,14 @@ export default {
 
 .progress-bar {
   height: 12rpx;
-  background: #e8f5ee;
+  background: #D8DFD0;
   border-radius: 6rpx;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: #2d8b5e;
+  background: #8CA082;
   border-radius: 6rpx;
   transition: width 0.3s;
 }
@@ -721,14 +772,14 @@ export default {
 
 .question-index {
   font-size: 24rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 16rpx;
 }
 
 .question-text {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   line-height: 1.6;
   margin-bottom: 32rpx;
 }
@@ -754,8 +805,8 @@ export default {
 }
 
 .option-item.selected {
-  border-color: #2d8b5e;
-  background: #f0fdf4;
+  border-color: #8CA082;
+  background: #EDF0E9;
 }
 
 .option-letter {
@@ -774,19 +825,19 @@ export default {
 }
 
 .option-item.selected .option-letter {
-  background: #2d8b5e;
+  background: #8CA082;
   color: #ffffff;
 }
 
 .option-text {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: #3D3D3D;
   line-height: 1.5;
 }
 
 .option-item.selected .option-text {
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: 500;
 }
 
@@ -798,7 +849,7 @@ export default {
   justify-content: center;
   font-size: 28rpx;
   font-weight: bold;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-left: 12rpx;
 }
 
@@ -815,8 +866,8 @@ export default {
 .loading-spinner {
   width: 50rpx;
   height: 50rpx;
-  border: 4rpx solid #e8f5ee;
-  border-top-color: #2d8b5e;
+  border: 4rpx solid #D8DFD0;
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -829,7 +880,7 @@ export default {
 .result-hero {
   text-align: center;
   padding: 48rpx 32rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   margin-bottom: 24rpx;
   color: #ffffff;
 }
@@ -875,7 +926,7 @@ export default {
 
 .score-name {
   font-size: 26rpx;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .score-value {
@@ -885,7 +936,7 @@ export default {
 
 .score-bar {
   height: 16rpx;
-  background: #f0f9f4;
+  background: #EDF0E9;
   border-radius: 8rpx;
   overflow: hidden;
 }
@@ -910,7 +961,7 @@ export default {
   font-size: 24rpx;
   color: #666;
   background: #f8fafc;
-  border: 1rpx solid #e8f5ee;
+  border: 1rpx solid #D8DFD0;
   padding: 8rpx 20rpx;
   border-radius: 24rpx;
 }
@@ -926,7 +977,7 @@ export default {
 
 .match-item {
   background: #f8fafc;
-  border-left: 6rpx solid #2d8b5e;
+  border-left: 6rpx solid #8CA082;
   border-radius: 0 12rpx 12rpx 0;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -934,7 +985,7 @@ export default {
 }
 
 .match-item:active {
-  background: #e8f5ee;
+  background: #EDF0E9;
 }
 
 .match-item:last-child {
@@ -951,7 +1002,7 @@ export default {
 .match-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .match-type {
@@ -959,7 +1010,7 @@ export default {
   color: #f59e0b;
   background: rgba(245, 158, 11, 0.1);
   padding: 4rpx 16rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
 }
 
 .match-desc {
@@ -983,16 +1034,16 @@ export default {
 
 .herb-tag {
   font-size: 22rpx;
-  color: #2d8b5e;
-  background: rgba(45, 139, 94, 0.08);
-  border: 1rpx solid rgba(45, 139, 94, 0.2);
+  color: #8CA082;
+  background: rgba(140, 160, 130, 0.08);
+  border: 1rpx solid rgba(140, 160, 130, 0.2);
   padding: 6rpx 16rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   transition: all 0.2s;
 }
 
 .herb-tag:active {
-  background: rgba(45, 139, 94, 0.2);
+  background: rgba(140, 160, 130, 0.2);
   transform: scale(0.95);
 }
 
@@ -1031,7 +1082,7 @@ export default {
 
 .empty-text {
   font-size: 30rpx;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 8rpx;
 }
 
@@ -1044,7 +1095,7 @@ export default {
 .empty-btn {
   display: inline-block;
   padding: 16rpx 48rpx;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #A8B89C);
   color: #ffffff;
   font-size: 28rpx;
   border-radius: 40rpx;
@@ -1125,8 +1176,10 @@ export default {
   gap: 20rpx;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #ffffff;
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.03);
+  backdrop-filter: blur(10px);
+  border-top: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .btn {
@@ -1139,18 +1192,179 @@ export default {
 }
 
 .btn-secondary {
-  background: #ffffff;
-  color: #2d8b5e;
-  border: 2rpx solid #2d8b5e;
+  background: rgba(255, 255, 255, 0.7);
+  color: #8CA082;
+  border: 2rpx solid #8CA082;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #A8B89C);
   color: #ffffff;
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #A8B89C);
   color: #ffffff;
 }
-</style>
+
+/* 底部弹框样式 */
+.match-sheet-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeIn 0.2s ease;
+}
+
+.match-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  z-index: 1000;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.match-sheet-show {
+  transform: translateY(0);
+}
+
+.match-sheet-handle {
+  width: 60rpx;
+  height: 8rpx;
+  background: #ddd;
+  border-radius: 4rpx;
+  margin: 16rpx auto 8rpx;
+}
+
+.match-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 32rpx 24rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.match-sheet-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #3D3D3D;
+}
+
+.match-sheet-close {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.match-sheet-content {
+  flex: 1;
+  padding: 24rpx 32rpx;
+  overflow-y: auto;
+}
+
+.ms-hero {
+  background: linear-gradient(135deg, #8CA082 0%, #A8B89C 100%);
+  border-radius: 20rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.ms-hero-name {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8rpx;
+}
+
+.ms-hero-type {
+  display: inline-block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.ms-section {
+  margin-bottom: 28rpx;
+}
+
+.ms-section-label {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #3D3D3D;
+  margin-bottom: 12rpx;
+}
+
+.ms-section-text {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.8;
+}
+
+.ms-herbs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.ms-herb-tag {
+  background: rgba(140, 160, 130, 0.1);
+  color: #8CA082;
+  font-size: 26rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 30rpx;
+  border: 1rpx solid rgba(140, 160, 130, 0.3);
+}
+
+.ms-herb-tag:active {
+  background: rgba(140, 160, 130, 0.2);
+}
+
+.match-sheet-footer {
+  padding: 20rpx 32rpx 40rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.ms-btn-primary {
+  background: linear-gradient(135deg, #8CA082 0%, #A8B89C 100%);
+  color: #fff;
+  text-align: center;
+  padding: 24rpx;
+  border-radius: 48rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.ms-btn-primary:active {
+  opacity: 0.9;
+}
+
+.ms-loading {
+  text-align: center;
+  color: #999;
+  font-size: 26rpx;
+  padding: 32rpx;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}</style>

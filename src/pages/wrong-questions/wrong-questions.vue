@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="container">
       <view class="stats-card card">
@@ -170,7 +170,8 @@ export default {
 <style>
 .page {
   min-height: 100vh;
-  background: #f0f9f4;
+  background: #F5F1E8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .container {
@@ -178,15 +179,17 @@ export default {
 }
 
 .card {
-  background: #fff;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+  border-radius: 16rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .stats-card {
-  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
+  background: linear-gradient(135deg, #8CA082 0%, #a8bf9c 100%);
   color: #fff;
 }
 
@@ -243,8 +246,8 @@ export default {
 .loading-spinner {
   width: 50rpx;
   height: 50rpx;
-  border: 4rpx solid #e8f5ee;
-  border-top-color: #2d8b5e;
+  border: 4rpx solid #e8e0d0;
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -291,8 +294,8 @@ export default {
 
 .item-category {
   font-size: 24rpx;
-  color: #2d8b5e;
-  background: #f0f9f4;
+  color: #8CA082;
+  background: #F5F1E8;
   padding: 6rpx 16rpx;
   border-radius: 16rpx;
 }
@@ -306,7 +309,7 @@ export default {
 .item-question {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   line-height: 1.6;
   margin-bottom: 20rpx;
 }
@@ -362,7 +365,7 @@ export default {
 .opt-text {
   flex: 1;
   font-size: 26rpx;
-  color: #333;
+  color: #3D3D3D;
   line-height: 1.5;
 }
 

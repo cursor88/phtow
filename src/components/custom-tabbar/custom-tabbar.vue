@@ -48,20 +48,29 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #fff;
+  background: rgba(245, 241, 232, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1rpx solid rgba(180, 170, 150, 0.25);
   display: flex;
   justify-content: space-around;
   padding: 12rpx 0 16rpx;
-  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -2rpx 12rpx rgba(180, 170, 150, 0.08);
   z-index: 50;
-  /* 兼容 iPhone X 底部安全区 */
   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .tab-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 8rpx 16rpx;
+  border-radius: 12rpx;
+  transition: all 0.2s;
+}
+
+.tab-item:active {
+  background: rgba(180, 170, 150, 0.1);
 }
 
 .tab-icon {
@@ -72,11 +81,16 @@ export default {
 
 .tab-text {
   font-size: 20rpx;
-  color: #999;
+  color: #8B8680;
+  letter-spacing: 1rpx;
 }
 
 .tab-item.active .tab-text {
-  color: #2d8b5e;
+  color: #3D3D3D;
   font-weight: 500;
+}
+
+.tab-item.active {
+  background: rgba(140, 160, 130, 0.1);
 }
 </style>

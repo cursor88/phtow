@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="container">
       <!-- 搜索区 -->
@@ -213,8 +213,9 @@ export default {
 <style>
 .page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #F5F1E8;
   padding-bottom: 160rpx;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .container {
@@ -222,26 +223,28 @@ export default {
 }
 
 .card {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.75);
   border-radius: 20rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .search-section {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
-  border: 2rpx solid #e8f5ee;
+  background: linear-gradient(135deg, #F5F1E8 0%, rgba(255, 255, 255, 0.7) 100%);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .search-input-wrap {
   display: flex;
   align-items: center;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 44rpx;
   padding: 0 28rpx;
   height: 96rpx;
-  border: 2rpx solid #e8f5ee;
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .search-icon {
@@ -253,7 +256,7 @@ export default {
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: #3D3D3D;
   height: 96rpx;
   line-height: 96rpx;
 }
@@ -277,9 +280,9 @@ export default {
 
 .quick-tag {
   font-size: 24rpx;
-  color: #2d8b5e;
-  background: rgba(45, 139, 94, 0.08);
-  border: 1rpx solid rgba(45, 139, 94, 0.2);
+  color: #8CA082;
+  background: rgba(140, 160, 130, 0.08);
+  border: 1rpx solid rgba(140, 160, 130, 0.2);
   padding: 10rpx 24rpx;
   border-radius: 24rpx;
   margin-right: 16rpx;
@@ -288,9 +291,9 @@ export default {
 }
 
 .quick-tag.active {
-  background: #2d8b5e;
+  background: #8CA082;
   color: #ffffff;
-  border-color: #2d8b5e;
+  border-color: #8CA082;
 }
 
 .auth-list {
@@ -307,7 +310,7 @@ export default {
 .list-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .result-count {
@@ -316,13 +319,15 @@ export default {
 }
 
 .auth-card {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.75);
   border-radius: 20rpx;
   padding: 28rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
-  border-left: 8rpx solid #2d8b5e;
+  box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
+  border-left: 8rpx solid #8CA082;
   transition: all 0.2s;
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .auth-card:active {
@@ -340,7 +345,7 @@ export default {
 .auth-herb-name {
   font-size: 34rpx;
   font-weight: 700;
-  color: #2d8b5e;
+  color: #8CA082;
 }
 
 .auth-fraud-tag {
@@ -375,9 +380,9 @@ export default {
 }
 
 .fraud-default {
-  background: rgba(45, 139, 94, 0.1);
-  color: #2d8b5e;
-  border: 1rpx solid rgba(45, 139, 94, 0.2);
+  background: rgba(140, 160, 130, 0.1);
+  color: #8CA082;
+  border: 1rpx solid rgba(140, 160, 130, 0.2);
 }
 
 .auth-counterfeiter {
@@ -388,16 +393,17 @@ export default {
 
 .auth-summary {
   font-size: 26rpx;
-  color: #333;
+  color: #3D3D3D;
   line-height: 1.6;
   margin-bottom: 20rpx;
 }
 
 .auth-keypoints {
-  background: #f8fafc;
+  background: rgba(245, 241, 232, 0.6);
   border-radius: 12rpx;
   padding: 20rpx;
   margin-bottom: 16rpx;
+  border: 1rpx solid rgba(180, 170, 150, 0.15);
 }
 
 .keypoint-item {
@@ -422,7 +428,7 @@ export default {
 
 .keypoint-genuine {
   font-size: 24rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 4rpx;
 }
 
@@ -434,7 +440,7 @@ export default {
 .auth-arrow {
   text-align: right;
   font-size: 24rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: 500;
 }
 
@@ -451,7 +457,7 @@ export default {
 
 .empty-title {
   font-size: 30rpx;
-  color: #333;
+  color: #3D3D3D;
   display: block;
   margin-bottom: 8rpx;
 }
@@ -474,8 +480,8 @@ export default {
 .loading-spinner {
   width: 50rpx;
   height: 50rpx;
-  border: 4rpx solid #e8f5ee;
-  border-top-color: #2d8b5e;
+  border: 4rpx solid rgba(180, 170, 150, 0.25);
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -498,9 +504,9 @@ export default {
   height: 64rpx;
   line-height: 64rpx;
   text-align: center;
-  background: #ffffff;
-  color: #2d8b5e;
-  border: 2rpx solid #e8f5ee;
+  background: rgba(255, 255, 255, 0.7);
+  color: #8CA082;
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
   border-radius: 12rpx;
   margin: 0 6rpx 12rpx;
   padding: 0 16rpx;
@@ -508,9 +514,9 @@ export default {
 }
 
 .pagination-btn.active {
-  background: #2d8b5e;
+  background: #8CA082;
   color: #ffffff;
-  border-color: #2d8b5e;
+  border-color: #8CA082;
 }
 
 .pagination-btn.disabled {

@@ -1,11 +1,33 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="profile-header">
       <view class="profile-bg"></view>
+      <view class="profile-decoration deco-1"></view>
+      <view class="profile-decoration deco-2"></view>
       <view class="profile-info" @click="handleProfileClick">
-        <view class="avatar">👤</view>
-        <view class="user-name">{{ userInfo ? (userInfo.nickname || userInfo.username) : '点击登录' }}</view>
-        <view class="user-title">{{ userInfo ? '欢迎回来，' + (userInfo.nickname || userInfo.username) : '登录后享受更多功能' }}</view>
+        <view class="avatar-wrap">
+          <image class="avatar" :src="userInfo?.avatar || ''" mode="aspectFill" v-if="userInfo && userInfo.avatar"></image>
+          <view class="avatar avatar-fallback" v-else>
+            <text class="avatar-icon">👤</text>
+          </view>
+          <view class="avatar-ring"></view>
+        </view>
+        <view class="user-info">
+          <view class="user-name-row">
+            <view class="user-name">{{ userInfo ? (userInfo.nickname || userInfo.username) : '点击登录' }}</view>
+            <view class="user-badge" v-if="userInfo">
+              <text class="badge-icon">✓</text>
+            </view>
+          </view>
+          <view class="user-title" v-if="userInfo">
+            <text class="welcome-icon">🌿</text>
+            <text>欢迎回来，继续你的本草之旅</text>
+          </view>
+          <view class="user-title login-hint" v-else>
+            <text class="login-arrow">→</text>
+            <text>点击登录，开启智能识别</text>
+          </view>
+        </view>
       </view>
     </view>
 
@@ -13,10 +35,22 @@
       <view class="section card">
         <view class="section-header">
           <view class="section-title">🌿 我的收藏药材</view>
-          <view class="section-more" @click="goToFavHerbs">查看全部</view>
+          <view class="section-count" v-if="favHerbs.length > 0">共 {{ favHerbs.length }} 味</view>
         </view>
-        <view class="record-list" v-if="favHerbs.length > 0">
-          <view class="record-item" v-for="item in favHerbs.slice(0, 2)" :key="item.id" @click="goToHerbDetail(item.id)">
+        <scroll-view class="record-scroll" scroll-y :show-scrollbar="false" v-if="favHerbs.length > 3">
+          <view class="record-item" v-for="item in favHerbs" :key="item.id" @click="goToHerbDetail(item.id)">
+            <image class="record-img" :src="getImg(item.cover_image_url)" mode="aspectFill" v-if="item.cover_image_url"></image>
+            <view class="record-img placeholder-img" v-else>
+              <text>🌿</text>
+            </view>
+            <view class="record-info">
+              <view class="record-name">{{ item.name }}</view>
+              <view class="record-effect">{{ item.effect }}</view>
+            </view>
+          </view>
+        </scroll-view>
+        <view class="record-list" v-else-if="favHerbs.length > 0">
+          <view class="record-item" v-for="item in favHerbs" :key="item.id" @click="goToHerbDetail(item.id)">
             <image class="record-img" :src="getImg(item.cover_image_url)" mode="aspectFill" v-if="item.cover_image_url"></image>
             <view class="record-img placeholder-img" v-else>
               <text>🌿</text>
@@ -36,10 +70,25 @@
       <view class="section card">
         <view class="section-header">
           <view class="section-title">🍲 我的收藏搭配</view>
-          <view class="section-more" @click="goToFavMatches">查看全部</view>
+          <view class="section-count" v-if="favMatches.length > 0">共 {{ favMatches.length }} 个</view>
         </view>
-        <view class="record-list" v-if="favMatches.length > 0">
-          <view class="record-item match-item" v-for="item in favMatches.slice(0, 2)" :key="item.id" @click="goToMatchDetail(item.id)">
+        <scroll-view class="record-scroll" scroll-y :show-scrollbar="false" v-if="favMatches.length > 3">
+          <view class="record-item match-item" v-for="item in favMatches" :key="item.id" @click="goToMatchDetail(item.id)">
+            <view class="record-img placeholder-img">
+              <text>🍲</text>
+            </view>
+            <view class="record-info">
+              <view class="record-name">{{ item.name }}</view>
+              <view class="match-herbs" v-if="item.ingredients && item.ingredients.length">
+                <text class="match-herbs-label">涉及药材：</text>
+                <text class="match-herbs-text">{{ item.ingredients.join('、') }}</text>
+              </view>
+              <view class="record-effect">{{ item.effect }}</view>
+            </view>
+          </view>
+        </scroll-view>
+        <view class="record-list" v-else-if="favMatches.length > 0">
+          <view class="record-item match-item" v-for="item in favMatches" :key="item.id" @click="goToMatchDetail(item.id)">
             <view class="record-img placeholder-img">
               <text>🍲</text>
             </view>
@@ -241,6 +290,7 @@ export default {
     this.loadIdentifyRecords()
     this.loadQuizStats()
     this.loadCalendar()
+    uni.$on('favoritesChanged', this.refreshFavorites)
   },
   onShow() {
     uni.hideTabBar()
@@ -250,6 +300,9 @@ export default {
     this.loadIdentifyRecords()
     this.loadQuizStats()
     this.loadCalendar()
+  },
+  onUnload() {
+    uni.$off('favoritesChanged', this.refreshFavorites)
   },
   methods: {
     getImg(url) {
@@ -265,16 +318,48 @@ export default {
       }
     },
     async loadFavorites() {
-      try {
-        const [herbs, matches] = await Promise.all([
-          favoriteApi.getHerbs(),
-          favoriteApi.getMatches()
-        ])
-        this.favHerbs = herbs || []
-        this.favMatches = matches || []
-      } catch (e) {
-        console.error('加载收藏失败', e)
+      const token = uni.getStorageSync('token')
+      if (!token) {
+        console.log('[mine] 无 token，跳过加载收藏')
+        this.favHerbs = []
+        this.favMatches = []
+        return
       }
+      try {
+        const herbs = await favoriteApi.getHerbs()
+        console.log('[mine] 收藏药材原始数据:', herbs)
+        this.favHerbs = (herbs || []).map(h => ({
+          ...h,
+          cover_image_url: h.cover_image_url || h.image_url || h.image || ''
+        }))
+        console.log('[mine] 收藏药材处理后:', this.favHerbs)
+      } catch (e) {
+        console.error('[mine] 加载收藏药材失败', e)
+        this.favHerbs = []
+      }
+      try {
+        const matches = await favoriteApi.getMatches()
+        console.log('[mine] 收藏搭配原始数据:', matches)
+        this.favMatches = (matches || []).map(m => {
+          let ingredients = m.ingredients
+          if (typeof ingredients === 'string') {
+            try {
+              ingredients = JSON.parse(ingredients)
+            } catch (e) {
+              ingredients = ingredients ? ingredients.split(/[、,，]/).map(s => s.trim()).filter(Boolean) : []
+            }
+          }
+          if (!Array.isArray(ingredients)) ingredients = []
+          return { ...m, ingredients }
+        })
+        console.log('[mine] 收藏搭配处理后:', this.favMatches)
+      } catch (e) {
+        console.error('[mine] 加载收藏搭配失败', e)
+        this.favMatches = []
+      }
+    },
+    refreshFavorites() {
+      this.loadFavorites()
     },
     async loadIdentifyRecords() {
       try {
@@ -390,7 +475,7 @@ export default {
     },
     goToMatchDetail(id) {
       if (id) {
-        uni.navigateTo({ url: `/pages/match/match?id=${id}` })
+        uni.navigateTo({ url: `/pages/match-detail/match-detail?id=${id}` })
       }
     },
     goToHerbDetail(id) {
@@ -438,13 +523,15 @@ export default {
 <style>
 .page {
   min-height: 100vh;
-  background: #f0f9f4;
+  background: #F5F1E8;
   padding-bottom: 70px;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .profile-header {
   position: relative;
-  padding-bottom: 20rpx;
+  padding-bottom: 48rpx;
+  overflow: hidden;
 }
 
 .profile-bg {
@@ -452,51 +539,155 @@ export default {
   top: 0;
   left: 0;
   right: 0;
-  height: 300rpx;
-  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
+  height: 320rpx;
+  background: linear-gradient(180deg, #6B8F6A 0%, #8CA082 40%, #B5C9A8 75%, #F5F1E8 100%);
+}
+
+.profile-bg::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60rpx;
+  background: #F5F1E8;
+  border-radius: 32rpx 32rpx 0 0;
+}
+
+.profile-decoration {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.deco-1 {
+  width: 280rpx;
+  height: 280rpx;
+  background: #fff;
+  top: -80rpx;
+  right: -60rpx;
+}
+
+.deco-2 {
+  width: 160rpx;
+  height: 160rpx;
+  background: rgba(255, 255, 255, 0.3);
+  top: 100rpx;
+  right: 60rpx;
 }
 
 .profile-info {
   position: relative;
-  padding: 80rpx 40rpx 48rpx;
+  padding: 48rpx 40rpx 40rpx;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 32rpx;
+}
+
+.avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
 }
 
 .avatar {
-  width: 140rpx;
-  height: 140rpx;
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
   background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+  border: 4rpx solid rgba(255, 255, 255, 0.4);
+}
+
+.avatar-fallback {
+  background: linear-gradient(135deg, #f0f9eb 0%, #e8f5e9 100%);
+}
+
+.avatar-icon {
+  font-size: 56rpx;
+}
+
+.avatar-ring {
+  position: absolute;
+  top: -8rpx;
+  left: -8rpx;
+  right: -8rpx;
+  bottom: -8rpx;
+  border-radius: 50%;
+  border: 2rpx dashed rgba(255, 255, 255, 0.35);
+  animation: ring-rotate 20s linear infinite;
+}
+
+@keyframes ring-rotate {
+  to { transform: rotate(360deg); }
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.user-name {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+  max-width: 400rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+}
+
+.user-badge {
+  width: 36rpx;
+  height: 36rpx;
+  background: rgba(255, 255, 255, 0.25);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 60rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+  border: 1rpx solid rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
 }
 
-.user-name {
-  font-size: 36rpx;
+.badge-icon {
+  font-size: 20rpx;
+  color: #fff;
   font-weight: bold;
-  color: #FFFFFF;
-  margin-bottom: 12rpx;
-  line-height: 1.3;
-  z-index: 2;
-  position: relative;
-  max-width: 80%;
-  text-align: center;
 }
 
 .user-title {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.4;
-  z-index: 2;
-  position: relative;
-  max-width: 85%;
-  text-align: center;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.welcome-icon {
+  font-size: 28rpx;
+}
+
+.login-hint {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+}
+
+.login-arrow {
+  font-size: 28rpx;
+  font-weight: bold;
 }
 
 .container {
@@ -505,17 +696,19 @@ export default {
 }
 
 .card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  box-shadow: 0 1rpx 4rpx rgba(0,0,0,0.03);
 }
 
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 24rpx;
 }
 
@@ -530,9 +723,9 @@ export default {
   margin-bottom: 0;
 }
 
-.section-more {
+.section-count {
   font-size: 24rpx;
-  color: #2d8b5e;
+  color: #999;
 }
 
 .stats-row {
@@ -551,7 +744,7 @@ export default {
 .stats-num {
   font-size: 44rpx;
   font-weight: bold;
-  color: #2d8b5e;
+  color: #8CA082;
 }
 
 .stats-label {
@@ -567,6 +760,11 @@ export default {
 }
 
 .record-list {
+  padding-top: 8rpx;
+}
+
+.record-scroll {
+  max-height: 460rpx;
   padding-top: 8rpx;
 }
 
@@ -597,13 +795,13 @@ export default {
 .record-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 8rpx;
 }
 
 .record-effect {
   font-size: 24rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -637,7 +835,7 @@ export default {
   color: #f59e0b;
   background: rgba(245, 158, 11, 0.1);
   padding: 8rpx 16rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   font-weight: 600;
   flex-shrink: 0;
   margin-left: 12rpx;
@@ -647,7 +845,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(45, 139, 94, 0.08);
+  background: rgba(140, 160, 130, 0.08);
   font-size: 48rpx;
 }
 
@@ -678,19 +876,19 @@ export default {
 .cal-nav-btn {
   width: 60rpx;
   height: 60rpx;
-  background: #f0f9f4;
+  background: #F5F1E8;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 36rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   margin: 0 24rpx;
 }
 
 .cal-nav-text {
   font-size: 30rpx;
-  color: #333;
+  color: #3D3D3D;
   font-weight: 600;
   min-width: 200rpx;
   text-align: center;
@@ -698,15 +896,15 @@ export default {
 
 .calendar-weekdays {
   display: flex;
-  margin-bottom: 12rpx;
+  margin-bottom: 4rpx;
 }
 
 .weekday {
   flex: 1;
   text-align: center;
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
-  padding: 8rpx 0;
+  padding: 4rpx 0;
 }
 
 .calendar-grid {
@@ -716,15 +914,16 @@ export default {
 
 .calendar-day {
   width: calc(100% / 7);
-  height: 110rpx;
+  min-height: 88rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: 26rpx;
-  color: #333;
+  color: #3D3D3D;
   position: relative;
   padding: 4rpx 2rpx;
+  overflow: visible;
 }
 
 .calendar-day.other-month {
@@ -732,40 +931,40 @@ export default {
 }
 
 .calendar-day.today {
-  background: rgba(45, 139, 94, 0.1);
+  background: rgba(140, 160, 130, 0.1);
   border-radius: 8rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: bold;
 }
 
 .calendar-day.checked {
-  background: rgba(45, 139, 94, 0.15);
+  background: rgba(140, 160, 130, 0.15);
   border-radius: 8rpx;
 }
 
 .calendar-day.checked .cal-day-num {
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: bold;
 }
 
 .cal-day-num {
   font-size: 26rpx;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .cal-check-dot {
   width: 10rpx;
   height: 10rpx;
-  background: #2d8b5e;
+  background: #8CA082;
   border-radius: 50%;
-  margin-top: 6rpx;
+  margin-top: 4rpx;
 }
 
 .cal-herb-name {
   font-size: 18rpx;
-  color: #2d8b5e;
-  margin-top: 4rpx;
-  line-height: 1.2;
+  color: #8CA082;
+  margin-top: 2rpx;
+  line-height: 1.1;
   max-width: 90rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -804,7 +1003,7 @@ export default {
 .achievement-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 8rpx;
 }
 
@@ -816,7 +1015,7 @@ export default {
 .achievement-status {
   width: 48rpx;
   height: 48rpx;
-  background: #2d8b5e;
+  background: #8CA082;
   color: #FFFFFF;
   border-radius: 50%;
   display: flex;
@@ -848,7 +1047,7 @@ export default {
 .menu-text {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .menu-arrow {

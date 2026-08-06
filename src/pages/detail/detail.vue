@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="detail-container" v-if="herb">
       <view class="herb-hero">
@@ -333,22 +333,62 @@ export default {
   methods: {
     getImageUrl,
     async loadFavorites() {
+      const token = uni.getStorageSync('token')
+      if (!token) {
+        this.favorites = []
+        this.isFavorite = false
+        return
+      }
       try {
         const list = await favoriteApi.getHerbs()
         this.favorites = (list || []).map(h => h.id)
         this.isFavorite = this.favorites.includes(parseInt(this.herbId))
       } catch (e) {
         console.error('加载收藏失败', e)
+        this.favorites = []
+        this.isFavorite = false
       }
     },
     async toggleFavorite() {
+      const token = uni.getStorageSync('token')
+      if (!token) {
+        uni.showModal({
+          title: '提示',
+          content: '请先登录后再收藏',
+          confirmText: '去登录',
+          success: (res) => {
+            if (res.confirm) {
+              uni.navigateTo({ url: '/pages/login/login' })
+            }
+          }
+        })
+        return
+      }
+      console.log('[detail] 切换收藏, herbId:', this.herbId, '当前已收藏:', this.isFavorite)
       try {
-        await favoriteApi.toggleHerb(this.herbId)
-        this.isFavorite = !this.isFavorite
+        const result = await favoriteApi.toggleHerb(this.herbId)
+        console.log('[detail] toggleHerb 返回:', result)
+        this.isFavorite = result.isFavorited
         uni.showToast({ title: this.isFavorite ? '已收藏' : '已取消收藏', icon: this.isFavorite ? 'success' : 'none' })
+        uni.$emit('favoritesChanged')
       } catch (e) {
-        console.error('收藏操作失败', e)
-        uni.showToast({ title: '操作失败', icon: 'none' })
+        console.error('[detail] 收藏操作失败', e)
+        const errCode = e?.code || e?.data?.code
+        if (errCode === 401) {
+          uni.removeStorageSync('token')
+          uni.showModal({
+            title: '登录已过期',
+            content: '请重新登录',
+            confirmText: '去登录',
+            success: (res) => {
+              if (res.confirm) {
+                uni.navigateTo({ url: '/pages/login/login' })
+              }
+            }
+          })
+        } else {
+          uni.showToast({ title: e?.message || e?.data?.message || '操作失败', icon: 'none' })
+        }
       }
     },
     async loadDetail() {
@@ -490,7 +530,8 @@ export default {
 <style lang="scss">
 .page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #F5F1E8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .loading {
@@ -507,7 +548,7 @@ export default {
   width: 50rpx;
   height: 50rpx;
   border: 4rpx solid #e8f5ee;
-  border-top-color: #2d8b5e;
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -525,7 +566,7 @@ export default {
   position: relative;
   height: 400rpx;
   overflow: hidden;
-  background: linear-gradient(135deg, #2d8b5e 0%, #10B981 50%, #34D399 100%);
+  background: linear-gradient(135deg, #8CA082 0%, #10B981 50%, #34D399 100%);
 }
 
 .herb-swiper {
@@ -558,7 +599,7 @@ export default {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: rgba(45, 139, 94, 0.1);
+  background: rgba(140, 160, 130, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -567,7 +608,7 @@ export default {
 }
 
 .nav-btn:active {
-  background: rgba(45, 139, 94, 0.25);
+  background: rgba(140, 160, 130, 0.25);
   transform: scale(0.92);
 }
 
@@ -578,7 +619,7 @@ export default {
 
 .nav-arrow {
   font-size: 44rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   line-height: 1;
   font-weight: bold;
 }
@@ -603,7 +644,7 @@ export default {
 }
 
 .nav-dot.active {
-  background: #2d8b5e;
+  background: #8CA082;
   width: 32rpx;
   border-radius: 7rpx;
 }
@@ -626,7 +667,7 @@ export default {
   background: rgba(0, 0, 0, 0.45);
   color: #fff;
   font-size: 22rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   z-index: 5;
 }
 
@@ -719,11 +760,13 @@ export default {
 }
 
 .card {
-  background: #fff;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+  border-radius: 16rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
 }
 
 .basic-info {
@@ -744,7 +787,7 @@ export default {
 
   .info-value {
     font-size: 28rpx;
-    color: #333;
+    color: #3D3D3D;
     font-weight: 500;
   }
 }
@@ -754,8 +797,8 @@ export default {
     display: inline-block;
     padding: 8rpx 20rpx;
     background: #e8f5ee;
-    color: #2d8b5e;
-    border-radius: 20rpx;
+    color: #8CA082;
+    border-radius: 16rpx;
     font-size: 24rpx;
   }
 }
@@ -763,7 +806,7 @@ export default {
 .section-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 20rpx;
   display: flex;
   align-items: center;
@@ -773,7 +816,7 @@ export default {
   content: '';
   width: 6rpx;
   height: 28rpx;
-  background: linear-gradient(180deg, #2d8b5e, #3da878);
+  background: linear-gradient(180deg, #8CA082, #3da878);
   border-radius: 3rpx;
   margin-right: 12rpx;
 }
@@ -854,7 +897,7 @@ export default {
   .key-id-value {
     flex: 1;
     font-size: 26rpx;
-    color: #333;
+    color: #3D3D3D;
     line-height: 1.6;
   }
 }
@@ -935,7 +978,7 @@ export default {
     border-radius: 16rpx;
     padding: 20rpx;
     margin-bottom: 16rpx;
-    box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
     transition: transform 0.2s;
 
     &:last-child {
@@ -968,7 +1011,7 @@ export default {
   .alt-name {
     font-size: 30rpx;
     font-weight: 600;
-    color: #333;
+    color: #3D3D3D;
     margin-bottom: 8rpx;
   }
 
@@ -1034,7 +1077,7 @@ export default {
 
 .auth-counterfeiter-info {
   font-size: 26rpx;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .auth-counterfeiter-label {
@@ -1049,7 +1092,7 @@ export default {
 .auth-fraud-type-tag {
   font-size: 22rpx;
   padding: 6rpx 20rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   font-weight: 500;
 }
 
@@ -1078,9 +1121,9 @@ export default {
 }
 
 .auth-fraud-type-tag.fraud-default {
-  background: rgba(45, 139, 94, 0.1);
-  color: #2d8b5e;
-  border: 1rpx solid rgba(45, 139, 94, 0.2);
+  background: rgba(140, 160, 130, 0.1);
+  color: #8CA082;
+  border: 1rpx solid rgba(140, 160, 130, 0.2);
 }
 
 .auth-warn-text {
@@ -1122,7 +1165,7 @@ export default {
 
 .auth-kp-genuine {
   font-size: 24rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 4rpx;
 }
 
@@ -1152,7 +1195,7 @@ export default {
     border-radius: 16rpx;
     overflow: hidden;
     margin-bottom: 20rpx;
-    box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
 
     &:last-child {
       margin-bottom: 0;
@@ -1176,13 +1219,13 @@ export default {
   .food-name {
     font-size: 30rpx;
     font-weight: 600;
-    color: #333;
+    color: #3D3D3D;
     margin-bottom: 8rpx;
   }
 
   .food-effect {
     font-size: 24rpx;
-    color: #2d8b5e;
+    color: #8CA082;
     margin-bottom: 12rpx;
     display: -webkit-box;
     -webkit-line-clamp: 1;
@@ -1211,7 +1254,7 @@ export default {
   margin-top: 16rpx;
   border-top: 1rpx solid rgba(0, 0, 0, 0.06);
   font-size: 26rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: 500;
 }
 
@@ -1247,7 +1290,7 @@ export default {
 .match-detail-header {
   position: relative;
   height: 320rpx;
-  background: linear-gradient(135deg, #2d8b5e 0%, #10B981 50%, #34D399 100%);
+  background: linear-gradient(135deg, #8CA082 0%, #10B981 50%, #34D399 100%);
 }
 
 .match-detail-img {
@@ -1280,7 +1323,7 @@ export default {
 .match-detail-name {
   font-size: 40rpx;
   font-weight: 700;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 32rpx;
 }
 
@@ -1295,7 +1338,7 @@ export default {
 .match-detail-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 12rpx;
   display: flex;
   align-items: center;
@@ -1305,7 +1348,7 @@ export default {
   content: '';
   width: 6rpx;
   height: 24rpx;
-  background: #2d8b5e;
+  background: #8CA082;
   border-radius: 3rpx;
   margin-right: 10rpx;
 }
@@ -1335,8 +1378,8 @@ export default {
 .match-ingredient-item {
   padding: 8rpx 20rpx;
   background: #e8f5ee;
-  color: #2d8b5e;
-  border-radius: 20rpx;
+  color: #8CA082;
+  border-radius: 16rpx;
   font-size: 24rpx;
 }
 

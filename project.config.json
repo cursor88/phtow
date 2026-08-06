@@ -2,6 +2,7 @@
   "appid": "wx79e26fd77ce0aaf2",
   "compileType": "miniprogram",
   "libVersion": "3.17.0",
+  "miniprogramRoot": "dist/build/mp-weixin/",
   "packOptions": {
     "ignore": [],
     "include": []
@@ -25,5 +26,6 @@
   "editorSetting": {
     "tabIndent": "insertSpaces",
     "tabSize": 2
-  }
+  },
+  "srcMiniprogramRoot": "dist/build/mp-weixin/"
 }

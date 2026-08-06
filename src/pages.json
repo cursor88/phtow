@@ -4,8 +4,8 @@
       "path": "pages/index/index",
       "style": {
         "navigationBarTitleText": "本草智识",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white",
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black",
         "enablePullDownRefresh": true
       }
     },
@@ -13,24 +13,24 @@
       "path": "pages/identify/identify",
       "style": {
         "navigationBarTitleText": "药材识别",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/herb-list/herb-list",
       "style": {
         "navigationBarTitleText": "药材图鉴",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/detail/detail",
       "style": {
         "navigationBarTitleText": "药材详情",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white",
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black",
         "enablePullDownRefresh": false
       }
     },
@@ -38,56 +38,56 @@
       "path": "pages/quiz/quiz",
       "style": {
         "navigationBarTitleText": "趣味问答",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/quiz/topics",
       "style": {
         "navigationBarTitleText": "题库专题",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/classics/classics",
       "style": {
         "navigationBarTitleText": "典籍溯源",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/match/match",
       "style": {
         "navigationBarTitleText": "药食同源",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/mine/mine",
       "style": {
         "navigationBarTitleText": "我的",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/login/login",
       "style": {
         "navigationBarTitleText": "登录",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/forgot-password/forgot-password",
       "style": {
         "navigationBarTitleText": "找回密码",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
@@ -95,8 +95,8 @@
       "style": {
         "navigationBarTitleText": "经方问诊",
         "navigationStyle": "custom",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
@@ -104,8 +104,8 @@
       "style": {
         "navigationBarTitleText": "问诊记录",
         "navigationStyle": "custom",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
@@ -113,70 +113,78 @@
       "style": {
         "navigationBarTitleText": "问诊详情",
         "navigationStyle": "custom",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/constitution/constitution",
       "style": {
         "navigationBarTitleText": "体质测评",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/wrong-questions/wrong-questions",
       "style": {
         "navigationBarTitleText": "错题本",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/llm-config/llm-config",
       "style": {
         "navigationBarTitleText": "AI模型配置",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/review/review",
       "style": {
         "navigationBarTitleText": "识别纠错审核",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/authenticate/authenticate",
       "style": {
         "navigationBarTitleText": "真伪鉴别",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     },
     {
       "path": "pages/authenticate/authenticate-detail",
       "style": {
         "navigationBarTitleText": "真伪鉴别详情",
-        "navigationBarBackgroundColor": "#2d8b5e",
-        "navigationBarTextStyle": "white"
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "pages/match-detail/match-detail",
+      "style": {
+        "navigationBarTitleText": "搭配详情",
+        "navigationBarBackgroundColor": "#F5F1E8",
+        "navigationBarTextStyle": "black"
       }
     }
   ],
   "globalStyle": {
-    "navigationBarTextStyle": "white",
+    "navigationBarTextStyle": "black",
     "navigationBarTitleText": "本草智识",
-    "navigationBarBackgroundColor": "#2d8b5e",
-    "backgroundColor": "#f0f9f4"
+    "navigationBarBackgroundColor": "#F5F1E8",
+    "backgroundColor": "#F5F1E8"
   },
   "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#2d8b5e",
+    "color": "#8B8680",
+    "selectedColor": "#8CA082",
     "borderStyle": "white",
-    "backgroundColor": "#ffffff",
+    "backgroundColor": "#F5F1E8",
     "list": [
       {
         "pagePath": "pages/index/index",

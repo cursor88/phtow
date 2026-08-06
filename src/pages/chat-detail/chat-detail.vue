@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="nav-bar">
       <view class="back" @click="goBack">
@@ -196,7 +196,8 @@ export default {
   flex-direction: column;
   height: 100vh;
   padding: 0;
-  background: #f0f9f4;
+  background: #F5F1E8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .nav-bar {
@@ -204,19 +205,23 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 60rpx 32rpx 24rpx;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
-  color: #ffffff;
-  box-shadow: 0 2rpx 8rpx rgba(45, 139, 94, 0.2);
+  background: rgba(245, 241, 232, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1rpx solid rgba(180, 170, 150, 0.25);
+  color: #3D3D3D;
+  box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
 }
 
 .nav-bar .back {
   width: 80rpx;
   font-size: 40rpx;
+  color: #3D3D3D;
 }
 
 .nav-bar .title {
   font-size: 36rpx;
   font-weight: 600;
+  letter-spacing: 2rpx;
 }
 
 .nav-bar .nav-right {
@@ -240,8 +245,8 @@ export default {
 
 .session-time {
   font-size: 22rpx;
-  color: #9ca3af;
-  background: rgba(45, 139, 94, 0.08);
+  color: #8B8680;
+  background: rgba(180, 170, 150, 0.1);
   padding: 6rpx 20rpx;
   border-radius: 20rpx;
 }
@@ -260,8 +265,8 @@ export default {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #ffffff;
-  border: 2rpx solid #d1fae5;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2rpx solid rgba(180, 170, 150, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -278,20 +283,22 @@ export default {
 .bubble {
   max-width: 70%;
   padding: 20rpx 24rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   word-break: break-word;
 }
 
 .bubble-user {
-  background: linear-gradient(135deg, #2d8b5e 0%, #36a06d 100%);
+  background: linear-gradient(135deg, #8CA082 0%, #A8B89E 100%);
   border-top-right-radius: 6rpx;
-  box-shadow: 0 4rpx 12rpx rgba(45, 139, 94, 0.2);
+  box-shadow: 0 4rpx 12rpx rgba(140, 160, 130, 0.2);
 }
 
 .bubble-assistant {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.2);
   border-top-left-radius: 6rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 8rpx rgba(180, 170, 150, 0.08);
 }
 
 .bubble-text {
@@ -305,7 +312,7 @@ export default {
 }
 
 .bubble-assistant .bubble-text {
-  color: #1f3a2e;
+  color: #3D3D3D;
 }
 
 .loading-bubble {
@@ -322,7 +329,7 @@ export default {
   width: 14rpx;
   height: 14rpx;
   border-radius: 50%;
-  background: #2d8b5e;
+  background: #8CA082;
   opacity: 0.5;
   animation: detailDot 1.2s infinite ease-in-out;
 }
@@ -366,7 +373,7 @@ export default {
 
 .empty-text {
   font-size: 30rpx;
-  color: #6b7280;
+  color: #8B8680;
 }
 
 .loading-state {
@@ -380,8 +387,8 @@ export default {
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid #d1fae5;
-  border-top-color: #2d8b5e;
+  border: 4rpx solid #E5DFD4;
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: detailSpin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -389,7 +396,7 @@ export default {
 
 .loading-text {
   font-size: 26rpx;
-  color: #6b7280;
+  color: #8B8680;
 }
 
 @keyframes detailSpin {
@@ -404,9 +411,10 @@ export default {
   gap: 16rpx;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #ffffff;
-  border-top: 1rpx solid #e8efe9;
-  box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-top: 1rpx solid rgba(180, 170, 150, 0.25);
+  box-shadow: 0 -2rpx 12rpx rgba(180, 170, 150, 0.08);
 }
 
 .chat-input {
@@ -414,11 +422,17 @@ export default {
   height: 96rpx;
   min-height: 96rpx;
   padding: 0 28rpx;
-  background: #f5f7f6;
+  background: rgba(245, 241, 232, 0.5);
+  border: 1rpx solid #E5DFD4;
   border-radius: 48rpx;
   font-size: 30rpx;
   line-height: 96rpx;
-  color: #2d3a35;
+  color: #3D3D3D;
+}
+
+.chat-input:focus {
+  border-color: #8CA082;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .chat-send-btn {
@@ -426,14 +440,14 @@ export default {
   height: 96rpx;
   min-height: 96rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #A8B89E);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 36rpx;
   flex-shrink: 0;
-  box-shadow: 0 2rpx 8rpx rgba(45, 139, 94, 0.3);
+  box-shadow: 0 2rpx 8rpx rgba(140, 160, 130, 0.3);
 }
 
 .chat-send-btn:active {

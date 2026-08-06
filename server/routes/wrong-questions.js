@@ -112,6 +112,19 @@ router.post('/remove', authRequired, async (req, res) => {
   }
 });
 
+router.post('/clear', authRequired, async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM wrong_questions WHERE user_id = ?',
+      [req.user.id]
+    );
+    res.json({ code: 0, message: '清空成功', data: null });
+  } catch (e) {
+    console.error('Clear wrong questions error:', e);
+    res.json({ code: 500, message: '清空失败', data: null });
+  }
+});
+
 router.post('/submit', authRequired, async (req, res) => {
   try {
     const { questionId, answer } = req.body;

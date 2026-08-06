@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="nav-bar">
       <view class="back" @click="goBack">
@@ -144,7 +144,8 @@ export default {
 .page {
   min-height: 100vh;
   padding: 0;
-  background: #f0f9f4;
+  background: #F5F1E8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .nav-bar {
@@ -152,19 +153,23 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 60rpx 32rpx 24rpx;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
-  color: #ffffff;
-  box-shadow: 0 2rpx 8rpx rgba(45, 139, 94, 0.2);
+  background: rgba(245, 241, 232, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1rpx solid rgba(180, 170, 150, 0.25);
+  color: #3D3D3D;
+  box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
 }
 
 .nav-bar .back {
   width: 80rpx;
   font-size: 40rpx;
+  color: #3D3D3D;
 }
 
 .nav-bar .title {
   font-size: 36rpx;
   font-weight: 600;
+  letter-spacing: 2rpx;
 }
 
 .nav-bar .nav-right {
@@ -177,16 +182,18 @@ export default {
 }
 
 .record-card {
-  background: #ffffff;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+  border-radius: 16rpx;
   padding: 28rpx 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(45, 139, 94, 0.06);
+  box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
 }
 
 .record-card:active {
   transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(45, 139, 94, 0.1);
+  box-shadow: 0 2rpx 8rpx rgba(180, 170, 150, 0.12);
 }
 
 .card-top {
@@ -200,7 +207,7 @@ export default {
   flex: 1;
   font-size: 30rpx;
   font-weight: 600;
-  color: #1f3a2e;
+  color: #3D3D3D;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -212,7 +219,7 @@ export default {
 .delete-btn {
   width: 48rpx;
   height: 48rpx;
-  background: rgba(239, 68, 68, 0.08);
+  background: rgba(181, 83, 74, 0.08);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -221,18 +228,18 @@ export default {
 }
 
 .delete-btn:active {
-  background: rgba(239, 68, 68, 0.18);
+  background: rgba(181, 83, 74, 0.18);
 }
 
 .delete-icon {
   font-size: 32rpx;
-  color: #ef4444;
+  color: #B5534A;
   line-height: 1;
 }
 
 .preview {
   font-size: 26rpx;
-  color: #6b7280;
+  color: #8B8680;
   line-height: 1.5;
   margin-bottom: 16rpx;
   display: -webkit-box;
@@ -260,19 +267,19 @@ export default {
 
 .meta-text {
   font-size: 24rpx;
-  color: #6b7280;
+  color: #8B8680;
 }
 
 .card-arrow {
   display: flex;
   justify-content: flex-end;
   padding-top: 12rpx;
-  border-top: 1rpx solid #ecfdf5;
+  border-top: 1rpx solid rgba(180, 170, 150, 0.2);
 }
 
 .arrow-text {
   font-size: 24rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: 500;
 }
 
@@ -292,13 +299,13 @@ export default {
 
 .empty-text {
   font-size: 30rpx;
-  color: #6b7280;
+  color: #8B8680;
   margin-bottom: 12rpx;
 }
 
 .empty-tip {
   font-size: 24rpx;
-  color: #9ca3af;
+  color: #A5A099;
 }
 
 .loading-state {
@@ -312,8 +319,8 @@ export default {
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid #d1fae5;
-  border-top-color: #2d8b5e;
+  border: 4rpx solid #E5DFD4;
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: historySpin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -321,7 +328,7 @@ export default {
 
 .loading-text {
   font-size: 26rpx;
-  color: #6b7280;
+  color: #8B8680;
 }
 
 @keyframes historySpin {

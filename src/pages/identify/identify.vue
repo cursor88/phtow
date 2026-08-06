@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="identify-container">
       <!-- 预览区 -->
@@ -392,8 +392,9 @@ export default {
 <style>
 .page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #F5F1E8;
   padding-bottom: 70px;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .identify-container {
@@ -406,7 +407,7 @@ export default {
   width: 100%;
   height: 500rpx;
   background: #000;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   overflow: hidden;
   margin-bottom: 32rpx;
 }
@@ -433,7 +434,7 @@ export default {
   width: 60rpx;
   height: 60rpx;
   border: 4rpx solid rgba(255, 255, 255, 0.3);
-  border-top-color: #2d8b5e;
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -459,13 +460,13 @@ export default {
   width: 100%;
   height: 500rpx;
   background: linear-gradient(135deg, #e8f5ee 0%, #d4efdf 100%);
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   margin-bottom: 32rpx;
-  border: 3rpx dashed #2d8b5e;
+  border: 3rpx dashed #8CA082;
 }
 
 .placeholder-icon {
@@ -475,7 +476,7 @@ export default {
 
 .placeholder-text {
   font-size: 32rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: 500;
   margin-bottom: 12rpx;
 }
@@ -495,7 +496,7 @@ export default {
 
 .primary-btn {
   flex: 1;
-  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
+  background: linear-gradient(135deg, #8CA082 0%, #a8bd9c 100%);
   color: #fff;
   border-radius: 50rpx;
   font-size: 30rpx;
@@ -519,9 +520,9 @@ export default {
 
 .secondary-btn {
   flex: 1;
-  background: #fff;
-  color: #2d8b5e;
-  border: 2rpx solid #2d8b5e;
+  background: rgba(255, 255, 255, 0.7);
+  color: #8CA082;
+  border: 2rpx solid #8CA082;
   border-radius: 50rpx;
   font-size: 30rpx;
   padding: 20rpx 0;
@@ -542,10 +543,12 @@ export default {
 }
 
 .result-card {
-  background: #fff;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+  border-radius: 16rpx;
   padding: 32rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .result-header {
@@ -558,7 +561,7 @@ export default {
 .result-name {
   font-size: 40rpx;
   font-weight: 700;
-  color: #2d8b5e;
+  color: #8CA082;
 }
 
 .result-accuracy {
@@ -566,7 +569,7 @@ export default {
   color: #f59e0b;
   background: #fef3c7;
   padding: 6rpx 16rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   font-weight: 600;
 }
 
@@ -593,8 +596,8 @@ export default {
   display: inline-block;
   padding: 8rpx 20rpx;
   background: #e8f5ee;
-  color: #2d8b5e;
-  border-radius: 20rpx;
+  color: #8CA082;
+  border-radius: 16rpx;
   font-size: 24rpx;
 }
 
@@ -614,7 +617,7 @@ export default {
 
 .result-value {
   font-size: 28rpx;
-  color: #333;
+  color: #3D3D3D;
   line-height: 1.6;
 }
 
@@ -628,7 +631,7 @@ export default {
 .ki-title {
   font-size: 26rpx;
   font-weight: 600;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 12rpx;
 }
 
@@ -640,7 +643,7 @@ export default {
 .ki-label {
   width: 100rpx;
   font-size: 24rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -660,7 +663,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   font-size: 28rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: 500;
 }
 
@@ -676,18 +679,20 @@ export default {
 .alt-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 16rpx;
 }
 
 .alt-item {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
   border-radius: 16rpx;
   padding: 20rpx;
   margin-bottom: 12rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.03);
 }
 
 .alt-icon {
@@ -711,7 +716,7 @@ export default {
 .alt-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 4rpx;
 }
 
@@ -734,7 +739,7 @@ export default {
 .feedback-btn {
   margin-top: 24rpx;
   text-align: center;
-  color: #2d8b5e;
+  color: #8CA082;
   font-size: 26rpx;
   text-decoration: underline;
 }
@@ -755,7 +760,9 @@ export default {
 .feedback-content {
   width: 100%;
   max-height: 90vh;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
   border-radius: 32rpx 32rpx 0 0;
   overflow: hidden;
   display: flex;
@@ -764,7 +771,7 @@ export default {
 
 .feedback-header {
   position: relative;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #a8bd9c);
   padding: 48rpx 32rpx 40rpx;
   color: #fff;
   display: flex;
@@ -817,7 +824,7 @@ export default {
 }
 
 .fb-original-name {
-  color: #333;
+  color: #3D3D3D;
   font-weight: 600;
 }
 
@@ -828,7 +835,7 @@ export default {
 .fb-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 16rpx;
 }
 
@@ -852,7 +859,7 @@ export default {
 .fb-search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: #3D3D3D;
   background: transparent;
 }
 
@@ -869,13 +876,13 @@ export default {
   border: 2rpx solid #e5e7eb;
   background: #fff;
   font-size: 26rpx;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .fb-herb-chip.active {
-  border-color: #2d8b5e;
+  border-color: #8CA082;
   background: #f0fdf4;
-  color: #2d8b5e;
+  color: #8CA082;
   font-weight: 600;
 }
 
@@ -892,7 +899,7 @@ export default {
 .fb-custom-input {
   width: 100%;
   padding: 20rpx;
-  border: 2rpx solid #2d8b5e;
+  border: 2rpx solid #8CA082;
   border-radius: 12rpx;
   font-size: 28rpx;
   box-sizing: border-box;
@@ -911,7 +918,7 @@ export default {
 
 .fb-submit-btn {
   width: 100%;
-  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
+  background: linear-gradient(135deg, #8CA082 0%, #a8bd9c 100%);
   color: #fff;
   border-radius: 16rpx;
   font-size: 30rpx;
@@ -931,16 +938,18 @@ export default {
 
 /* 小贴士 */
 .tips-area {
-  background: #fff;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+  border-radius: 16rpx;
   padding: 32rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 .section-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 24rpx;
 }
 
@@ -959,7 +968,7 @@ export default {
   height: 40rpx;
   border-radius: 50%;
   background: #e8f5ee;
-  color: #2d8b5e;
+  color: #8CA082;
   font-size: 24rpx;
   display: flex;
   align-items: center;

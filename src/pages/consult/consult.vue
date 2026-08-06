@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="nav-bar">
       <view class="back" @click="goBack">
@@ -195,7 +195,8 @@ export default {
   flex-direction: column;
   height: 100vh;
   padding: 0;
-  background: #f5f7f6;
+  background: #F5F1E8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .nav-bar {
@@ -203,9 +204,9 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 60rpx 32rpx 24rpx;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #A3B59A);
   color: #ffffff;
-  box-shadow: 0 2rpx 8rpx rgba(45, 139, 94, 0.2);
+  box-shadow: 0 2rpx 8rpx rgba(140, 160, 130, 0.12);
 }
 
 .nav-bar .back {
@@ -263,33 +264,36 @@ export default {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 40rpx;
   flex-shrink: 0;
-  box-shadow: 0 2rpx 6rpx rgba(45, 139, 94, 0.15);
+  box-shadow: 0 2rpx 6rpx rgba(140, 160, 130, 0.08);
 }
 
 .chat-bubble {
   max-width: 540rpx;
   padding: 20rpx 28rpx;
   line-height: 1.6;
-  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.03);
 }
 
 .bubble-user {
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #A3B59A);
   color: #ffffff;
-  border-radius: 24rpx 24rpx 8rpx 24rpx;
+  border-radius: 16rpx 16rpx 8rpx 16rpx;
 }
 
 .bubble-assistant {
-  background: #ffffff;
-  color: #2d3a35;
-  border-radius: 24rpx 24rpx 24rpx 8rpx;
-  border: 1rpx solid #e8efe9;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+  color: #3D3D3D;
+  border-radius: 16rpx 16rpx 16rpx 8rpx;
 }
 
 .bubble-text {
@@ -301,8 +305,8 @@ export default {
 .diagnosis-tag {
   display: inline-block;
   font-size: 24rpx;
-  color: #2d8b5e;
-  background: rgba(45, 139, 94, 0.1);
+  color: #8CA082;
+  background: rgba(140, 160, 130, 0.1);
   padding: 6rpx 16rpx;
   border-radius: 12rpx;
   margin-bottom: 12rpx;
@@ -311,27 +315,27 @@ export default {
 .prescription-card {
   margin-top: 16rpx;
   padding: 20rpx;
-  background: rgba(45, 139, 94, 0.06);
-  border: 1rpx solid rgba(45, 139, 94, 0.15);
+  background: rgba(140, 160, 130, 0.06);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
   border-radius: 16rpx;
 }
 
 .prescription-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 10rpx;
 }
 
 .prescription-ingredients {
   font-size: 24rpx;
-  color: #4b5563;
+  color: #3D3D3D;
   margin-bottom: 8rpx;
 }
 
 .prescription-explanation {
   font-size: 24rpx;
-  color: #6b7280;
+  color: #3D3D3D;
 }
 
 .suggested-questions {
@@ -342,16 +346,16 @@ export default {
 }
 
 .suggested-question {
-  background: rgba(45, 139, 94, 0.08);
-  color: #2d8b5e;
+  background: rgba(140, 160, 130, 0.08);
+  color: #8CA082;
   padding: 16rpx 24rpx;
   border-radius: 16rpx;
   font-size: 26rpx;
-  border: 1rpx solid rgba(45, 139, 94, 0.2);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .suggested-question:active {
-  background: rgba(45, 139, 94, 0.16);
+  background: rgba(140, 160, 130, 0.16);
 }
 
 .loading-bubble {
@@ -368,7 +372,7 @@ export default {
   width: 14rpx;
   height: 14rpx;
   border-radius: 50%;
-  background: #2d8b5e;
+  background: #8CA082;
   opacity: 0.5;
   animation: consultDotPulse 1.2s infinite ease-in-out;
 }
@@ -398,9 +402,10 @@ export default {
   gap: 16rpx;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #ffffff;
-  border-top: 1rpx solid #e8efe9;
-  box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-top: 1rpx solid rgba(180, 170, 150, 0.25);
+  box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.02);
 }
 
 .chat-input {
@@ -408,11 +413,11 @@ export default {
   height: 96rpx;
   min-height: 96rpx;
   padding: 0 28rpx;
-  background: #f5f7f6;
+  background: #F5F1E8;
   border-radius: 48rpx;
   font-size: 30rpx;
   line-height: 96rpx;
-  color: #2d3a35;
+  color: #3D3D3D;
 }
 
 .chat-send-btn {
@@ -420,14 +425,14 @@ export default {
   height: 96rpx;
   min-height: 96rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #A3B59A);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 36rpx;
   flex-shrink: 0;
-  box-shadow: 0 2rpx 8rpx rgba(45, 139, 94, 0.3);
+  box-shadow: 0 2rpx 8rpx rgba(140, 160, 130, 0.15);
 }
 
 .chat-send-btn:active {

@@ -2,7 +2,7 @@
 // - H5 端：优先使用当前页面 origin 走同源 /api 代理（避免跨域与域名配置）
 // - 小程序端：可通过 uni.getStorageSync('apiBase') / 'serverOrigin' 覆盖默认值，
 //   默认回退到编译期固定的内网 IP（开发期勾选"不校验合法域名"即可，发布期请改为 HTTPS 域名）
-const DEFAULT_INNER_ORIGIN = 'http://106.52.158.137'
+const DEFAULT_INNER_ORIGIN = 'http://localhost:8080'
 
 const _resolveOrigin = () => {
   try {
@@ -97,12 +97,19 @@ const request = (options) => {
       header['Authorization'] = 'Bearer ' + token
     }
     const fullUrl = BASE_URL + options.url
+    const isFavoriteUrl = options.url && options.url.indexOf('/favorite') > -1
+    if (isFavoriteUrl) {
+      console.log('[request] 收藏接口请求:', options.method, fullUrl, 'token:', token ? '有' : '无')
+    }
     uni.request({
       url: fullUrl,
       method: options.method || 'GET',
       data: options.data || {},
       header,
       success: (res) => {
+        if (isFavoriteUrl) {
+          console.log('[request] 收藏接口响应:', res.statusCode, res.data)
+        }
         if (res.statusCode === 200) {
           if (res.data.code === 0) {
             resolve(res.data.data)

@@ -213,12 +213,12 @@ export default {
 <style>
 .page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #F5F1E8;
   padding-bottom: 40rpx;
 }
 
 .hero {
-  background: linear-gradient(135deg, #2d8b5e 0%, #10B981 50%, #34D399 100%);
+  background: linear-gradient(135deg, #6B8F6A 0%, #8CA082 50%, #A8B89E 100%);
   padding: 48rpx 32rpx;
   color: #ffffff;
 }
@@ -245,28 +245,33 @@ export default {
   padding: 8rpx 20rpx;
   border-radius: 24rpx;
   margin-right: 16rpx;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   color: #ffffff;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
 
 .fraud-tag.fraud-maoc {
-  background: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.35);
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 .fraud-tag.fraud-jiu {
-  background: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.35);
+  border-color: rgba(245, 158, 11, 0.4);
 }
 
 .fraud-tag.fraud-ran {
-  background: rgba(168, 85, 247, 0.3);
+  background: rgba(168, 85, 247, 0.35);
+  border-color: rgba(168, 85, 247, 0.4);
 }
 
 .fraud-tag.fraud-liu {
-  background: rgba(234, 179, 8, 0.3);
+  background: rgba(234, 179, 8, 0.35);
+  border-color: rgba(234, 179, 8, 0.4);
 }
 
 .fraud-tag.fraud-default {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .container {
@@ -274,18 +279,20 @@ export default {
 }
 
 .card {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
   border-radius: 20rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .warning-card {
   display: flex;
   align-items: flex-start;
-  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
-  border: 2rpx solid #fde68a;
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+  border: 1rpx solid rgba(253, 230, 138, 0.6);
 }
 
 .warning-icon {
@@ -304,7 +311,7 @@ export default {
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #2d8b5e;
+  color: #3D3D3D;
   margin-bottom: 24rpx;
   display: flex;
   align-items: center;
@@ -314,7 +321,7 @@ export default {
   content: '';
   width: 8rpx;
   height: 30rpx;
-  background: linear-gradient(180deg, #2d8b5e, #3da878);
+  background: linear-gradient(180deg, #8CA082, #A8B89E);
   border-radius: 4rpx;
   margin-right: 16rpx;
 }
@@ -329,7 +336,7 @@ export default {
 
 /* 图片对比 */
 .images-section {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+  background: linear-gradient(135deg, rgba(232, 245, 238, 0.7) 0%, rgba(255, 255, 255, 0.75) 100%);
 }
 
 .image-compare {
@@ -346,7 +353,7 @@ export default {
   width: 100%;
   height: 280rpx;
   border-radius: 16rpx;
-  background: #f8fafc;
+  background: rgba(248, 250, 252, 0.8);
 }
 
 .image-label {
@@ -362,11 +369,11 @@ export default {
 }
 
 .genuine-label {
-  background: #2d8b5e;
+  background: rgba(140, 160, 130, 0.9);
 }
 
 .fake-label {
-  background: #dc2626;
+  background: rgba(220, 38, 38, 0.9);
 }
 
 .image-tip {
@@ -380,12 +387,12 @@ export default {
 .compare-table {
   border-radius: 12rpx;
   overflow: hidden;
-  border: 2rpx solid #e8f5ee;
+  border: 1rpx solid rgba(232, 245, 238, 0.8);
 }
 
 .table-head {
   display: flex;
-  background: #f0fdf4;
+  background: rgba(232, 245, 238, 0.6);
 }
 
 .th {
@@ -402,7 +409,7 @@ export default {
 
 .th-genuine {
   width: 37.5%;
-  color: #2d8b5e;
+  color: #8CA082;
 }
 
 .th-fake {
@@ -412,7 +419,7 @@ export default {
 
 .table-row {
   display: flex;
-  border-top: 2rpx solid #f0fdf4;
+  border-top: 1rpx solid rgba(232, 245, 238, 0.6);
 }
 
 .td {
@@ -425,39 +432,39 @@ export default {
 .td-label {
   width: 25%;
   color: #666;
-  background: #f8fafc;
+  background: rgba(248, 250, 252, 0.5);
   font-weight: 500;
 }
 
 .td-genuine {
   width: 37.5%;
-  color: #166534;
-  background: #f0fdf4;
+  color: #5a7a54;
+  background: rgba(232, 245, 238, 0.5);
 }
 
 .td-fake {
   width: 37.5%;
   color: #991b1b;
-  background: #fef2f2;
+  background: rgba(254, 242, 242, 0.5);
 }
 
 /* 特征详解 */
 .genuine-section {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
-  border: 2rpx solid #bbf7d0;
+  background: linear-gradient(135deg, rgba(232, 245, 238, 0.6) 0%, rgba(255, 255, 255, 0.75) 100%);
+  border: 1rpx solid rgba(187, 247, 208, 0.5);
 }
 
 .genuine-title {
-  color: #166534;
+  color: #5a7a54;
 }
 
 .genuine-title::before {
-  background: linear-gradient(180deg, #22c55e, #16a34a);
+  background: linear-gradient(180deg, #8CA082, #A8B89E);
 }
 
 .fake-section {
-  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
-  border: 2rpx solid #fecaca;
+  background: linear-gradient(135deg, rgba(254, 242, 242, 0.6) 0%, rgba(255, 255, 255, 0.75) 100%);
+  border: 1rpx solid rgba(254, 202, 202, 0.5);
 }
 
 .fake-title {
@@ -491,7 +498,7 @@ export default {
 }
 
 .genuine-bullet {
-  color: #22c55e;
+  color: #8CA082;
 }
 
 .fake-bullet {
@@ -507,18 +514,18 @@ export default {
 
 /* 关联药材入口 */
 .herb-link-section {
-  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
-  border: 2rpx solid #bfdbfe;
+  background: linear-gradient(135deg, rgba(245, 241, 232, 0.8) 0%, rgba(255, 255, 255, 0.75) 100%);
+  border: 1rpx solid rgba(180, 170, 150, 0.3);
   text-align: center;
 }
 
 .herb-link-title {
-  color: #1e40af;
+  color: #6B8F6A;
   justify-content: center;
 }
 
 .herb-link-title::before {
-  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  background: linear-gradient(180deg, #8CA082, #A8B89E);
   margin-right: 0;
 }
 
@@ -531,7 +538,7 @@ export default {
 .herb-link-btn {
   display: inline-block;
   padding: 18rpx 48rpx;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #8CA082, #A8B89E);
   color: #ffffff;
   font-size: 28rpx;
   border-radius: 40rpx;

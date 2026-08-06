@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="container">
       <view class="loading" v-if="loading">
@@ -66,7 +66,8 @@ export default {
 <style>
 .page {
   min-height: 100vh;
-  background: #f0f9f4;
+  background: #F5F1E8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .container {
@@ -87,7 +88,7 @@ export default {
   width: 50rpx;
   height: 50rpx;
   border: 4rpx solid #e8f5ee;
-  border-top-color: #2d8b5e;
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20rpx;
@@ -124,17 +125,19 @@ export default {
 .topic-card {
   display: flex;
   align-items: center;
-  background: #fff;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16rpx;
   padding: 28rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.04);
 }
 
 .topic-icon {
   width: 88rpx;
   height: 88rpx;
-  border-radius: 20rpx;
-  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 100%);
+  border-radius: 16rpx;
+  background: linear-gradient(135deg, #8CA082 0%, #A8B89E 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,7 +154,7 @@ export default {
 .topic-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 8rpx;
 }
 
@@ -168,11 +171,11 @@ export default {
   display: flex;
   align-items: center;
   font-size: 22rpx;
-  color: #2d8b5e;
+  color: #8CA082;
 }
 
 .meta-item {
-  color: #2d8b5e;
+  color: #8CA082;
 }
 
 .meta-divider {

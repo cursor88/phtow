@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="container">
       <view class="search-section card">
@@ -54,7 +54,7 @@
           class="match-card result-card"
           v-for="item in searchResults"
           :key="item.id"
-          @click="showDetail(item)"
+          @click="goToMatchDetail(item.id)"
         >
           <image
             class="match-img"
@@ -89,7 +89,7 @@
           <text class="list-title">全部药食同源搭配</text>
           <text class="result-count">共 {{ total }} 个</text>
         </view>
-        <view class="match-card" v-for="item in matchList" :key="item.id" @click="showDetail(item)">
+        <view class="match-card" v-for="item in matchList" :key="item.id" @click="goToMatchDetail(item.id)">
           <image
             class="match-img"
             :src="getMatchImageUrl(item)"
@@ -153,52 +153,6 @@
         >→</view>
       </view>
 
-      <!-- 搭配详情弹窗 -->
-      <view class="detail-modal" v-if="showDetailModal" @click="closeDetail">
-        <view class="detail-content" @click.stop>
-          <view class="detail-header">
-            <image
-              class="detail-img"
-              :src="getMatchImageUrl(currentDetail)"
-              mode="aspectFill"
-              @click.stop="previewMatchImage(currentDetail)"
-            ></image>
-            <view class="detail-close" @click="closeDetail">×</view>
-          </view>
-          <view class="detail-body">
-            <view class="detail-name">{{ currentDetail.name }}</view>
-
-            <view class="detail-section">
-              <view class="detail-label">主要食材</view>
-              <view class="detail-ingredients">
-                <text class="ingredient-item" v-for="(ing, idx) in (currentDetail.ingredients || [])" :key="idx">
-                  {{ ing }}
-                </text>
-              </view>
-            </view>
-
-            <view class="detail-section">
-              <view class="detail-label">功效</view>
-              <view class="detail-text">{{ currentDetail.effect }}</view>
-            </view>
-
-            <view class="detail-section" v-if="currentDetail.suitable">
-              <view class="detail-label">适宜人群</view>
-              <view class="detail-text">{{ currentDetail.suitable }}</view>
-            </view>
-
-            <view class="detail-section caution-section" v-if="currentDetail.taboo">
-              <view class="detail-label caution-label">禁忌</view>
-              <view class="detail-text">{{ currentDetail.taboo }}</view>
-            </view>
-
-            <view class="detail-section" v-if="currentDetail.method">
-              <view class="detail-label">做法</view>
-              <view class="detail-method">{{ currentDetail.method }}</view>
-            </view>
-          </view>
-        </view>
-      </view>
     </view>
     <custom-tabbar current="match"></custom-tabbar>
   </view>
@@ -221,8 +175,6 @@ export default {
       total: 0,
       totalPages: 0,
       loading: false,
-      showDetailModal: false,
-      currentDetail: null,
       searchKeyword: '',
       searchResults: [],
       isSearching: false,
@@ -277,15 +229,21 @@ export default {
   },
   methods: {
     async loadFavorites() {
+      const token = uni.getStorageSync('token')
+      if (!token) {
+        this.favMatchIds = []
+        return
+      }
       try {
         const list = await favoriteApi.getMatches()
         this.favMatchIds = (list || []).map(m => m.id)
       } catch (e) {
         console.error('加载收藏失败', e)
+        this.favMatchIds = []
       }
     },
     async searchAndShowMatch(name) {
-      // 根据搭配名称搜索并打开详情弹窗
+      // 根据搭配名称搜索并跳转到详情页
       uni.showLoading({ title: '查找搭配...' })
       try {
         const result = await matchApi.searchMatches(name)
@@ -294,7 +252,7 @@ export default {
           list.find(m => (m.name || '').indexOf(name) >= 0 || name.indexOf(m.name || '') >= 0)
         uni.hideLoading()
         if (matched) {
-          this.showDetail(matched)
+          this.goToMatchDetail(matched.id)
         } else {
           uni.showToast({ title: `未找到搭配「${name}」`, icon: 'none' })
           this.loadMatchList()
@@ -306,18 +264,54 @@ export default {
       }
     },
     async toggleMatchFavorite(item) {
+      const token = uni.getStorageSync('token')
+      if (!token) {
+        uni.showModal({
+          title: '提示',
+          content: '请先登录后再收藏',
+          confirmText: '去登录',
+          success: (res) => {
+            if (res.confirm) {
+              uni.navigateTo({ url: '/pages/login/login' })
+            }
+          }
+        })
+        return
+      }
+      console.log('[match] 切换收藏, matchId:', item.id, '当前已收藏:', this.favMatchIds.includes(item.id))
       try {
-        await favoriteApi.toggleMatch(item.id)
-        if (this.favMatchIds.includes(item.id)) {
+        const result = await favoriteApi.toggleMatch(item.id)
+        console.log('[match] toggleMatch 返回:', result)
+        const isFav = result.isFavorited
+        if (isFav) {
+          if (!this.favMatchIds.includes(item.id)) {
+            this.favMatchIds.push(item.id)
+          }
+          uni.showToast({ title: '已收藏', icon: 'success' })
+        } else {
           this.favMatchIds = this.favMatchIds.filter(id => id !== item.id)
           uni.showToast({ title: '已取消收藏', icon: 'none' })
-        } else {
-          this.favMatchIds.push(item.id)
-          uni.showToast({ title: '已收藏', icon: 'success' })
         }
+        console.log('[match] 收藏列表更新为:', this.favMatchIds)
+        uni.$emit('favoritesChanged')
       } catch (e) {
         console.error('收藏操作失败', e)
-        uni.showToast({ title: '操作失败', icon: 'none' })
+        const errCode = e?.code || e?.data?.code
+        if (errCode === 401) {
+          uni.removeStorageSync('token')
+          uni.showModal({
+            title: '登录已过期',
+            content: '请重新登录',
+            confirmText: '去登录',
+            success: (res) => {
+              if (res.confirm) {
+                uni.navigateTo({ url: '/pages/login/login' })
+              }
+            }
+          })
+        } else {
+          uni.showToast({ title: e?.message || e?.data?.message || '操作失败', icon: 'none' })
+        }
       }
     },
     async loadHerbList() {
@@ -394,11 +388,11 @@ export default {
       }
     },
     async loadMatchDetail(id) {
-      try {
-        const detail = await matchApi.getMatchDetail(id)
-        this.showDetail(detail)
-      } catch (e) {
-        console.error('加载搭配详情失败', e)
+      this.goToMatchDetail(id)
+    },
+    goToMatchDetail(id) {
+      if (id) {
+        uni.navigateTo({ url: `/pages/match-detail/match-detail?id=${id}` })
       }
     },
     handleSearch() {
@@ -441,26 +435,7 @@ export default {
       }, 300)
     },
     showDetail(item) {
-      this.currentDetail = item
-      this.showDetailModal = true
-      // 列表项字段不全时按 id 拉取完整详情
-      if (item && item.id && (item.method == null && item.suitable == null && item.taboo == null)) {
-        this.fetchMatchDetail(item.id)
-      }
-    },
-    async fetchMatchDetail(id) {
-      try {
-        const detail = await matchApi.getMatchDetail(id)
-        if (detail) {
-          this.currentDetail = { ...this.currentDetail, ...detail }
-        }
-      } catch (e) {
-        console.error('加载搭配详情失败', e)
-      }
-    },
-    closeDetail() {
-      this.showDetailModal = false
-      this.currentDetail = null
+      this.goToMatchDetail(item.id)
     },
     // 搭配图片：优先用 item.image，兜底用关联药材的 cover_image_url
     getMatchImageUrl(item) {
@@ -509,8 +484,9 @@ export default {
 <style lang="css">
 .page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #F5F1E8;
   padding-bottom: 140rpx;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .container {
@@ -518,21 +494,24 @@ export default {
 }
 
 .card {
-  background: #fff;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .search-input-wrap {
   display: flex;
   align-items: center;
-  background: #f5f5f5;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 50rpx;
   padding: 0 24rpx;
   height: 80rpx;
   margin-bottom: 20rpx;
+  border: 1rpx solid #E5DFD4;
 }
 
 .search-icon {
@@ -543,7 +522,7 @@ export default {
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: #3D3D3D;
   background: transparent;
 }
 
@@ -560,11 +539,11 @@ export default {
 
 .quick-tag {
   padding: 10rpx 24rpx;
-  background: #f0f9f4;
-  color: #2d8b5e;
+  background: #F5F1E8;
+  color: #8CA082;
   border-radius: 40rpx;
   font-size: 24rpx;
-  border: 2rpx solid #c8e6d4;
+  border: 2rpx solid #D4CFC4;
   margin-right: 12rpx;
   margin-bottom: 12rpx;
   transition: all 0.2s;
@@ -572,32 +551,32 @@ export default {
 
 .quick-tag:active {
   transform: scale(0.95);
-  background: #2d8b5e;
+  background: #8CA082;
   color: #fff;
 }
 
 .herb-section .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 20rpx;
 }
 
 .herb-section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 20rpx;
 }
 
 .herb-search-wrap {
   display: flex;
   align-items: center;
-  background: #f5f7fa;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 40rpx;
   padding: 12rpx 24rpx;
   margin-bottom: 24rpx;
-  border: 1rpx solid #e5e7eb;
+  border: 1rpx solid #E5DFD4;
 }
 
 .herb-search-icon {
@@ -610,7 +589,7 @@ export default {
   flex: 1;
   height: 48rpx;
   font-size: 26rpx;
-  color: #333;
+  color: #3D3D3D;
   background: transparent;
 }
 
@@ -644,9 +623,9 @@ export default {
 }
 
 .herb-chip.active {
-  background: #e8f5ee;
-  color: #2d8b5e;
-  border-color: #2d8b5e;
+  background: #F5F1E8;
+  color: #8CA082;
+  border-color: #8CA082;
   font-weight: 500;
 }
 
@@ -670,7 +649,7 @@ export default {
 .result-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .result-count {
@@ -701,11 +680,39 @@ export default {
 .match-card {
   display: flex;
   align-items: center;
-  background: #fff;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+}
+
+.match-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.favorite-btn {
+  font-size: 40rpx;
+  padding: 4rpx;
+  transition: transform 0.2s;
+}
+
+.favorite-btn:active {
+  transform: scale(0.9);
+}
+
+.fav-icon {
+  color: #d1d5db;
+  transition: color 0.2s;
+}
+
+.fav-icon.favorited {
+  color: #ef4444;
 }
 
 .match-img {
@@ -724,13 +731,13 @@ export default {
 .match-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 8rpx;
 }
 
 .match-effect {
   font-size: 24rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-bottom: 12rpx;
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -775,7 +782,7 @@ export default {
 
 .empty-title {
   font-size: 30rpx;
-  color: #333;
+  color: #3D3D3D;
   margin-bottom: 8rpx;
   font-weight: 500;
 }
@@ -803,8 +810,8 @@ export default {
 .loading-spinner {
   width: 40rpx;
   height: 40rpx;
-  border: 4rpx solid #e8f5ee;
-  border-top-color: #2d8b5e;
+  border: 4rpx solid #E5DFD4;
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16rpx;
@@ -841,9 +848,9 @@ export default {
 }
 
 .pagination-btn.active {
-  background: #2d8b5e;
+  background: #8CA082;
   color: #fff;
-  border-color: #2d8b5e;
+  border-color: #8CA082;
   font-weight: 600;
 }
 
@@ -855,140 +862,5 @@ export default {
   color: #999;
   font-size: 28rpx;
   padding: 0 8rpx;
-}
-
-.detail-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: flex;
-  align-items: flex-end;
-}
-
-.detail-content {
-  width: 100%;
-  max-height: 85vh;
-  background: #fff;
-  border-radius: 32rpx 32rpx 0 0;
-  overflow: hidden;
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.detail-header {
-  position: relative;
-  height: 300rpx;
-  background: #2d8b5e;
-}
-
-.detail-img {
-  width: 100%;
-  height: 100%;
-}
-
-.detail-close {
-  position: absolute;
-  top: 24rpx;
-  right: 24rpx;
-  width: 60rpx;
-  height: 60rpx;
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40rpx;
-  line-height: 1;
-}
-
-.detail-body {
-  padding: 32rpx;
-  max-height: calc(85vh - 300rpx);
-  overflow-y: auto;
-}
-
-.detail-name {
-  font-size: 40rpx;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 32rpx;
-}
-
-.detail-section {
-  margin-bottom: 28rpx;
-}
-
-.detail-section:last-child {
-  margin-bottom: 0;
-}
-
-.detail-label {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #2d8b5e;
-  margin-bottom: 12rpx;
-  display: flex;
-  align-items: center;
-}
-
-.detail-label::before {
-  content: '';
-  width: 6rpx;
-  height: 24rpx;
-  background: #2d8b5e;
-  border-radius: 3rpx;
-  margin-right: 10rpx;
-}
-
-.caution-label {
-  color: #dc2626;
-}
-
-.caution-label::before {
-  background: #dc2626;
-}
-
-.detail-text {
-  font-size: 26rpx;
-  color: #555;
-  line-height: 1.8;
-  padding-left: 16rpx;
-}
-
-.detail-ingredients {
-  display: flex;
-  flex-wrap: wrap;
-  padding-left: 16rpx;
-}
-
-.ingredient-item {
-  padding: 8rpx 20rpx;
-  background: #e8f5ee;
-  color: #2d8b5e;
-  border-radius: 20rpx;
-  font-size: 24rpx;
-  margin-right: 12rpx;
-  margin-bottom: 12rpx;
-}
-
-.detail-method {
-  font-size: 26rpx;
-  color: #555;
-  line-height: 2;
-  padding-left: 16rpx;
-  white-space: pre-line;
 }
 </style>

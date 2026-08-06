@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="nav-bar">
       <view class="back" @click="goBack">
@@ -299,7 +299,8 @@ export default {
 <style>
 .page {
   min-height: 100vh;
-  background: #f0f9f4;
+  background: #F5F1E8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .nav-bar {
@@ -307,19 +308,23 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 60rpx 32rpx 24rpx;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
-  color: #FFFFFF;
-  box-shadow: 0 2rpx 8rpx rgba(45, 139, 94, 0.2);
+  background: rgba(245, 241, 232, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1rpx solid rgba(180, 170, 150, 0.25);
+  color: #3D3D3D;
+  box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
 }
 
 .nav-bar .back {
   width: 80rpx;
   font-size: 40rpx;
+  color: #3D3D3D;
 }
 
 .nav-bar .title {
   font-size: 36rpx;
   font-weight: 600;
+  letter-spacing: 2rpx;
 }
 
 .nav-bar .nav-right {
@@ -331,11 +336,13 @@ export default {
 }
 
 .config-card {
-  background: #FFFFFF;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+  border-radius: 16rpx;
   padding: 28rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(180, 170, 150, 0.08);
 }
 
 .card-head {
@@ -352,14 +359,15 @@ export default {
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #2d8b5e;
+  color: #3D3D3D;
   margin-bottom: 16rpx;
+  letter-spacing: 1rpx;
 }
 
 .refresh-btn {
   font-size: 24rpx;
-  color: #2d8b5e;
-  background: rgba(45, 139, 94, 0.1);
+  color: #8CA082;
+  background: rgba(140, 160, 130, 0.1);
   padding: 8rpx 24rpx;
   border-radius: 24rpx;
 }
@@ -368,8 +376,9 @@ export default {
   display: flex;
   align-items: center;
   padding: 24rpx;
-  background: #f8fafc;
-  border-radius: 16rpx;
+  background: rgba(245, 241, 232, 0.5);
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(180, 170, 150, 0.2);
 }
 
 .status-dot {
@@ -381,13 +390,13 @@ export default {
 }
 
 .status-dot.enabled {
-  background: #2d8b5e;
-  box-shadow: 0 0 0 6rpx rgba(45, 139, 94, 0.15);
+  background: #8CA082;
+  box-shadow: 0 0 0 6rpx rgba(140, 160, 130, 0.15);
 }
 
 .status-dot.disabled {
-  background: #F59E0B;
-  box-shadow: 0 0 0 6rpx rgba(245, 158, 11, 0.15);
+  background: #D4A574;
+  box-shadow: 0 0 0 6rpx rgba(212, 165, 116, 0.15);
 }
 
 .status-info {
@@ -401,7 +410,7 @@ export default {
 
 .status-detail {
   font-size: 24rpx;
-  color: #999;
+  color: #8B8680;
   margin-top: 4rpx;
 }
 
@@ -412,9 +421,10 @@ export default {
 }
 
 .preset-item {
-  background: #f8fafc;
-  border-radius: 14rpx;
+  background: rgba(245, 241, 232, 0.5);
+  border-radius: 12rpx;
   overflow: hidden;
+  border: 1rpx solid rgba(180, 170, 150, 0.15);
 }
 
 .preset-header {
@@ -431,18 +441,18 @@ export default {
 .preset-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .preset-desc {
   font-size: 24rpx;
-  color: #999;
+  color: #8B8680;
   margin-top: 4rpx;
 }
 
 .preset-arrow {
   font-size: 22rpx;
-  color: #999;
+  color: #8B8680;
 }
 
 .preset-expand {
@@ -461,8 +471,8 @@ export default {
   flex: 1;
   text-align: center;
   padding: 18rpx 0;
-  background: #f1f5f9;
-  color: #666;
+  background: rgba(180, 170, 150, 0.1);
+  color: #8B8680;
   border-radius: 9999rpx;
   font-size: 28rpx;
 }
@@ -487,7 +497,7 @@ export default {
 .form-label {
   font-size: 26rpx;
   font-weight: 500;
-  color: #334155;
+  color: #3D3D3D;
   margin-bottom: 4rpx;
 }
 
@@ -496,17 +506,23 @@ export default {
   min-height: 96rpx;
   height: 96rpx;
   padding: 24rpx 28rpx;
-  background: #f8fafc;
-  border: 1rpx solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1rpx solid #E5DFD4;
   border-radius: 12rpx;
   font-size: 30rpx;
   line-height: 96rpx;
   box-sizing: border-box;
+  color: #3D3D3D;
+}
+
+.form-input:focus {
+  border-color: #8CA082;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .primary-btn {
   width: 100%;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #A8B89E);
   color: #FFFFFF;
   border: none;
   border-radius: 9999rpx;
@@ -515,6 +531,7 @@ export default {
   padding: 22rpx 0;
   margin-top: 8rpx;
   line-height: 1.4;
+  letter-spacing: 2rpx;
 }
 
 .primary-btn::after {
@@ -536,14 +553,14 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 24rpx;
-  background: #f8fafc;
-  border-radius: 14rpx;
-  border: 1rpx solid #e2e8f0;
+  background: rgba(245, 241, 232, 0.5);
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(180, 170, 150, 0.2);
 }
 
 .provider-item.active {
-  border-color: #2d8b5e;
-  background: rgba(45, 139, 94, 0.05);
+  border-color: #8CA082;
+  background: rgba(140, 160, 130, 0.08);
 }
 
 .provider-info {
@@ -553,15 +570,15 @@ export default {
 .provider-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .active-tag {
   display: inline-block;
   margin-left: 12rpx;
   font-size: 20rpx;
-  color: #2d8b5e;
-  background: rgba(45, 139, 94, 0.1);
+  color: #8CA082;
+  background: rgba(140, 160, 130, 0.1);
   padding: 2rpx 14rpx;
   border-radius: 20rpx;
   font-weight: 500;
@@ -569,7 +586,7 @@ export default {
 
 .provider-meta {
   font-size: 22rpx;
-  color: #999;
+  color: #8B8680;
   margin-top: 4rpx;
 }
 
@@ -582,16 +599,16 @@ export default {
 .provider-action {
   padding: 8rpx 24rpx;
   background: #FFFFFF;
-  color: #2d8b5e;
-  border: 1rpx solid #2d8b5e;
+  color: #8CA082;
+  border: 1rpx solid #8CA082;
   border-radius: 24rpx;
   font-size: 24rpx;
 }
 
 .provider-del {
   padding: 8rpx 24rpx;
-  background: rgba(220, 38, 38, 0.08);
-  color: #dc2626;
+  background: rgba(181, 83, 74, 0.08);
+  color: #B5534A;
   border-radius: 24rpx;
   font-size: 24rpx;
 }
@@ -599,7 +616,7 @@ export default {
 .empty-tip {
   text-align: center;
   font-size: 24rpx;
-  color: #999;
+  color: #8B8680;
   padding: 20rpx 0;
 }
 

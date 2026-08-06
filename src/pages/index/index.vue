@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="banner">
       <view class="banner-content">
@@ -302,10 +302,16 @@ export default {
         const data = await checkinApi.checkin(herbId)
         if (data && data.alreadyChecked) {
           uni.showToast({ title: '今日已打卡', icon: 'none' })
+          this.dailyHerbChecked = true
         } else {
           uni.showToast({ title: '打卡成功！', icon: 'success' })
+          this.dailyHerbChecked = true
+          setTimeout(() => {
+            if (herbId) {
+              this.goToDetail(herbId)
+            }
+          }, 800)
         }
-        this.dailyHerbChecked = true
       } catch (e) {
         console.error('打卡失败', e)
       }
@@ -370,15 +376,44 @@ export default {
 </script>
 
 <style lang="scss">
-.page {
-  min-height: 100vh;
-  background: #f5f7fa;
-  padding-bottom: 70px;
+/* =========================================
+   极简文人风 - 首页样式
+   调性：留白意境、温润米色、墨色文字、竹青点缀
+   ========================================= */
+
+/* 全局字体 - 使用系统楷体/宋体，无需额外引入 */
+page {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", sans-serif;
 }
 
+.page {
+  min-height: 100vh;
+  background: #F5F1E8; /* 宣纸白 */
+  padding-bottom: 70px;
+  position: relative;
+}
+
+/* 背景装饰 - 淡雅水墨 */
+.page::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 20% 10%, rgba(140, 160, 130, 0.06) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 80%, rgba(180, 160, 120, 0.05) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* =========================================
+   顶部 Banner - 极简留白
+   ========================================= */
 .banner {
-  background: linear-gradient(135deg, #2d8b5e 0%, #3da878 50%, #5bc494 100%);
-  padding: 60rpx 40rpx 80rpx;
+  background: transparent; /* 移除彩色渐变 */
+  padding: 80rpx 40rpx 60rpx;
   position: relative;
   overflow: hidden;
 }
@@ -389,236 +424,51 @@ export default {
 }
 
 .banner-title {
-  font-size: 52rpx;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  font-size: 68rpx;
   font-weight: 700;
-  color: #fff;
-  margin-bottom: 12rpx;
-  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  color: #3D3D3D; /* 墨黑 */
+  margin-bottom: 16rpx;
+  letter-spacing: 20rpx;
+  text-indent: 20rpx;
+  line-height: 1.2;
 }
 
 .banner-subtitle {
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.9);
+  color: #8B8680; /* 淡墨灰 */
+  letter-spacing: 6rpx;
+  font-weight: 300;
 }
 
+/* 右上装饰 - 朱砂小印 */
 .banner-decoration {
   position: absolute;
-  right: -40rpx;
-  top: -40rpx;
-  width: 200rpx;
-  height: 200rpx;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
+  right: 40rpx;
+  top: 80rpx;
+  width: 48rpx;
+  height: 48rpx;
+  background: #B5534A; /* 朱砂红 */
+  border-radius: 6rpx;
+  opacity: 0.85;
+  transform: rotate(-5deg);
+  box-shadow: 0 2rpx 8rpx rgba(181, 83, 74, 0.3);
 }
 
-.container {
-  padding: 24rpx;
-  margin-top: -40rpx;
-  position: relative;
-  z-index: 10;
-}
-
-.card {
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 32rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
-}
-
-.section-title {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #2d8b5e;
-  margin-bottom: 24rpx;
-  display: flex;
-  align-items: center;
-}
-
-.section-title::before {
-  content: '';
-  width: 8rpx;
-  height: 32rpx;
-  background: linear-gradient(180deg, #2d8b5e, #3da878);
-  border-radius: 4rpx;
-  margin-right: 16rpx;
-}
-
-.action-btns {
-  display: flex;
-  justify-content: space-around;
-  padding: 20rpx 0;
-}
-
-.action-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.action-icon {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 44rpx;
-  margin-bottom: 16rpx;
-}
-
-.camera-icon {
-  background: linear-gradient(135deg, #e8f5ee, #d4efdf);
-}
-
-.album-icon {
-  background: linear-gradient(135deg, #e8f0f5, #d4e5ef);
-}
-
-.quiz-icon {
-  background: linear-gradient(135deg, #f5eee8, #efe5d4);
-}
-
-.action-text {
-  font-size: 26rpx;
-  color: #333;
-}
-
-.daily-quiz {
-  background: linear-gradient(135deg, #fff 0%, #f8fdfb 100%);
-  border: 2rpx solid #e8f5ee;
-  cursor: pointer;
-}
-
-.quiz-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16rpx;
-}
-
-.quiz-tag {
-  font-size: 22rpx;
-  color: #f59e0b;
-  background: #fef3c7;
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;
-}
-
-.quiz-question {
-  font-size: 30rpx;
-  color: #333;
-  line-height: 1.6;
-  margin-bottom: 24rpx;
-  font-weight: 500;
-}
-
-.quiz-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16rpx;
-  border-top: 1rpx solid #eee;
-}
-
-.quiz-category {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.quiz-go {
-  font-size: 26rpx;
-  color: #2d8b5e;
-  font-weight: 500;
-}
-
-.herb-showcase {
-  .herb-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-  
-  .herb-item {
-    width: 31%;
-    margin-bottom: 20rpx;
-    border-radius: 12rpx;
-    overflow: hidden;
-    background: #f9f9f9;
-  }
-  
-  .herb-img {
-    width: 100%;
-    height: 160rpx;
-  }
-  
-  .herb-info {
-    padding: 12rpx 8rpx;
-    text-align: center;
-  }
-  
-  .herb-name {
-    font-size: 26rpx;
-    color: #333;
-    font-weight: 500;
-    margin-bottom: 4rpx;
-  }
-  
-  .herb-category {
-    font-size: 20rpx;
-    color: #999;
-  }
-}
-
-.feature-list {
-  .feature-item {
-    display: flex;
-    align-items: center;
-    padding: 20rpx 0;
-    border-bottom: 1rpx solid #f5f5f5;
-    
-    &:last-child {
-      border-bottom: none;
-    }
-  }
-  
-  .feature-icon {
-    width: 80rpx;
-    height: 80rpx;
-    border-radius: 16rpx;
-    background: #f0f9f4;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36rpx;
-    margin-right: 24rpx;
-  }
-  
-  .feature-text {
-    flex: 1;
-  }
-  
-  .feature-title {
-    font-size: 30rpx;
-    color: #333;
-    font-weight: 500;
-    margin-bottom: 6rpx;
-  }
-  
-  .feature-desc {
-    font-size: 24rpx;
-    color: #999;
-  }
-}
-
-/* LLM 状态条 */
+/* =========================================
+   LLM 状态条
+   ========================================= */
 .llm-status-bar {
   display: flex;
   align-items: center;
-  padding: 20rpx 32rpx;
-  margin: 24rpx;
-  border-radius: 24rpx;
+  padding: 18rpx 32rpx;
+  margin: 0 32rpx 32rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid #E5DFD4;
+  background: rgba(255, 255, 255, 0.5);
   transition: all 0.2s;
+  position: relative;
+  z-index: 2;
 }
 
 .llm-status-bar:active {
@@ -626,85 +476,261 @@ export default {
 }
 
 .llm-status-bar.enabled {
-  background: linear-gradient(135deg, rgba(45, 139, 94, 0.08), rgba(45, 139, 94, 0.15));
-  border: 2rpx solid rgba(45, 139, 94, 0.3);
+  background: rgba(140, 160, 130, 0.08);
+  border-color: #C8D0C8;
 }
 
 .llm-status-bar.disabled {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.15));
-  border: 2rpx solid rgba(245, 158, 11, 0.3);
+  background: rgba(200, 170, 130, 0.08);
+  border-color: #D5CDBE;
 }
 
 .llm-status-dot {
-  width: 20rpx;
-  height: 20rpx;
+  width: 14rpx;
+  height: 14rpx;
   border-radius: 50%;
-  margin-right: 20rpx;
+  margin-right: 16rpx;
   flex-shrink: 0;
 }
 
 .llm-status-dot.enabled {
-  background: #2d8b5e;
-  box-shadow: 0 0 12rpx rgba(45, 139, 94, 0.5);
+  background: #8CA082; /* 竹青绿 */
 }
 
 .llm-status-dot.disabled {
-  background: #f59e0b;
-  box-shadow: 0 0 12rpx rgba(245, 158, 11, 0.5);
+  background: #C8A878; /* 赭石 */
 }
 
 .llm-status-text {
   flex: 1;
-  font-size: 26rpx;
-  font-weight: 500;
+  font-size: 24rpx;
+  font-weight: 400;
+  letter-spacing: 1rpx;
 }
 
 .llm-status-text.enabled {
-  color: #2d8b5e;
+  color: #5A6B54;
 }
 
 .llm-status-text.disabled {
-  color: #f59e0b;
+  color: #9A8A72;
 }
 
 .llm-status-arrow {
-  font-size: 32rpx;
-  margin-left: 16rpx;
+  font-size: 28rpx;
+  margin-left: 12rpx;
 }
 
 .llm-status-arrow.enabled {
-  color: #2d8b5e;
+  color: #8CA082;
 }
 
 .llm-status-arrow.disabled {
-  color: #f59e0b;
+  color: #C8A878;
 }
 
-/* 今日药材卡片 */
+/* =========================================
+   内容区容器
+   ========================================= */
+.container {
+  padding: 0 32rpx;
+  position: relative;
+  z-index: 10;
+}
+
+/* =========================================
+   卡片基础样式 - 极简半透明
+   ========================================= */
+.card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 16rpx;
+  padding: 36rpx 32rpx;
+  margin-bottom: 32rpx;
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
+  box-shadow: 
+    0 2rpx 12rpx rgba(180, 170, 150, 0.08),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+}
+
+.card:active {
+  transform: scale(0.99);
+}
+
+/* 极简卡片 - 无边框版本 */
+.card.plain {
+  background: rgba(255, 255, 255, 0.4);
+  border: 1rpx dashed rgba(180, 170, 150, 0.3);
+  box-shadow: none;
+}
+
+/* =========================================
+   标题样式 - 竖线装饰
+   ========================================= */
+.section-title {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #3D3D3D;
+  margin-bottom: 28rpx;
+  display: flex;
+  align-items: center;
+  letter-spacing: 4rpx;
+}
+
+.section-title::before {
+  content: '';
+  width: 4rpx;
+  height: 32rpx;
+  background: linear-gradient(180deg, #8CA082 0%, transparent 100%);
+  margin-right: 16rpx;
+}
+
+/* =========================================
+   快速识别 - 极简图标按钮
+   ========================================= */
+.quick-actions.card {
+  padding: 32rpx 24rpx;
+}
+
+.action-btns {
+  display: flex;
+  justify-content: space-around;
+  padding: 8rpx 0 4rpx;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  border-radius: 12rpx;
+  transition: all 0.2s;
+}
+
+.action-btn:active {
+  background: rgba(180, 170, 150, 0.08);
+}
+
+.action-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-bottom: 16rpx;
+  background: transparent;
+  border: 1rpx solid #E0D8C8;
+}
+
+.camera-icon {
+  background: linear-gradient(135deg, #F5F2EC, #E8E2D5);
+  border: none;
+}
+
+.album-icon {
+  background: linear-gradient(135deg, #F0F2EE, #E2E6DF);
+  border: none;
+}
+
+.quiz-icon {
+  background: linear-gradient(135deg, #F2EFE8, #E8E2D0);
+  border: none;
+}
+
+.action-text {
+  font-size: 26rpx;
+  color: #5A6B54; /* 竹青 */
+  font-weight: 400;
+  letter-spacing: 2rpx;
+}
+
+/* =========================================
+   今日答题
+   ========================================= */
+.daily-quiz {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1rpx solid #E5DFD4;
+}
+
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.quiz-tag {
+  font-size: 20rpx;
+  color: #B5534A;
+  background: rgba(181, 83, 74, 0.08);
+  padding: 6rpx 20rpx;
+  border-radius: 8rpx;
+  font-weight: 400;
+  letter-spacing: 1rpx;
+}
+
+.quiz-question {
+  font-size: 30rpx;
+  color: #3D3D3D;
+  line-height: 1.7;
+  margin-bottom: 28rpx;
+  font-weight: 400;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+}
+
+.quiz-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20rpx;
+  border-top: 1rpx dashed #D0C8B8;
+}
+
+.quiz-category {
+  font-size: 24rpx;
+  color: #8B8680;
+  letter-spacing: 1rpx;
+}
+
+.quiz-go {
+  font-size: 26rpx;
+  color: #8CA082;
+  font-weight: 500;
+  letter-spacing: 2rpx;
+}
+
+/* =========================================
+   今日药材 - 重点卡片
+   ========================================= */
 .daily-herb {
-  background: linear-gradient(135deg, #f0f9f4 0%, rgba(45, 139, 94, 0.08) 100%);
-  border: 2rpx solid rgba(45, 139, 94, 0.2);
-  cursor: pointer;
+  background: 
+    linear-gradient(135deg, rgba(245, 242, 232, 0.9) 0%, rgba(232, 230, 220, 0.9) 100%);
+  border: 1rpx solid #D8D0C0;
 }
 
 .daily-herb-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24rpx;
+  margin-bottom: 28rpx;
 }
 
 .daily-herb-status {
   font-size: 22rpx;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.1);
+  color: #B5534A;
+  background: rgba(181, 83, 74, 0.08);
   padding: 6rpx 24rpx;
-  border-radius: 20rpx;
+  border-radius: 8rpx;
+  letter-spacing: 1rpx;
 }
 
 .daily-herb-status.checked {
-  color: #2d8b5e;
-  background: rgba(45, 139, 94, 0.12);
+  color: #8CA082;
+  background: rgba(140, 160, 130, 0.1);
 }
 
 .daily-herb-content {
@@ -713,12 +739,13 @@ export default {
 }
 
 .daily-herb-img {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 24rpx;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 12rpx;
   margin-right: 28rpx;
-  background: #f0f9f4;
+  background: #EDE8DC;
   flex-shrink: 0;
+  border: 1rpx solid #D8D0C0;
 }
 
 .daily-herb-info {
@@ -726,21 +753,25 @@ export default {
 }
 
 .daily-herb-name {
-  font-size: 34rpx;
-  font-weight: 700;
-  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #3D3D3D;
+  letter-spacing: 6rpx;
+  text-indent: 6rpx;
 }
 
 .daily-herb-effect {
   font-size: 26rpx;
-  color: #2d8b5e;
+  color: #8CA082;
   margin-top: 12rpx;
+  letter-spacing: 2rpx;
 }
 
 .daily-herb-loading {
   font-size: 28rpx;
-  color: #999;
-  padding: 40rpx 0;
+  color: #B0A898;
+  padding: 48rpx 0;
   text-align: center;
   width: 100%;
 }
@@ -750,23 +781,33 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding-top: 24rpx;
-  margin-top: 24rpx;
-  border-top: 2rpx dashed rgba(45, 139, 94, 0.2);
+  margin-top: 28rpx;
+  border-top: 1rpx dashed #D0C8B8;
 }
 
 .daily-herb-tip {
   font-size: 24rpx;
-  color: #999;
+  color: #8B8680;
+  letter-spacing: 1rpx;
 }
 
 .checkin-btn {
-  padding: 14rpx 40rpx;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  padding: 16rpx 48rpx;
+  background: linear-gradient(135deg, #8CA082 0%, #6B8A6A 100%);
   color: #fff;
   border: none;
-  border-radius: 60rpx;
+  border-radius: 32rpx;
   font-size: 26rpx;
+  font-weight: 600;
   line-height: 1.4;
+  letter-spacing: 4rpx;
+  box-shadow: 0 4rpx 16rpx rgba(140, 160, 130, 0.35);
+  transition: all 0.2s ease;
+}
+
+.checkin-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 2rpx 8rpx rgba(140, 160, 130, 0.25);
 }
 
 .checkin-btn::after {
@@ -774,165 +815,23 @@ export default {
 }
 
 .checkin-btn.checked {
-  background: #cccccc;
-  color: #fff;
+  background: linear-gradient(135deg, #B0A898 0%, #A09888 100%);
+  box-shadow: none;
+  letter-spacing: 2rpx;
 }
 
-/* 经方问诊卡片 */
-.consult-card {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0.15) 100%);
-  border: 2rpx solid rgba(168, 85, 247, 0.2);
-  cursor: pointer;
-}
-
-.consult-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24rpx;
-}
-
-.consult-tag {
-  font-size: 22rpx;
-  color: #a855f7;
-  background: rgba(168, 85, 247, 0.1);
-  padding: 6rpx 24rpx;
-  border-radius: 20rpx;
-}
-
-.consult-content {
-  display: flex;
-  align-items: center;
-}
-
-.consult-icon {
-  width: 120rpx;
-  height: 120rpx;
-  background: rgba(168, 85, 247, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 56rpx;
-  margin-right: 28rpx;
-  flex-shrink: 0;
-}
-
-.consult-info {
-  flex: 1;
-}
-
-.consult-name {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.consult-desc {
-  font-size: 24rpx;
-  color: #a855f7;
-  margin-top: 8rpx;
-}
-
-.consult-arrow {
-  font-size: 40rpx;
-  color: #a855f7;
-}
-
-.consult-note {
-  font-size: 24rpx;
-  color: #666;
-  margin-top: 24rpx;
-  line-height: 1.6;
-}
-
-/* 体质测评卡片 */
-.constitution-card {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.15) 100%);
-  border: 2rpx solid rgba(245, 158, 11, 0.2);
-}
-
-.constitution-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24rpx;
-}
-
-.constitution-tag {
-  font-size: 22rpx;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.1);
-  padding: 6rpx 24rpx;
-  border-radius: 20rpx;
-}
-
-.constitution-content {
-  display: flex;
-  align-items: center;
-}
-
-.constitution-icon {
-  width: 120rpx;
-  height: 120rpx;
-  background: rgba(245, 158, 11, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 56rpx;
-  margin-right: 28rpx;
-  flex-shrink: 0;
-}
-
-.constitution-info {
-  flex: 1;
-}
-
-.constitution-name {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.constitution-desc {
-  font-size: 24rpx;
-  color: #f59e0b;
-  margin-top: 8rpx;
-}
-
-.constitution-arrow {
-  font-size: 40rpx;
-  color: #f59e0b;
-}
-
-.constitution-btns {
-  display: flex;
-  gap: 16rpx;
-  margin-top: 24rpx;
-}
-
-.constitution-btn {
-  flex: 1;
-  padding: 16rpx;
-  background: rgba(255, 255, 255, 0.7);
-  border: none;
-  border-radius: 16rpx;
-  font-size: 24rpx;
-  color: #f59e0b;
-  line-height: 1.4;
-}
-
-.constitution-btn::after {
-  border: none;
-}
-
-/* 真伪鉴别入口卡片 */
+/* =========================================
+   经方问诊 / 体质测评 / 真伪鉴别
+   ========================================= */
+.consult-card,
+.constitution-card,
 .auth-entry-card {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0.15) 100%);
-  border: 2rpx solid rgba(168, 85, 247, 0.2);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1rpx solid #E5DFD4;
 }
 
+.consult-header,
+.constitution-header,
 .auth-entry-header {
   display: flex;
   justify-content: space-between;
@@ -940,57 +839,239 @@ export default {
   margin-bottom: 24rpx;
 }
 
+.consult-tag,
+.constitution-tag,
 .auth-entry-tag {
   font-size: 22rpx;
-  color: #9333ea;
-  background: rgba(168, 85, 247, 0.1);
-  padding: 6rpx 24rpx;
-  border-radius: 20rpx;
+  background: rgba(180, 170, 150, 0.1);
+  padding: 6rpx 20rpx;
+  border-radius: 8rpx;
+  letter-spacing: 1rpx;
 }
 
+.consult-tag {
+  color: #8B7D9B;
+  background: rgba(139, 125, 155, 0.08);
+}
+
+.constitution-tag {
+  color: #B08860;
+  background: rgba(176, 136, 96, 0.08);
+}
+
+.auth-entry-tag {
+  color: #B5534A;
+  background: rgba(181, 83, 74, 0.08);
+}
+
+.consult-content,
+.constitution-content,
 .auth-entry-content {
   display: flex;
   align-items: center;
 }
 
+.consult-icon,
+.constitution-icon,
 .auth-entry-icon {
-  width: 120rpx;
-  height: 120rpx;
-  background: rgba(168, 85, 247, 0.1);
-  border-radius: 50%;
+  width: 100rpx;
+  height: 100rpx;
+  background: #F0EDE4;
+  border-radius: 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 56rpx;
+  font-size: 48rpx;
   margin-right: 28rpx;
   flex-shrink: 0;
+  border: 1rpx solid #E0D8C8;
 }
 
+.consult-info,
+.constitution-info,
 .auth-entry-info {
   flex: 1;
 }
 
+.consult-name,
+.constitution-name,
 .auth-entry-name {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
+  letter-spacing: 4rpx;
 }
 
+.consult-desc,
+.constitution-desc,
 .auth-entry-desc {
   font-size: 24rpx;
-  color: #9333ea;
-  margin-top: 8rpx;
+  margin-top: 10rpx;
+  letter-spacing: 1rpx;
 }
 
+.consult-desc { color: #8B7D9B; }
+.constitution-desc { color: #B08860; }
+.auth-entry-desc { color: #B5534A; }
+
+.consult-arrow,
+.constitution-arrow,
 .auth-entry-arrow {
-  font-size: 40rpx;
-  color: #9333ea;
+  font-size: 36rpx;
+  color: #C8C0B0;
 }
 
+.consult-note,
 .auth-entry-note {
   font-size: 24rpx;
-  color: #999;
+  color: #8B8680;
   margin-top: 20rpx;
-  line-height: 1.5;
+  line-height: 1.7;
+  letter-spacing: 1rpx;
+}
+
+/* 体质测评按钮 */
+.constitution-btns {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 28rpx;
+}
+
+.constitution-btn {
+  flex: 1;
+  padding: 18rpx;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1rpx solid #D8D0C0;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #5A6B54;
+  line-height: 1.4;
+  letter-spacing: 1rpx;
+}
+
+.constitution-btn::after {
+  border: none;
+}
+
+/* =========================================
+   药材图鉴
+   ========================================= */
+.herb-showcase {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 8rpx 0;
+}
+
+.herb-showcase .section-title {
+  padding-left: 16rpx;
+}
+
+.herb-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.herb-item {
+  width: 31%;
+  margin-bottom: 20rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1rpx solid #E5DFD4;
+  transition: all 0.2s;
+}
+
+.herb-item:active {
+  transform: scale(0.97);
+}
+
+.herb-img {
+  width: 100%;
+  height: 160rpx;
+}
+
+.herb-info {
+  padding: 16rpx 12rpx;
+  text-align: center;
+}
+
+.herb-name {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  font-size: 26rpx;
+  color: #3D3D3D;
+  font-weight: 500;
+  margin-bottom: 6rpx;
+  letter-spacing: 2rpx;
+}
+
+.herb-category {
+  font-size: 20rpx;
+  color: #A8A090;
+  letter-spacing: 1rpx;
+}
+
+/* =========================================
+   核心功能列表
+   ========================================= */
+.features {
+  background: rgba(255, 255, 255, 0.4);
+  border: 1rpx dashed #E5DFD4;
+  box-shadow: none;
+}
+
+.feature-list {
+  .feature-item {
+    display: flex;
+    align-items: center;
+    padding: 28rpx 0;
+    border-bottom: 1rpx dashed #E5DFD4;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+  
+  .feature-icon {
+    width: 72rpx;
+    height: 72rpx;
+    border-radius: 8rpx;
+    background: #F5F2EC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32rpx;
+    margin-right: 28rpx;
+    border: 1rpx solid #E5DFD4;
+  }
+  
+  .feature-text {
+    flex: 1;
+  }
+  
+  .feature-title {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    font-size: 28rpx;
+    color: #3D3D3D;
+    font-weight: 500;
+    margin-bottom: 8rpx;
+    letter-spacing: 2rpx;
+  }
+  
+  .feature-desc {
+    font-size: 24rpx;
+    color: #8B8680;
+    letter-spacing: 1rpx;
+  }
+}
+
+/* =========================================
+   底部安全区域
+   ========================================= */
+.safe-area-bottom {
+  height: constant(safe-area-inset-bottom);
+  height: env(safe-area-inset-bottom);
 }
 </style>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="page">
     <view class="nav-bar">
       <view class="back" @click="goBack">
@@ -247,7 +247,8 @@ export default {
 <style>
 .page {
   min-height: 100vh;
-  background: #f0f9f4;
+  background: #F5F1E8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
 }
 
 .nav-bar {
@@ -255,9 +256,11 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 60rpx 32rpx 24rpx;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
-  color: #FFFFFF;
-  box-shadow: 0 2rpx 8rpx rgba(45, 139, 94, 0.2);
+  background: rgba(245, 241, 232, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1rpx solid rgba(180, 170, 150, 0.25);
+  color: #3D3D3D;
+  box-shadow: 0 2rpx 8rpx rgba(180, 170, 150, 0.12);
 }
 
 .nav-bar .back {
@@ -286,17 +289,18 @@ export default {
 
 .stats-card {
   flex: 1;
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 16rpx;
   padding: 24rpx 12rpx;
   text-align: center;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-  border: 2rpx solid transparent;
+  box-shadow: 0 2rpx 8rpx rgba(180, 170, 150, 0.06);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .stats-card.active {
-  border-color: #2d8b5e;
-  background: rgba(45, 139, 94, 0.06);
+  border-color: #8CA082;
+  background: rgba(140, 160, 130, 0.06);
 }
 
 .stats-num {
@@ -310,7 +314,7 @@ export default {
 }
 
 .stats-num.approved {
-  color: #2d8b5e;
+  color: #8CA082;
 }
 
 .stats-num.rejected {
@@ -324,11 +328,13 @@ export default {
 
 .tab-bar {
   display: flex;
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 16rpx;
   padding: 8rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 8rpx rgba(180, 170, 150, 0.06);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .tab-item {
@@ -342,7 +348,7 @@ export default {
 
 .tab-item.active {
   color: #FFFFFF;
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #a3b899);
   font-weight: 600;
 }
 
@@ -353,10 +359,12 @@ export default {
 }
 
 .review-card {
-  background: #FFFFFF;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16rpx;
   padding: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 8rpx rgba(180, 170, 150, 0.06);
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .card-top {
@@ -411,13 +419,13 @@ export default {
 .feedback-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #2d8b5e;
+  color: #8CA082;
 }
 
 .ai-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
 }
 
 .ai-accuracy {
@@ -425,7 +433,7 @@ export default {
   color: #F59E0B;
   background: rgba(245, 158, 11, 0.1);
   padding: 4rpx 16rpx;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
 }
 
 .meta-text {
@@ -438,7 +446,7 @@ export default {
   gap: 20rpx;
   margin-top: 24rpx;
   padding-top: 20rpx;
-  border-top: 1rpx solid #f0f9f4;
+  border-top: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .action-btn {
@@ -451,7 +459,7 @@ export default {
 }
 
 .approve-btn {
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #a3b899);
   color: #FFFFFF;
 }
 
@@ -464,7 +472,7 @@ export default {
 .card-footer {
   margin-top: 20rpx;
   padding-top: 20rpx;
-  border-top: 1rpx solid #f0f9f4;
+  border-top: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .review-time {
@@ -503,8 +511,8 @@ export default {
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid rgba(45, 139, 94, 0.2);
-  border-top-color: #2d8b5e;
+  border: 4rpx solid rgba(140, 160, 130, 0.2);
+  border-top-color: #8CA082;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16rpx;
@@ -531,15 +539,17 @@ export default {
 
 .modal-card {
   width: 600rpx;
-  background: #FFFFFF;
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16rpx;
   padding: 36rpx 32rpx;
+  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(180, 170, 150, 0.25);
 }
 
 .modal-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: #3D3D3D;
   text-align: center;
   margin-bottom: 12rpx;
 }
@@ -555,8 +565,8 @@ export default {
   width: 100%;
   min-height: 160rpx;
   padding: 20rpx 24rpx;
-  background: #f8fafc;
-  border: 1rpx solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1rpx solid #E5DFD4;
   border-radius: 12rpx;
   font-size: 28rpx;
   box-sizing: border-box;
@@ -583,7 +593,7 @@ export default {
 }
 
 .modal-btn.confirm-approve {
-  background: linear-gradient(135deg, #2d8b5e, #3da878);
+  background: linear-gradient(135deg, #8CA082, #a3b899);
   color: #FFFFFF;
 }
 
